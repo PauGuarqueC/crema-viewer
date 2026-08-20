@@ -944,6 +944,7 @@ const COMPARISON_MODELS = [
   { id: 'gfs_seamless', label: 'GFS', color: '#2e7d46' },
   { id: 'arome_france', label: 'AROME France', color: '#b8860b' },
 ];
+const PRECIP_AXIS_MAX_MM = 20; // escala fixa del grafic de precipitacio (mm/h)
 
 async function loadModelsForecast(latlon){
   const [lat, lon] = latlon;
@@ -1041,7 +1042,7 @@ const precipAxisLabelPlugin = {
     ctx.font = "9px 'Roboto', sans-serif";
     ctx.fillStyle = 'rgba(47,102,144,0.85)';
     ctx.textAlign = 'right';
-    const values = [0, scale.max / 4, scale.max / 2];
+    const values = [0, PRECIP_AXIS_MAX_MM / 2, PRECIP_AXIS_MAX_MM];
     for(const v of values){
       const y = scale.getPixelForValue(v);
       ctx.fillText(`${v.toFixed(v < 1 ? 1 : 0)}mm`, right - 3, y - 2);
@@ -1144,13 +1145,14 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
   let hasPrecip = false;
   if(precipValues){
     hasPrecip = true;
-    const maxPrecip = Math.max(1, ...precipValues.filter(v => v !== null && !isNaN(v)));
+    // Escala FIXA (no depenent de les dades) perque es pugui comparar d'un cop
+    // d'ull entre diferents plans/punts si ha plogut molt o poc.
     datasets.push({
       type: 'bar', label: 'Precipitació', data: precipValues,
       backgroundColor: 'rgba(47,102,144,0.45)', yAxisID: 'yPrecip', order: 50, barPercentage: 1, categoryPercentage: 1,
     });
     scales.yPrecip = {
-      position: 'right', min: 0, max: maxPrecip * 4, display: false,
+      position: 'right', min: 0, max: PRECIP_AXIS_MAX_MM * 4, display: false,
     };
   }
 
