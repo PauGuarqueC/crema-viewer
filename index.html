@@ -2,7 +2,7 @@
 <html lang="ca">
 <head>
 <meta charset="UTF-8">
-<title>Finestra de Crema — CTFC</title>
+<title>Finestra de Crema — GRAF</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -444,8 +444,8 @@ const LayersControl = L.Control.extend({
     container.innerHTML =
       '<button class="layers-toggle-btn" id="layers-toggle-btn">Capes ▾</button>' +
       '<div class="layers-dropdown" id="layers-dropdown" style="display:none;">' +
-        '<label><input type="checkbox" id="layer-planificades"> Cremes planificades</label>' +
-        '<label><input type="checkbox" id="layer-executades"> Cremes executades</label>' +
+        '<label><input type="checkbox" id="layer-planificades" checked> Cremes planificades</label>' +
+        '<label><input type="checkbox" id="layer-executades" checked> Cremes executades</label>' +
         '<div id="layers-status"></div>' +
       '</div>';
     L.DomEvent.disableClickPropagation(container);
@@ -460,6 +460,10 @@ document.getElementById('layers-toggle-btn').addEventListener('click', () => {
 });
 document.getElementById('layer-planificades').addEventListener('change', (e) => toggleLayer('planificades', e.target.checked));
 document.getElementById('layer-executades').addEventListener('change', (e) => toggleLayer('executades', e.target.checked));
+
+// Carrega les dues capes visibles per defecte en obrir la pàgina
+toggleLayer('planificades', true);
+toggleLayer('executades', true);
 
 async function loadObs(){
   const res = await fetch(OBS_JSON_URL);
