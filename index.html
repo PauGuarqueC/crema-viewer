@@ -32,7 +32,7 @@
   header h1 span { color: var(--red); }
   header .sub { font-size: 12.5px; color: var(--text-dim); }
 
-  #app { flex: 1; display: grid; grid-template-columns: minmax(0,1fr) 420px; min-height: 0; }
+  #app { flex: 1; display: grid; grid-template-columns: 1fr 1fr; min-height: 0; }
   #map { height: 100%; width: 100%; background: var(--map-bg); }
 
   #panel {
@@ -52,6 +52,14 @@
   }
 
   #empty-state { color: var(--text-dim); font-size: 13.5px; line-height: 1.6; padding: 4px 2px; }
+
+  .tab-bar { display: flex; gap: 2px; margin-bottom: 12px; background: #e5e5e3; border-radius: 8px; padding: 3px; }
+  .tab-btn {
+    flex: 1; background: transparent; border: none; border-radius: 6px; padding: 8px 10px;
+    font-family: var(--font-ui); font-size: 12.5px; font-weight: 500; color: var(--text-dim); cursor: pointer;
+  }
+  .tab-btn.active { background: var(--panel); color: var(--charcoal); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .tab-pane { margin-bottom: 4px; }
 
   .stat-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; font-size: 13.5px; }
   .stat-row .label { color: var(--text-dim); }
@@ -188,8 +196,30 @@
   <div id="map"></div>
   <div id="panel">
 
-    <div id="empty-state" class="block">
-      Clica un punt al mapa per veure les condicions observades a les estacions properes i la previsió (5 dies) per aquell punt.
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-btn-plans" data-tab="plans">Plans de crema actius</button>
+      <button class="tab-btn" id="tab-btn-manual" data-tab="manual">Consulta oberta</button>
+    </div>
+
+    <div id="global-error" class="block" style="display:none;border-color:var(--red);"></div>
+
+    <div id="tab-plans-pane" class="tab-pane">
+      <div class="block">
+        <div class="block-title">Pla de crema actiu</div>
+        <div class="field">
+          <label>Selecciona un pla</label>
+          <select id="plan-picker">
+            <option value="">— cap seleccionat —</option>
+          </select>
+        </div>
+        <div id="plan-picker-status" class="stat-note" style="margin-top:6px;">Selecciona un pla per carregar-ne la ubicació i els llindars automàticament.</div>
+      </div>
+    </div>
+
+    <div id="tab-manual-pane" class="tab-pane" style="display:none;">
+      <div class="block">
+        Clica un punt qualsevol al mapa per consultar-lo manualment. Podràs editar tu mateix tots els llindars i la finestra marc més avall.
+      </div>
     </div>
 
     <div id="content" style="display:none;">
@@ -199,7 +229,7 @@
         <div class="stat-row"><span class="label">Coordenades</span><span class="value" id="coord-val">—</span></div>
         <div class="stat-row"><span class="label">Estacions properes</span><span class="value" id="n-stations">—</span></div>
         <div id="radius-row" style="margin-top:10px;">
-          <input type="range" id="radius-slider" min="5" max="50" step="1" value="20">
+          <input type="range" id="radius-slider" min="5" max="20" step="1" value="20">
           <span id="radius-label">20 km</span>
         </div>
       </div>
@@ -207,17 +237,6 @@
       <div class="block">
         <div class="block-title">Condicions observades (mitjana 10 dies, estacions properes)</div>
         <div id="obs-stats"><span class="loading">Carregant…</span></div>
-      </div>
-
-      <div class="block">
-        <div class="block-title">Pla de crema actiu</div>
-        <div class="field">
-          <label>Selecciona un pla</label>
-          <select id="plan-picker">
-            <option value="">— cap seleccionat —</option>
-          </select>
-        </div>
-        <div id="plan-picker-status" class="stat-note" style="margin-top:6px;"></div>
       </div>
 
       <div class="block">
@@ -339,7 +358,7 @@ let combinedSeries = null;
 let nearbyStationsCache = [];
 
 // ---------- Map setup (light basemap, coherent amb onofre-viewer) ----------
-map = L.map('map', { zoomControl: true }).setView([41.85, 1.5], 8);
+map = L.map('map', { zoomControl: true }).setView([41.85, 1.5], 7);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; OpenStreetMap &copy; CARTO',
   maxZoom: 18
@@ -535,7 +554,7 @@ async function loadPlans(){
     }
 
     if(latlon){
-      map.setView(latlon, 12);
+      map.setView(latlon, 11);
       selectedLatLon = latlon;
       placeMarker(latlon);
       await onPointSelected(latlon);
@@ -1049,13 +1068,22 @@ function updateNearbyAndObsStats(){
 }
 
 async function onPointSelected(latlon){
-  document.getElementById('empty-state').style.display = 'none';
   document.getElementById('content').style.display = 'block';
   document.getElementById('coord-val').textContent = latlon[0].toFixed(4) + ', ' + latlon[1].toFixed(4);
 
   if(obsData) updateNearbyAndObsStats();
   await refreshForecastAndPlan();
 }
+
+// ---------- Pestanyes (Plans de crema actius / Consulta oberta) ----------
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-plans-pane').style.display = btn.dataset.tab === 'plans' ? 'block' : 'none';
+    document.getElementById('tab-manual-pane').style.display = btn.dataset.tab === 'manual' ? 'block' : 'none';
+  });
+});
 
 // ---------- Radi configurable ----------
 const radiusSlider = document.getElementById('radius-slider');
@@ -1085,8 +1113,9 @@ document.getElementById('model-select').addEventListener('change', refreshForeca
 
 loadObs().catch(err => {
   console.error(err);
-  document.getElementById('empty-state').innerHTML =
-    "No s'ha pogut carregar <code>data/observacions_10d.json</code>. Comprova que el fitxer existeix al repo.";
+  const el = document.getElementById('global-error');
+  el.style.display = 'block';
+  el.innerHTML = "No s'ha pogut carregar <code>data/observacions_10d.json</code>. Comprova que el fitxer existeix al repo.";
 });
 loadPlans();
 
