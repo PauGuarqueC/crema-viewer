@@ -261,7 +261,7 @@
 
     <div id="content" style="display:none;">
 
-      <div class="block">
+      <div class="block" id="panel-forecast">
         <div class="block-title">Finestra de crema — previsió 5 dies</div>
         <div class="field" style="margin-bottom:12px;">
           <label>Model de previsió (Open-Meteo)</label>
@@ -1423,6 +1423,22 @@ async function onPointSelected(latlon){
 }
 
 // ---------- Pestanyes (Plans de crema actius / Consulta oberta) ----------
+// Els panells de #content son compartits (mateixos camps/grafics) entre les
+// dues pestanyes, pero l'ordre visual es independent per cada una: en lloc
+// de duplicar-los, es reordenen (appendChild mou el node existent, no en
+// crea una copia -> es conserva l'estat dels grafics i dels formularis).
+function reorderContentPanels(tab){
+  const content = document.getElementById('content');
+  const forecastPanel = document.getElementById('panel-forecast');
+  const llindarsPanel = document.getElementById('details-llindars');
+  const marcPanel = document.getElementById('details-marc');
+  const contextPanel = document.getElementById('details-context');
+  const order = tab === 'manual'
+    ? [llindarsPanel, marcPanel, contextPanel, forecastPanel]
+    : [forecastPanel, llindarsPanel, marcPanel, contextPanel];
+  order.forEach(el => content.appendChild(el));
+}
+
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1432,6 +1448,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
     activeTab = btn.dataset.tab;
     document.getElementById('map').classList.toggle('locked', activeTab !== 'manual');
+    reorderContentPanels(activeTab);
 
     // A "Consulta oberta" els llindars cal editar-los -> els desplega automaticament
     if(btn.dataset.tab === 'manual'){
