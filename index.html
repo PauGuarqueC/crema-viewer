@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finestra de Crema — CTFC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root{
+    --bg:#12161a;
+    --panel:#191f24;
+    --panel-2:#1f262c;
+    --line:#2a323a;
+    --text:#e9e6df;
+    --text-dim:#8b959e;
+    --ember:#e0672e;
+    --ember-dim:#7a3a20;
+    --smoke:#4f8f74;
+    --smoke-dim:#2b4a3c;
+    --warn:#d9b23c;
+    --radius:8px;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  header{
+    padding:14px 22px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+    flex-shrink:0;
+    background:var(--panel);
+  }
+  header h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:19px;
+    font-weight:700;
+    margin:0;
+    letter-spacing:0.2px;
+  }
+  header h1 span{color:var(--ember);}
+  header .sub{
+    font-size:12.5px;
+    color:var(--text-dim);
+  }
+  #app{
+    flex:1;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 420px;
+    min-height:0;
+  }
+  #map{
+    height:100%;
+    width:100%;
+    background:#0d1114;
+  }
+  #panel{
+    background:var(--panel);
+    border-left:1px solid var(--line);
+    overflow-y:auto;
+    padding:18px 20px 40px;
+  }
+  #panel::-webkit-scrollbar{width:8px;}
+  #panel::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+
+  .block{
+    margin-bottom:22px;
+    padding-bottom:20px;
+    border-bottom:1px solid var(--line);
+  }
+  .block:last-child{border-bottom:none;}
+
+  .block-title{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin:0 0 10px;
+  }
+
+  #empty-state{
+    color:var(--text-dim);
+    font-size:13.5px;
+    line-height:1.6;
+    padding:10px 0;
+  }
+
+  .stat-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:6px 0;
+    font-size:13.5px;
+  }
+  .stat-row .label{color:var(--text-dim);}
+  .stat-row .value{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:500;
+  }
+  .stat-note{
+    font-size:11.5px;
+    color:var(--text-dim);
+    margin-top:4px;
+  }
+
+  .plan-form{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 12px;
+  }
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .field label{
+    font-size:11px;
+    color:var(--text-dim);
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+  }
+  .field input{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:6px;
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    padding:7px 8px;
+    width:100%;
+  }
+  .field input:focus{outline:1px solid var(--ember);border-color:var(--ember);}
+  .field.full{grid-column:1 / -1;}
+
+  select{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:6px;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    padding:7px 8px;
+    width:100%;
+  }
+
+  /* Burn-window strip: the signature element */
+  #strip-wrap{margin-top:14px;}
+  .day-label{
+    font-size:11px;
+    color:var(--text-dim);
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    margin:10px 0 4px;
+  }
+  .strip{
+    display:grid;
+    grid-template-columns:repeat(24,1fr);
+    gap:2px;
+    height:22px;
+  }
+  .cell{
+    border-radius:2px;
+    background:var(--line);
+    position:relative;
+    cursor:default;
+  }
+  .cell.match{background:var(--smoke);}
+  .cell.ctx-blocked{background:var(--warn);opacity:0.55;}
+  .cell.no-data{background:transparent;border:1px dashed var(--line);}
+  .cell:hover::after{
+    content:attr(data-tip);
+    position:absolute;
+    bottom:120%;
+    left:50%;
+    transform:translateX(-50%);
+    background:#000;
+    color:#fff;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    padding:4px 6px;
+    border-radius:4px;
+    white-space:nowrap;
+    z-index:20;
+    pointer-events:none;
+  }
+  .legend{
+    display:flex;
+    gap:16px;
+    margin-top:10px;
+    font-size:11px;
+    color:var(--text-dim);
+  }
+  .legend .sw{
+    display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:middle;
+  }
+
+  .match-list{
+    margin-top:14px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .match-item{
+    background:var(--smoke-dim);
+    border:1px solid var(--smoke);
+    border-radius:6px;
+    padding:8px 10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .no-match{
+    color:var(--text-dim);
+    font-size:13px;
+    font-style:italic;
+  }
+
+  #model-select-row{margin-bottom:12px;}
+
+  .loading{color:var(--text-dim);font-size:13px;}
+
+  footer.meta{
+    font-size:11px;
+    color:var(--text-dim);
+    padding-top:6px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Finestra de <span>Crema</span></h1>
+  <div class="sub">Cremes prescrites — condicions òptimes per finestra de crema</div>
+</header>
+
+<div id="app">
+  <div id="map"></div>
+  <div id="panel">
+
+    <div id="empty-state">
+      Clica un punt al mapa per veure les condicions observades a les estacions properes (10 dies) i la previsió (5 dies) per aquell punt.
+    </div>
+
+    <div id="content" style="display:none;">
+
+      <div class="block">
+        <div class="block-title">Punt seleccionat</div>
+        <div class="stat-row"><span class="label">Coordenades</span><span class="value" id="coord-val">—</span></div>
+        <div class="stat-row"><span class="label">Estacions en radi 20&nbsp;km</span><span class="value" id="n-stations">—</span></div>
+      </div>
+
+      <div class="block">
+        <div class="block-title">Condicions observades (mitjana 10 dies, estacions properes)</div>
+        <div id="obs-stats"><span class="loading">Carregant…</span></div>
+      </div>
+
+      <div class="block">
+        <div class="block-title">Pla de crema — llindars</div>
+        <div class="plan-form">
+          <div class="field">
+            <label>Temp. mín (°C)</label>
+            <input type="number" id="plan-temp-min" value="10" step="1">
+          </div>
+          <div class="field">
+            <label>Temp. màx (°C)</label>
+            <input type="number" id="plan-temp-max" value="22" step="1">
+          </div>
+          <div class="field">
+            <label>HR mín (%)</label>
+            <input type="number" id="plan-hr-min" value="40" step="1">
+          </div>
+          <div class="field">
+            <label>HR màx (%)</label>
+            <input type="number" id="plan-hr-max" value="70" step="1">
+          </div>
+          <div class="field full">
+            <label>Vent màxim (m/s)</label>
+            <input type="number" id="plan-wind-max" value="6" step="0.5">
+          </div>
+          <div class="field">
+            <label>FMC 1h mín (%)</label>
+            <input type="number" id="plan-fmc-min" value="8" step="0.5">
+          </div>
+          <div class="field">
+            <label>FMC 1h màx (%)</label>
+            <input type="number" id="plan-fmc-max" value="12" step="0.5">
+          </div>
+        </div>
+        <div id="model-select-row" style="margin-top:14px;">
+          <div class="field">
+            <label>Model de previsió (Open-Meteo)</label>
+            <select id="model-select">
+              <option value="best_match">Best match (auto)</option>
+              <option value="icon_eu">ICON-EU</option>
+              <option value="ecmwf_ifs04">ECMWF IFS</option>
+              <option value="gfs_seamless">GFS</option>
+              <option value="arome_france">AROME France</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-title">Finestra marc (dia -1 / 0 / +1)</div>
+        <div class="plan-form" style="grid-template-columns:1fr 1fr 1fr;">
+          <div class="field"><label>T màx dia -1 (°C)</label><input type="number" id="marc-tmax-m1" placeholder="sense límit"></div>
+          <div class="field"><label>HR mín dia -1 (%)</label><input type="number" id="marc-hrmin-m1" value="40"></div>
+          <div class="field"><label>Vent màx dia -1 (m/s)</label><input type="number" id="marc-wind-m1" placeholder="sense límit"></div>
+          <div class="field"><label>T màx dia 0 (°C)</label><input type="number" id="marc-tmax-0" value="25"></div>
+          <div class="field"><label>HR mín dia 0 (%)</label><input type="number" id="marc-hrmin-0" value="25"></div>
+          <div class="field"><label>Vent màx dia 0 (m/s)</label><input type="number" id="marc-wind-0" value="6.9"></div>
+          <div class="field"><label>T màx dia +1 (°C)</label><input type="number" id="marc-tmax-p1" value="25"></div>
+          <div class="field"><label>HR mín dia +1 (%)</label><input type="number" id="marc-hrmin-p1" value="40"></div>
+          <div class="field"><label>Vent màx dia +1 (m/s)</label><input type="number" id="marc-wind-p1" value="5.6"></div>
+        </div>
+        <div class="stat-note">Buit = sense restricció per aquell dia/variable. Dia -1 s'avalua amb observacions reals; dies 0/+1 amb previsió.</div>
+      </div>
+
+      <div class="block">
+        <div class="block-title">Context dies previs</div>
+        <div class="plan-form">
+          <div class="field">
+            <label>Precip. màx acum. 10d (mm)</label>
+            <input type="number" id="ctx-precip-max" value="5" step="0.5">
+          </div>
+          <div class="field">
+            <label>HR matinada — recuperació (%)</label>
+            <input type="number" id="ctx-recovery-hr" value="65" step="1">
+          </div>
+          <div class="field">
+            <label>Nits sense recuperar (màx)</label>
+            <input type="number" id="ctx-recovery-nights" value="2" step="1">
+          </div>
+          <div class="field">
+            <label>Vent fort — llindar (m/s)</label>
+            <input type="number" id="ctx-wind-strong" value="8" step="0.5">
+          </div>
+          <div class="field full">
+            <label>Dies amb vent fort permesos (últims 7 dies)</label>
+            <input type="number" id="ctx-wind-strong-days" value="1" step="1">
+          </div>
+        </div>
+        <div id="ctx-summary" class="stat-note" style="margin-top:8px;"></div>
+      </div>
+
+      <div class="block">
+        <div class="block-title">Finestra de crema — previsió 5 dies</div>
+        <div id="forecast-status" class="loading">Carregant previsió…</div>
+        <div id="strip-wrap" style="display:none;"></div>
+        <div class="legend">
+          <div><span class="sw" style="background:var(--smoke);"></span>Dins de pla</div>
+          <div><span class="sw" style="background:var(--warn);opacity:0.55;"></span>Hora OK, context no</div>
+          <div><span class="sw" style="background:var(--line);"></span>Fora de pla</div>
+        </div>
+        <div id="match-list" class="match-list"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const OBS_JSON_URL = "data/observacions_10d.json";
+const RADIUS_KM = 20;
+
+let obsData = null;
+let map, marker;
+let selectedLatLon = null;
+let forecastHourly = null; // {time:[], temp:[], hr:[], wind:[], rad:[], precip:[]}
+let combinedSeries = null; // obs (10d reals) + previsio (5d), continu, amb fmc1h calculat
+let nearbyStationsCache = [];
+
+// ---------- Map setup ----------
+map = L.map('map', { zoomControl: true }).setView([41.85, 1.5], 8);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap &copy; CARTO',
+  maxZoom: 18
+}).addTo(map);
+
+map.on('click', (e) => {
+  selectedLatLon = [e.latlng.lat, e.latlng.lng];
+  placeMarker(selectedLatLon);
+  onPointSelected(selectedLatLon);
+});
+
+function placeMarker(latlon){
+  if(marker) map.removeLayer(marker);
+  marker = L.circleMarker(latlon, {
+    radius: 7, color: '#e0672e', fillColor:'#e0672e', fillOpacity: 0.9, weight: 2
+  }).addTo(map);
+  L.circle(latlon, { radius: RADIUS_KM*1000, color:'#e0672e', weight:1, fillOpacity:0.04, dashArray:'4,4' }).addTo(map);
+}
+
+// ---------- Haversine ----------
+function haversineKm(lat1, lon1, lat2, lon2){
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLon = (lon2-lon1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ---------- Load observations JSON once ----------
+async function loadObs(){
+  const res = await fetch(OBS_JSON_URL);
+  if(!res.ok) throw new Error("No s'ha pogut carregar " + OBS_JSON_URL);
+  obsData = await res.json();
+}
+
+function findNearbyStations(latlon){
+  const [lat, lon] = latlon;
+  const nearby = [];
+  for(const [code, meta] of Object.entries(obsData.estacions)){
+    const d = haversineKm(lat, lon, meta.lat, meta.lon);
+    if(d <= RADIUS_KM) nearby.push(code);
+  }
+  return nearby;
+}
+
+function computeObsStats(nearby){
+  let tempSum=0, tempN=0, hrSum=0, hrN=0, windSum=0, windN=0;
+  for(const code of nearby){
+    const s = obsData.series[code];
+    if(!s) continue;
+    for(const v of s.temp){ if(v!==null){ tempSum+=v; tempN++; } }
+    for(const v of s.hr){ if(v!==null){ hrSum+=v; hrN++; } }
+    for(const v of s.vent){ if(v!==null){ windSum+=v; windN++; } }
+  }
+  return {
+    nStations: nearby.length,
+    avgTemp: tempN ? tempSum/tempN : null,
+    avgHr: hrN ? hrSum/hrN : null,
+    avgWind: windN ? windSum/windN : null,
+  };
+}
+
+// Construeix una serie horaria regional (mitjana entre estacions properes) pels
+// 10 dies d'observacions: temp, hr, vent (mitjana), rad (mitjana), precip (mitjana).
+function buildRegionalHourlyObs(nearby){
+  const byHour = {}; // t -> {tempSum,tempN,hrSum,hrN,windSum,windN,radSum,radN,precipSum,precipN}
+  for(const code of nearby){
+    const s = obsData.series[code];
+    if(!s) continue;
+    for(let i=0;i<s.t.length;i++){
+      const t = s.t[i];
+      const bucket = byHour[t] || {tempSum:0,tempN:0,hrSum:0,hrN:0,windSum:0,windN:0,radSum:0,radN:0,precipSum:0,precipN:0};
+      if(s.temp[i]!==null){ bucket.tempSum+=s.temp[i]; bucket.tempN++; }
+      if(s.hr[i]!==null){ bucket.hrSum+=s.hr[i]; bucket.hrN++; }
+      if(s.vent[i]!==null){ bucket.windSum+=s.vent[i]; bucket.windN++; }
+      if(s.rad && s.rad[i]!==null && s.rad[i]!==undefined){ bucket.radSum+=s.rad[i]; bucket.radN++; }
+      if(s.precip && s.precip[i]!==null && s.precip[i]!==undefined){ bucket.precipSum+=s.precip[i]; bucket.precipN++; }
+      byHour[t] = bucket;
+    }
+  }
+  const times = Object.keys(byHour).sort();
+  return times.map(t => {
+    const b = byHour[t];
+    return {
+      time: t,
+      temp: b.tempN ? b.tempSum/b.tempN : null,
+      hr: b.hrN ? b.hrSum/b.hrN : null,
+      wind: b.windN ? b.windSum/b.windN : null,
+      rad: b.radN ? Math.max(b.radSum/b.radN, 0) : null,
+      precip: b.precipN ? b.precipSum/b.precipN : null,
+    };
+  });
+}
+
+// ---------- Model FMC1h (aproximacio de Nelson: EMC horaria + retard exponencial 1h + humectacio per pluja) ----------
+// Simplificacio operativa: EMC via formules de Simard (1968), corregida per radiacio solar
+// (assecat addicional en exposicio directa), integrada amb un temps de resposta d'1h
+// (adequat pel combustible fi 1h) i un salt d'humectacio proporcional a la pluja horaria.
+// No es el model de difusio complet de Nelson (2000); es una aproximacio d'equilibri+retard
+// habitual per aquest tipus d'aplicacio operativa. Substituir per la implementacio d'ONOFRE
+// si es vol coherencia exacta amb el pipeline de FMC de labfire.
+function calcFMC1h(hourlySeries){
+  const TAU_HOURS = 1.0;
+  const decay = Math.exp(-1/TAU_HOURS);
+  let m = null; // llavor: s'inicialitza amb el primer EMC valid
+  const out = [];
+  for(const h of hourlySeries){
+    let emc = null;
+    if(h.temp !== null && h.hr !== null){
+      const hr = Math.min(Math.max(h.hr, 0), 100);
+      const t = h.temp;
+      let emcBase;
+      if(hr < 10){
+        emcBase = 0.03229 + 0.281073*hr - 0.000578*hr*t;
+      } else if(hr < 50){
+        emcBase = 2.22749 + 0.160107*hr - 0.014784*t;
+      } else {
+        emcBase = 21.0606 + 0.005565*hr*hr - 0.00035*hr*t - 0.483199*hr;
+      }
+      const rad = h.rad !== null && h.rad !== undefined ? Math.max(h.rad, 0) : 0;
+      const radCorr = Math.min(rad/1000, 1) * 2.0; // fins a -2% EMC en ple sol
+      emc = Math.max(emcBase - radCorr, 1);
+    }
+    if(m === null){
+      m = emc; // llavor amb el primer valor disponible
+    } else if(emc !== null){
+      m = emc + (m - emc) * decay;
+    }
+    if(h.precip && h.precip > 0 && m !== null){
+      m = Math.min(m + h.precip * 4, 35); // humectacio: saturacio aprox. 35% pel combustible 1h
+    }
+    out.push(m === null ? null : Math.round(m*10)/10);
+  }
+  return out;
+}
+
+// ---------- Agregats diaris (per finestra marc i context previs) ----------
+function dailyAggregates(hourlySeries){
+  // hourlySeries: [{time:'YYYY-MM-DDTHH:MM', temp, hr, wind, rad, precip, fmc}]
+  const byDay = {};
+  for(const h of hourlySeries){
+    const day = h.time.slice(0,10);
+    const hour = parseInt(h.time.slice(11,13));
+    const b = byDay[day] || { tmax:null, hrmin:null, windmax:null, precipsum:0, precipN:0, dawnHrMax:null };
+    if(h.temp !== null) b.tmax = b.tmax===null ? h.temp : Math.max(b.tmax, h.temp);
+    if(h.hr !== null) b.hrmin = b.hrmin===null ? h.hr : Math.min(b.hrmin, h.hr);
+    if(h.wind !== null) b.windmax = b.windmax===null ? h.wind : Math.max(b.windmax, h.wind);
+    if(h.precip !== null){ b.precipsum += h.precip; b.precipN++; }
+    if(hour >= 0 && hour <= 9 && h.hr !== null){
+      b.dawnHrMax = b.dawnHrMax===null ? h.hr : Math.max(b.dawnHrMax, h.hr);
+    }
+    byDay[day] = b;
+  }
+  return byDay;
+}
+
+function renderObsStats(stats){
+  document.getElementById('n-stations').textContent = stats.nStations;
+  const el = document.getElementById('obs-stats');
+  if(stats.nStations === 0){
+    el.innerHTML = "<div class=\"no-match\">Cap estació XEMA en un radi de 20 km d'aquest punt.</div>";
+    return;
+  }
+  el.innerHTML = `
+    <div class="stat-row"><span class="label">Temp. mitjana</span><span class="value">${fmt(stats.avgTemp)} °C</span></div>
+    <div class="stat-row"><span class="label">HR mitjana</span><span class="value">${fmt(stats.avgHr)} %</span></div>
+    <div class="stat-row"><span class="label">Vent mitjà</span><span class="value">${fmt(stats.avgWind)} m/s</span></div>
+    <div class="stat-note">Generat: ${obsData.generat} · dies ${obsData.dies[0]} → ${obsData.dies[obsData.dies.length-1]}</div>
+  `;
+}
+
+function fmt(v, d=1){ return v===null || v===undefined || isNaN(v) ? '—' : v.toFixed(d); }
+
+// ---------- Open-Meteo forecast ----------
+async function loadForecast(latlon, model){
+  const [lat, lon] = latlon;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}` +
+    `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,shortwave_radiation,precipitation` +
+    `&models=${model}&forecast_days=5&timezone=Europe%2FMadrid`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error("Error consultant Open-Meteo");
+  const data = await res.json();
+  return {
+    time: data.hourly.time,
+    temp: data.hourly.temperature_2m,
+    hr: data.hourly.relative_humidity_2m,
+    wind: data.hourly.wind_speed_10m.map(v => v / 3.6), // km/h -> m/s
+    rad: data.hourly.shortwave_radiation,
+    precip: data.hourly.precipitation,
+  };
+}
+
+// Uneix la serie regional d'observacions (10 dies reals) amb la previsio (5 dies) en
+// una unica serie horaria continua, ordenada, sense duplicar timestamps.
+function buildCombinedSeries(regionalObs, forecast){
+  const map = new Map();
+  for(const h of regionalObs){
+    map.set(h.time, { time:h.time, temp:h.temp, hr:h.hr, wind:h.wind, rad:h.rad, precip:h.precip, isForecast:false });
+  }
+  for(let i=0;i<forecast.time.length;i++){
+    const t = forecast.time[i];
+    map.set(t, {
+      time: t,
+      temp: forecast.temp[i], hr: forecast.hr[i], wind: forecast.wind[i],
+      rad: forecast.rad[i], precip: forecast.precip[i], isForecast:true,
+    });
+  }
+  const times = Array.from(map.keys()).sort();
+  const series = times.map(t => map.get(t));
+  const fmc = calcFMC1h(series);
+  series.forEach((h,i) => h.fmc = fmc[i]);
+  return series;
+}
+
+function readPlan(){
+  return {
+    tempMin: parseFloat(document.getElementById('plan-temp-min').value),
+    tempMax: parseFloat(document.getElementById('plan-temp-max').value),
+    hrMin: parseFloat(document.getElementById('plan-hr-min').value),
+    hrMax: parseFloat(document.getElementById('plan-hr-max').value),
+    windMax: parseFloat(document.getElementById('plan-wind-max').value),
+    fmcMin: parseFloat(document.getElementById('plan-fmc-min').value),
+    fmcMax: parseFloat(document.getElementById('plan-fmc-max').value),
+  };
+}
+
+function readMarc(){
+  const v = id => { const s = document.getElementById(id).value; return s==='' ? null : parseFloat(s); };
+  return {
+    m1: { tmax: v('marc-tmax-m1'), hrmin: v('marc-hrmin-m1'), windmax: v('marc-wind-m1') },
+    d0: { tmax: v('marc-tmax-0'), hrmin: v('marc-hrmin-0'), windmax: v('marc-wind-0') },
+    p1: { tmax: v('marc-tmax-p1'), hrmin: v('marc-hrmin-p1'), windmax: v('marc-wind-p1') },
+  };
+}
+
+function readContext(){
+  return {
+    precipMax: parseFloat(document.getElementById('ctx-precip-max').value),
+    recoveryHr: parseFloat(document.getElementById('ctx-recovery-hr').value),
+    recoveryNightsMax: parseFloat(document.getElementById('ctx-recovery-nights').value),
+    windStrong: parseFloat(document.getElementById('ctx-wind-strong').value),
+    windStrongDaysMax: parseFloat(document.getElementById('ctx-wind-strong-days').value),
+  };
+}
+
+function dayCheck(agg, thresholds){
+  // agg pot ser undefined si no hi ha dades per aquell dia -> no bloqueja (desconegut)
+  if(!agg) return true;
+  if(thresholds.tmax !== null && agg.tmax !== null && agg.tmax > thresholds.tmax) return false;
+  if(thresholds.hrmin !== null && agg.hrmin !== null && agg.hrmin < thresholds.hrmin) return false;
+  if(thresholds.windmax !== null && agg.windmax !== null && agg.windmax > thresholds.windmax) return false;
+  return true;
+}
+
+function isoDaysBefore(dayStr, n){
+  const d = new Date(dayStr + 'T12:00:00');
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0,10);
+}
+function isoDaysAfter(dayStr, n){ return isoDaysBefore(dayStr, -n); }
+
+// Avalua la finestra marc (-1/0/+1) i el context de dies previs per a un dia candidat.
+function evaluateDayContext(day, byDayAgg, marc, ctx){
+  const m1 = byDayAgg[isoDaysBefore(day,1)];
+  const d0 = byDayAgg[day];
+  const p1 = byDayAgg[isoDaysAfter(day,1)];
+
+  const marcOk = dayCheck(m1, marc.m1) && dayCheck(d0, marc.d0) && dayCheck(p1, marc.p1);
+
+  // Precipitacio acumulada als 10 dies previs (day-10 .. day-1)
+  let precipSum = 0, precipHasData = false;
+  for(let i=1;i<=10;i++){
+    const a = byDayAgg[isoDaysBefore(day,i)];
+    if(a && a.precipN){ precipSum += a.precipsum; precipHasData = true; }
+  }
+  const precipOk = !precipHasData || precipSum <= ctx.precipMax;
+
+  // Nits consecutives sense recuperar (comptant enrere des de day-1)
+  let noRecoveryStreak = 0;
+  for(let i=1;i<=10;i++){
+    const a = byDayAgg[isoDaysBefore(day,i)];
+    if(!a || a.dawnHrMax === null) break;
+    if(a.dawnHrMax < ctx.recoveryHr){ noRecoveryStreak++; } else { break; }
+  }
+  const recoveryOk = noRecoveryStreak <= ctx.recoveryNightsMax;
+
+  // Dies amb vent fort en els ultims 7 dies previs
+  let windStrongDays = 0;
+  for(let i=1;i<=7;i++){
+    const a = byDayAgg[isoDaysBefore(day,i)];
+    if(a && a.windmax !== null && a.windmax > ctx.windStrong) windStrongDays++;
+  }
+  const windTrendOk = windStrongDays <= ctx.windStrongDaysMax;
+
+  return {
+    ok: marcOk && precipOk && recoveryOk && windTrendOk,
+    marcOk, precipOk, recoveryOk, windTrendOk,
+    precipSum: precipHasData ? Math.round(precipSum*10)/10 : null,
+    noRecoveryStreak, windStrongDays,
+  };
+}
+
+function evaluatePlan(forecastSlice, plan, dayContexts){
+  const results = [];
+  for(const h of forecastSlice){
+    const t = h.temp, hr = h.hr, w = h.wind, fmc = h.fmc;
+    const day = h.time.slice(0,10);
+    const ctxOk = dayContexts[day] ? dayContexts[day].ok : true;
+    const hourOk = t!==null && hr!==null && w!==null &&
+      t >= plan.tempMin && t <= plan.tempMax &&
+      hr >= plan.hrMin && hr <= plan.hrMax &&
+      w <= plan.windMax &&
+      (fmc===null || (fmc >= plan.fmcMin && fmc <= plan.fmcMax));
+    results.push({ time:h.time, temp:t, hr:hr, wind:w, fmc:fmc, hourOk, ctxOk, match: hourOk && ctxOk });
+  }
+  return results;
+}
+
+function renderStrip(results){
+  const wrap = document.getElementById('strip-wrap');
+  wrap.style.display = 'block';
+  wrap.innerHTML = '';
+
+  // group by day
+  const byDay = {};
+  for(const r of results){
+    const day = r.time.slice(0,10);
+    (byDay[day] = byDay[day] || []).push(r);
+  }
+
+  for(const [day, hours] of Object.entries(byDay)){
+    const label = document.createElement('div');
+    label.className = 'day-label';
+    label.textContent = new Date(day+'T12:00').toLocaleDateString('ca-ES', {weekday:'short', day:'numeric', month:'short'});
+    wrap.appendChild(label);
+
+    const strip = document.createElement('div');
+    strip.className = 'strip';
+    for(let h=0; h<24; h++){
+      const r = hours.find(x => parseInt(x.time.slice(11,13)) === h);
+      const cell = document.createElement('div');
+      if(!r){
+        cell.className = 'cell no-data';
+      } else {
+        let cls = 'cell';
+        if(r.match) cls += ' match';
+        else if(r.hourOk && !r.ctxOk) cls += ' ctx-blocked';
+        cell.className = cls;
+        cell.setAttribute('data-tip', `${h}h · ${fmt(r.temp,0)}°C · ${fmt(r.hr,0)}% · ${fmt(r.wind,1)}m/s · FMC1h ${fmt(r.fmc,1)}%${(r.hourOk && !r.ctxOk) ? ' · context no compleix' : ''}`);
+      }
+      strip.appendChild(cell);
+    }
+    wrap.appendChild(strip);
+  }
+}
+
+function renderMatchList(results){
+  const el = document.getElementById('match-list');
+  const matches = results.filter(r => r.match);
+  if(matches.length === 0){
+    el.innerHTML = '<div class="no-match">Cap hora compleix el pla de crema en els propers 5 dies.</div>';
+    return;
+  }
+  el.innerHTML = matches.map(r => {
+    const d = new Date(r.time);
+    const label = d.toLocaleString('ca-ES', {weekday:'short', day:'numeric', month:'short', hour:'2-digit'});
+    return `<div class="match-item"><span>${label}h</span><span>${fmt(r.temp,0)}°C · ${fmt(r.hr,0)}% · ${fmt(r.wind,1)}m/s · FMC ${fmt(r.fmc,1)}%</span></div>`;
+  }).join('');
+}
+
+function renderContextSummary(dayContexts){
+  const el = document.getElementById('ctx-summary');
+  const days = Object.keys(dayContexts).sort();
+  if(days.length === 0){ el.textContent = ''; return; }
+  el.innerHTML = days.map(day => {
+    const c = dayContexts[day];
+    const label = new Date(day+'T12:00').toLocaleDateString('ca-ES', {weekday:'short', day:'numeric', month:'short'});
+    const bits = [];
+    if(!c.marcOk) bits.push('marc');
+    if(!c.precipOk) bits.push(`precip ${c.precipSum}mm`);
+    if(!c.recoveryOk) bits.push(`${c.noRecoveryStreak} nits sense recuperar`);
+    if(!c.windTrendOk) bits.push(`${c.windStrongDays} dies vent fort`);
+    const status = c.ok ? '✓' : '✗ (' + bits.join(', ') + ')';
+    return `${label}: ${status}`;
+  }).join('<br>');
+}
+
+function recomputeAndRender(){
+  if(!combinedSeries) return;
+  const plan = readPlan();
+  const marc = readMarc();
+  const ctx = readContext();
+
+  const byDayAgg = dailyAggregates(combinedSeries);
+  const forecastSlice = combinedSeries.filter(h => h.isForecast);
+  const forecastDays = Array.from(new Set(forecastSlice.map(h => h.time.slice(0,10))));
+
+  const dayContexts = {};
+  for(const day of forecastDays){
+    dayContexts[day] = evaluateDayContext(day, byDayAgg, marc, ctx);
+  }
+
+  const results = evaluatePlan(forecastSlice, plan, dayContexts);
+  renderStrip(results);
+  renderMatchList(results);
+  renderContextSummary(dayContexts);
+}
+
+async function refreshForecastAndPlan(){
+  if(!selectedLatLon) return;
+  const model = document.getElementById('model-select').value;
+  document.getElementById('forecast-status').style.display = 'block';
+  document.getElementById('forecast-status').textContent = 'Carregant previsió…';
+  document.getElementById('strip-wrap').style.display = 'none';
+
+  try{
+    forecastHourly = await loadForecast(selectedLatLon, model);
+    const regionalObs = buildRegionalHourlyObs(nearbyStationsCache);
+    combinedSeries = buildCombinedSeries(regionalObs, forecastHourly);
+    document.getElementById('forecast-status').style.display = 'none';
+    recomputeAndRender();
+  }catch(err){
+    document.getElementById('forecast-status').textContent = 'Error carregant la previsió: ' + err.message;
+  }
+}
+
+async function onPointSelected(latlon){
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+  document.getElementById('coord-val').textContent = latlon[0].toFixed(4) + ', ' + latlon[1].toFixed(4);
+
+  if(obsData){
+    nearbyStationsCache = findNearbyStations(latlon);
+    renderObsStats(computeObsStats(nearbyStationsCache));
+  }
+  await refreshForecastAndPlan();
+}
+
+// Re-evaluate plan/model without re-fetching everything unnecessarily
+document.getElementById('model-select').addEventListener('change', refreshForecastAndPlan);
+[
+  'plan-temp-min','plan-temp-max','plan-hr-min','plan-hr-max','plan-wind-max','plan-fmc-min','plan-fmc-max',
+  'marc-tmax-m1','marc-hrmin-m1','marc-wind-m1','marc-tmax-0','marc-hrmin-0','marc-wind-0','marc-tmax-p1','marc-hrmin-p1','marc-wind-p1',
+  'ctx-precip-max','ctx-recovery-hr','ctx-recovery-nights','ctx-wind-strong','ctx-wind-strong-days',
+].forEach(id => {
+  document.getElementById(id).addEventListener('input', recomputeAndRender);
+});
+
+loadObs().catch(err => {
+  console.error(err);
+  document.getElementById('empty-state').innerHTML =
+    "No s'ha pogut carregar <code>data/observacions_10d.json</code>. Comprova que el fitxer existeix al repo.";
+});
+</script>
+
+</body>
+</html>
