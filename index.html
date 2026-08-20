@@ -63,6 +63,10 @@
 
   .station-icon { background: transparent; border: none; filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.3)); }
 
+  .chart-block { margin-bottom: 16px; }
+  .chart-title { font-size: 11.5px; font-weight: 600; color: var(--text-dim); margin-bottom: 4px; }
+  .chart-canvas-wrap { height: 150px; position: relative; }
+
   details.block summary {
     cursor: pointer;
     list-style: none;
@@ -267,6 +271,34 @@
           <div><span class="sw" style="background:#e5e5e3;"></span>Fora de pla</div>
         </div>
         <div id="match-list" class="match-list"></div>
+
+        <div id="charts-status" class="stat-note" style="margin-top:14px;"></div>
+        <div id="charts-wrap" style="display:none;margin-top:10px;">
+          <div class="chart-block">
+            <div class="chart-title">Temperatura (°C)</div>
+            <div class="chart-canvas-wrap"><canvas id="chart-temp"></canvas></div>
+          </div>
+          <div class="chart-block">
+            <div class="chart-title">Humitat relativa (%)</div>
+            <div class="chart-canvas-wrap"><canvas id="chart-hr"></canvas></div>
+          </div>
+          <div class="chart-block">
+            <div class="chart-title">Vent (m/s)</div>
+            <div class="chart-canvas-wrap"><canvas id="chart-wind"></canvas></div>
+          </div>
+          <div class="chart-block">
+            <div class="chart-title">FMC 1h (%)</div>
+            <div class="chart-canvas-wrap"><canvas id="chart-fmc"></canvas></div>
+          </div>
+          <div class="legend" style="margin-top:2px;">
+            <div><span class="sw" style="background:#2b2b2b;"></span>Observat</div>
+            <div><span class="sw" style="background:#C8102E;"></span>ICON-EU</div>
+            <div><span class="sw" style="background:#2f6690;"></span>ECMWF IFS</div>
+            <div><span class="sw" style="background:#2e7d46;"></span>GFS</div>
+            <div><span class="sw" style="background:#b8860b;"></span>AROME France</div>
+            <div><span class="sw" style="background:var(--green-bg);border:1px solid var(--green);"></span>Dins de llindar</div>
+          </div>
+        </div>
       </div>
 
       <details class="block" id="details-llindars">
@@ -317,6 +349,7 @@
 <div id="cell-tooltip"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <script>
 // ---------- Accés (NO és seguretat real: nomes evita entrades accidentals.
 // El codi es visible per qualsevol al navegador, no protegeix dades sensibles). ----------
@@ -360,11 +393,12 @@ let obsData = null;
 let map, marker, radiusCircle;
 let selectedLatLon = null;
 let forecastHourly = null;
+let modelsForecastData = null;
 let combinedSeries = null;
 let nearbyStationsCache = [];
 
 // ---------- Map setup (light basemap, coherent amb onofre-viewer) ----------
-map = L.map('map', { zoomControl: true }).setView([41.85, 1.5], 8);
+map = L.map('map', { zoomControl: true }).setView([41.85, 1.5], 9);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; OpenStreetMap &copy; CARTO',
   maxZoom: 18
@@ -858,6 +892,153 @@ async function loadForecast(latlon, model){
   };
 }
 
+// ---------- Comparativa de 4 models (grafics) ----------
+const COMPARISON_MODELS = [
+  { id: 'icon_eu', label: 'ICON-EU', color: '#C8102E' },
+  { id: 'ecmwf_ifs04', label: 'ECMWF IFS', color: '#2f6690' },
+  { id: 'gfs_seamless', label: 'GFS', color: '#2e7d46' },
+  { id: 'arome_france', label: 'AROME France', color: '#b8860b' },
+];
+
+async function loadModelsForecast(latlon){
+  const [lat, lon] = latlon;
+  const modelsParam = COMPARISON_MODELS.map(m => m.id).join(',');
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}` +
+    `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,shortwave_radiation,precipitation` +
+    `&models=${modelsParam}&forecast_days=5&timezone=Europe%2FMadrid`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error("Error consultant Open-Meteo (comparativa)");
+  const data = await res.json();
+  const hourly = data.hourly;
+  const findKey = (prefix, id) => Object.keys(hourly).find(k => k.startsWith(prefix) && k.endsWith('_' + id));
+
+  const models = {};
+  for(const m of COMPARISON_MODELS){
+    const tempKey = findKey('temperature_2m', m.id);
+    const hrKey = findKey('relative_humidity_2m', m.id);
+    const windKey = findKey('wind_speed_10m', m.id);
+    const radKey = findKey('shortwave_radiation', m.id);
+    const precipKey = findKey('precipitation', m.id);
+    models[m.id] = {
+      time: hourly.time,
+      temp: tempKey ? hourly[tempKey] : hourly.time.map(() => null),
+      hr: hrKey ? hourly[hrKey] : hourly.time.map(() => null),
+      wind: windKey ? hourly[windKey].map(v => v / 3.6) : hourly.time.map(() => null),
+      rad: radKey ? hourly[radKey] : hourly.time.map(() => null),
+      precip: precipKey ? hourly[precipKey] : hourly.time.map(() => null),
+    };
+  }
+  return { time: hourly.time, models };
+}
+
+let chartInstances = {};
+function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, threshold, decimals){
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  if(chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
+  const pad = (arr, dataAtEnd) => dataAtEnd
+    ? [...new Array(labels.length - arr.length).fill(null), ...arr]
+    : [...arr, ...new Array(labels.length - arr.length).fill(null)];
+
+  const datasets = [];
+
+  // Banda de llindar (min/max), dibuixada com dues linies constants amb farciment entre elles
+  if(threshold && threshold.min !== null && threshold.max !== null &&
+     !isNaN(threshold.min) && !isNaN(threshold.max)){
+    datasets.push({
+      label: 'Llindar màx', data: labels.map(() => threshold.max),
+      borderColor: 'rgba(46,125,70,0.35)', borderDash: [4,4], borderWidth: 1, pointRadius: 0, fill: false, order: 10,
+    });
+    datasets.push({
+      label: 'Llindar mín', data: labels.map(() => threshold.min),
+      borderColor: 'rgba(46,125,70,0.35)', borderDash: [4,4], borderWidth: 1, pointRadius: 0,
+      fill: { target: -1, above: 'rgba(46,125,70,0.10)', below: 'rgba(46,125,70,0.10)' }, order: 10,
+    });
+  }
+
+  datasets.push({
+    label: 'Observat', data: pad(obsValues, false),
+    borderColor: '#2b2b2b', borderWidth: 2, pointRadius: 0, tension: 0.15, spanGaps: true, order: 1,
+  });
+
+  for(const m of COMPARISON_MODELS){
+    datasets.push({
+      label: m.label, data: pad(modelSeries[m.id], true),
+      borderColor: m.color, borderWidth: 1.5, pointRadius: 0, tension: 0.15, spanGaps: true, order: 2,
+    });
+  }
+
+  chartInstances[canvasId] = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false }, tooltip: { callbacks: {
+        label: (item) => `${item.dataset.label}: ${item.formattedValue}${decimals!==undefined?'':''}`
+      }}},
+      scales: {
+        x: {
+          ticks: {
+            maxTicksLimit: 6, font: { size: 10 },
+            callback: (val, idx) => {
+              const t = labels[idx];
+              return t ? t.slice(5,10) + ' ' + t.slice(11,16) : '';
+            }
+          },
+          grid: { display: false },
+        },
+        y: { ticks: { font: { size: 10 } }, grid: { color: '#eee' } },
+      },
+    },
+  });
+}
+
+function updateComparisonCharts(){
+  if(!modelsForecastData || !nearbyStationsCache) return;
+  const wrap = document.getElementById('charts-wrap');
+  const statusEl = document.getElementById('charts-status');
+
+  const regionalObs = buildRegionalHourlyObs(nearbyStationsCache);
+  const last5 = regionalObs.slice(-5*24);
+  if(last5.length === 0){
+    statusEl.textContent = 'Sense observacions suficients per mostrar el comparatiu.';
+    wrap.style.display = 'none';
+    return;
+  }
+
+  const labels = [...last5.map(h => h.time), ...modelsForecastData.time];
+  const nObs = last5.length;
+  const plan = readPlan();
+
+  renderComparisonChart('chart-temp', labels, nObs, last5.map(h=>h.temp),
+    Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, modelsForecastData.models[m.id].temp])),
+    { min: plan.tempMin, max: plan.tempMax });
+
+  renderComparisonChart('chart-hr', labels, nObs, last5.map(h=>h.hr),
+    Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, modelsForecastData.models[m.id].hr])),
+    { min: plan.hrMin, max: plan.hrMax });
+
+  renderComparisonChart('chart-wind', labels, nObs, last5.map(h=>h.wind),
+    Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, modelsForecastData.models[m.id].wind])),
+    { min: 0, max: plan.windMax });
+
+  // FMC1h per model: reaprofita buildCombinedSeries (obs + previsio d'un sol model) per calcular-lo igual que el model actiu
+  const fmcByModel = {};
+  for(const m of COMPARISON_MODELS){
+    const combined = buildCombinedSeries(regionalObs, modelsForecastData.models[m.id]);
+    const forecastPart = combined.filter(h => h.isForecast);
+    fmcByModel[m.id] = forecastPart.map(h => h.fmc);
+  }
+  const obsFmc = calcFMC1h(last5).map(v => v); // aproximacio: FMC dels ultims 5 dies observats en aillament
+  renderComparisonChart('chart-fmc', labels, nObs, obsFmc,
+    fmcByModel,
+    { min: plan.fmcMin, max: plan.fmcMax });
+
+  statusEl.textContent = '';
+  wrap.style.display = 'block';
+}
+
 function buildCombinedSeries(regionalObs, forecast){
   const map_ = new Map();
   for(const h of regionalObs){
@@ -1060,6 +1241,7 @@ function recomputeAndRender(){
   renderStrip(results);
   renderMatchList(results);
   renderContextSummary(dayContexts);
+  updateComparisonCharts();
 }
 
 async function refreshForecastAndPlan(){
@@ -1068,15 +1250,22 @@ async function refreshForecastAndPlan(){
   document.getElementById('forecast-status').style.display = 'block';
   document.getElementById('forecast-status').textContent = 'Carregant previsió…';
   document.getElementById('strip-wrap').style.display = 'none';
+  document.getElementById('charts-status').textContent = 'Carregant comparativa de models…';
 
   try{
-    forecastHourly = await loadForecast(selectedLatLon, model);
+    const [forecast, modelsData] = await Promise.all([
+      loadForecast(selectedLatLon, model),
+      loadModelsForecast(selectedLatLon),
+    ]);
+    forecastHourly = forecast;
+    modelsForecastData = modelsData;
     const regionalObs = buildRegionalHourlyObs(nearbyStationsCache);
     combinedSeries = buildCombinedSeries(regionalObs, forecastHourly);
     document.getElementById('forecast-status').style.display = 'none';
     recomputeAndRender();
   }catch(err){
     document.getElementById('forecast-status').textContent = 'Error carregant la previsió: ' + err.message;
+    document.getElementById('charts-status').textContent = '';
   }
 }
 
