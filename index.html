@@ -1027,6 +1027,29 @@ const todayMarkerPlugin = {
   }
 };
 
+// Dibuixa les etiquetes de l'eix de precipitacio A DINS de l'area del grafic
+// (en lloc de fer servir un eix Y real, que reservaria una columna d'amplada i
+// desalinearia aquest grafic respecte als altres tres).
+const precipAxisLabelPlugin = {
+  id: 'precipAxisLabel',
+  afterDraw(chart){
+    const scale = chart.scales.yPrecip;
+    if(!scale) return;
+    const { right, top } = chart.chartArea;
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.font = "9px 'Roboto', sans-serif";
+    ctx.fillStyle = 'rgba(47,102,144,0.85)';
+    ctx.textAlign = 'right';
+    const values = [0, scale.max / 4, scale.max / 2];
+    for(const v of values){
+      const y = scale.getPixelForValue(v);
+      ctx.fillText(`${v.toFixed(v < 1 ? 1 : 0)}mm`, right - 3, y - 2);
+    }
+    ctx.restore();
+  }
+};
+
 function setSyncIndex(idx){
   syncIndex = idx;
   for(const id of CHART_IDS){
@@ -1113,26 +1136,27 @@ function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, t
   }
 
   // Barres de precipitacio, comprimides al 25% inferior del grafic amb un eix
-  // Y secundari propi (max artificialment alt) per no tapar la linia principal;
-  // visible amb pocs ticks perque es pugui llegir la magnitud real en mm.
+  // Y secundari propi (max artificialment alt) per no tapar la linia principal.
+  // L'eix es 'display:false' (no reserva columna d'amplada -> el grafic queda
+  // alineat amb els altres tres) i les etiquetes de mm es dibuixen a sobre del
+  // propi grafic amb el plugin precipAxisLabelPlugin.
+  let hasPrecip = false;
   if(precipValues){
+    hasPrecip = true;
     const maxPrecip = Math.max(1, ...precipValues.filter(v => v !== null && !isNaN(v)));
     datasets.push({
       type: 'bar', label: 'Precipitació', data: precipValues,
       backgroundColor: 'rgba(47,102,144,0.45)', yAxisID: 'yPrecip', order: 50, barPercentage: 1, categoryPercentage: 1,
     });
     scales.yPrecip = {
-      position: 'right', min: 0, max: maxPrecip * 4,
-      title: { display: true, text: 'mm', font: { size: 9 }, color: 'rgba(47,102,144,0.85)' },
-      ticks: { font: { size: 9 }, color: 'rgba(47,102,144,0.85)', maxTicksLimit: 4 },
-      grid: { display: false }, border: { display: false },
+      position: 'right', min: 0, max: maxPrecip * 4, display: false,
     };
   }
 
   chartInstances[canvasId] = new Chart(ctx, {
     type: 'line',
     data: { labels, datasets },
-    plugins: [crosshairPlugin, todayMarkerPlugin],
+    plugins: hasPrecip ? [crosshairPlugin, todayMarkerPlugin, precipAxisLabelPlugin] : [crosshairPlugin, todayMarkerPlugin],
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
