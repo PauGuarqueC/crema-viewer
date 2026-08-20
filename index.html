@@ -472,14 +472,12 @@ function popupExecutada(feature){
 function stationIcon(){
   return L.divIcon({
     className: 'station-icon',
-    html: `<svg width="16" height="20" viewBox="0 0 16 20" xmlns="http://www.w3.org/2000/svg">
-      <line x1="8" y1="7" x2="8" y2="1" stroke="#3d5a73" stroke-width="1.6" stroke-linecap="round"/>
-      <circle cx="8" cy="1" r="1.3" fill="#3d5a73"/>
-      <circle cx="8" cy="11" r="5.2" fill="#3d5a73" stroke="#ffffff" stroke-width="1.6"/>
+    html: `<svg width="7" height="7" viewBox="0 0 7 7" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="3.5" cy="3.5" r="3" fill="#3d5a73" stroke="#ffffff" stroke-width="1"/>
     </svg>`,
-    iconSize: [9, 12],
-    iconAnchor: [3.5, 7.5],
-    popupAnchor: [0, -6],
+    iconSize: [7, 7],
+    iconAnchor: [3.5, 3.5],
+    popupAnchor: [0, -5],
   });
 }
 
@@ -729,25 +727,25 @@ function applyPlanToForm(p){
   // menys humitat = mes risc, aixi que "Alt" pot tenir un valor mes petit que "Baix").
   // Sempre agafem el minim/maxim REAL dels dos valors, no assumim quin es quin.
   const applyRange = (obj, idMin, idMax) => {
-      if(!obj) { setFieldValue(idMin, null); setFieldValue(idMax, null); return; }
-      const hasBaix = obj.baix !== null && obj.baix !== undefined;
-      const hasAlt = obj.alt !== null && obj.alt !== undefined;
-  
-      if(!hasBaix && !hasAlt){ setFieldValue(idMin, null); setFieldValue(idMax, null); return; }
-  
-      if(hasBaix && hasAlt){
-        // Tots dos definits: agafem el minim/maxim REAL (l'ordre baix<alt no sempre
-        // es compleix, p.ex. a la HR menys humitat = mes risc i "Alt" pot ser mes petit).
-        setFieldValue(idMin, Math.min(obj.baix, obj.alt));
-        setFieldValue(idMax, Math.max(obj.baix, obj.alt));
-        return;
-      }
-  
-      // Nomes un dels dos definit: respectem quin camp es (baix=minim, alt=maxim),
-      // en lloc d'assumir sempre que es el maxim. L'altre queda buit (sense restriccio;
-      // pel minim de temp/hr/vent/fmc als grafics, "buit" es tracta com a 0).
-      if(hasBaix){ setFieldValue(idMin, obj.baix); setFieldValue(idMax, null); }
-      else{ setFieldValue(idMin, null); setFieldValue(idMax, obj.alt); }
+    if(!obj) { setFieldValue(idMin, null); setFieldValue(idMax, null); return; }
+    const hasBaix = obj.baix !== null && obj.baix !== undefined;
+    const hasAlt = obj.alt !== null && obj.alt !== undefined;
+
+    if(!hasBaix && !hasAlt){ setFieldValue(idMin, null); setFieldValue(idMax, null); return; }
+
+    if(hasBaix && hasAlt){
+      // Tots dos definits: agafem el minim/maxim REAL (l'ordre baix<alt no sempre
+      // es compleix, p.ex. a la HR menys humitat = mes risc i "Alt" pot ser mes petit).
+      setFieldValue(idMin, Math.min(obj.baix, obj.alt));
+      setFieldValue(idMax, Math.max(obj.baix, obj.alt));
+      return;
+    }
+
+    // Nomes un dels dos definit: respectem quin camp es (baix=minim, alt=maxim),
+    // en lloc d'assumir sempre que es el maxim. L'altre queda buit (sense restriccio;
+    // pel minim de temp/hr/vent/fmc als grafics, "buit" es tracta com a 0).
+    if(hasBaix){ setFieldValue(idMin, obj.baix); setFieldValue(idMax, null); }
+    else{ setFieldValue(idMin, null); setFieldValue(idMax, obj.alt); }
   };
   applyRange(f.temp, 'plan-temp-min', 'plan-temp-max');
   applyRange(f.hr, 'plan-hr-min', 'plan-hr-max');
@@ -962,10 +960,13 @@ function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, t
 
   const datasets = [];
 
-  const hasMax = threshold && threshold.max !== null && threshold.max !== undefined && !isNaN(threshold.max);
+  // Banda de llindar (min/max), amb ombrejat suau entre les dues linies.
+  // Si no hi ha minim definit (camp buit -> -Infinity a readPlan), s'assumeix 0
+  // com a base de la banda. Si no hi ha maxim definit (+Infinity), no es dibuixa banda.
+  const isFinite_ = (v) => v !== null && v !== undefined && !isNaN(v) && v !== Infinity && v !== -Infinity;
+  const hasMax = threshold && isFinite_(threshold.max);
   if(hasMax){
-    const effectiveMin = (threshold.min !== null && threshold.min !== undefined && !isNaN(threshold.min))
-      ? threshold.min : 0;
+    const effectiveMin = isFinite_(threshold.min) ? threshold.min : 0;
     datasets.push({
       label: 'Llindar màx', data: labels.map(() => threshold.max),
       borderColor: 'rgba(46,125,70,0.4)', borderDash: [4,4], borderWidth: 1, pointRadius: 0, fill: false, order: 10,
@@ -1018,6 +1019,7 @@ function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, t
     },
   });
 }
+
 function updateComparisonCharts(){
   if(!modelsForecastData || !nearbyStationsCache) return;
   const wrap = document.getElementById('charts-wrap');
@@ -1092,14 +1094,23 @@ function buildCombinedSeries(regionalObs, forecast){
 }
 
 function readPlan(){
+  // Un camp buit ha de significar "sense restriccio", no NaN (que faria fallar
+  // SEMPRE qualsevol comparacio >=/<=, bloquejant totes les hores encara que
+  // la resta de condicions es compleixin).
+  const v = (id, fallback) => {
+    const s = document.getElementById(id).value;
+    if(s === '') return fallback;
+    const n = parseFloat(s);
+    return isNaN(n) ? fallback : n;
+  };
   return {
-    tempMin: parseFloat(document.getElementById('plan-temp-min').value),
-    tempMax: parseFloat(document.getElementById('plan-temp-max').value),
-    hrMin: parseFloat(document.getElementById('plan-hr-min').value),
-    hrMax: parseFloat(document.getElementById('plan-hr-max').value),
-    windMax: parseFloat(document.getElementById('plan-wind-max').value),
-    fmcMin: parseFloat(document.getElementById('plan-fmc-min').value),
-    fmcMax: parseFloat(document.getElementById('plan-fmc-max').value),
+    tempMin: v('plan-temp-min', -Infinity),
+    tempMax: v('plan-temp-max', Infinity),
+    hrMin: v('plan-hr-min', -Infinity),
+    hrMax: v('plan-hr-max', Infinity),
+    windMax: v('plan-wind-max', Infinity),
+    fmcMin: v('plan-fmc-min', -Infinity),
+    fmcMax: v('plan-fmc-max', Infinity),
   };
 }
 
