@@ -104,8 +104,44 @@
   .loading { color: var(--text-dim); font-size: 13px; }
   #ctx-summary { line-height: 1.7; }
 </style>
+<style>
+  #auth-gate {
+    position: fixed; inset: 0; z-index: 5000; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #auth-box {
+    background: var(--panel); border: 1px solid var(--panel-border); border-radius: 8px;
+    padding: 28px 30px; box-shadow: 0 4px 16px rgba(0,0,0,.12); width: 300px; text-align: center;
+  }
+  #auth-box h2 { font-size: 16px; margin: 0 0 4px; color: var(--charcoal); }
+  #auth-box h2 span { color: var(--red); }
+  #auth-box p { font-size: 12.5px; color: var(--text-dim); margin: 0 0 16px; }
+  #auth-box input {
+    background: #fafafa; border: 1px solid var(--panel-border); border-radius: 5px;
+    color: var(--charcoal); font-family: var(--font-mono); font-size: 14px; padding: 8px 10px;
+    width: 100%; text-align: center; letter-spacing: 1px;
+  }
+  #auth-box input.error { border-color: var(--red); animation: shake .3s; }
+  @keyframes shake { 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+  #auth-box button {
+    margin-top: 12px; width: 100%; background: var(--red); border: none; color: #fff;
+    padding: 9px; border-radius: 5px; font-family: var(--font-ui); font-weight: 500; font-size: 13.5px; cursor: pointer;
+  }
+  #auth-box button:hover { background: var(--red-dark); }
+  #auth-error { color: var(--red); font-size: 11.5px; margin-top: 8px; min-height: 14px; }
+</style>
 </head>
 <body>
+
+<div id="auth-gate">
+  <div id="auth-box">
+    <h2>Finestra de <span>Crema</span></h2>
+    <p>Eina interna — introdueix la contrasenya</p>
+    <input type="password" id="auth-input" placeholder="Contrasenya" autocomplete="off">
+    <button id="auth-submit">Entrar</button>
+    <div id="auth-error"></div>
+  </div>
+</div>
 
 <header>
   <h1>Finestra de <span>Crema</span></h1>
@@ -210,6 +246,41 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+// ---------- Accés (NO és seguretat real: nomes evita entrades accidentals.
+// El codi es visible per qualsevol al navegador, no protegeix dades sensibles). ----------
+const AUTH_PASSWORD = "GRAF26";
+const AUTH_STORAGE_KEY = "crema_viewer_auth_ok";
+
+function unlockApp(){
+  document.getElementById('auth-gate').style.display = 'none';
+  runApp();
+}
+
+function checkAuth(){
+  const input = document.getElementById('auth-input');
+  if(input.value === AUTH_PASSWORD){
+    try{ localStorage.setItem(AUTH_STORAGE_KEY, '1'); }catch(e){}
+    unlockApp();
+  } else {
+    document.getElementById('auth-error').textContent = 'Contrasenya incorrecta';
+    input.classList.remove('error'); void input.offsetWidth; input.classList.add('error');
+    input.value = '';
+    input.focus();
+  }
+}
+
+document.getElementById('auth-submit').addEventListener('click', checkAuth);
+document.getElementById('auth-input').addEventListener('keydown', (e) => { if(e.key === 'Enter') checkAuth(); });
+
+let alreadyAuthed = false;
+try{ alreadyAuthed = localStorage.getItem(AUTH_STORAGE_KEY) === '1'; }catch(e){}
+if(alreadyAuthed){
+  document.getElementById('auth-gate').style.display = 'none';
+} else {
+  document.getElementById('auth-input').focus();
+}
+
+function runApp(){
 const OBS_JSON_URL = "data/observacions_10d.json";
 let RADIUS_KM = 20;
 
@@ -684,6 +755,10 @@ loadObs().catch(err => {
   document.getElementById('empty-state').innerHTML =
     "No s'ha pogut carregar <code>data/observacions_10d.json</code>. Comprova que el fitxer existeix al repo.";
 });
+
+} // fi de runApp()
+
+if(alreadyAuthed) runApp();
 </script>
 
 </body>
