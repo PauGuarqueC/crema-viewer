@@ -258,7 +258,7 @@
           <select id="model-select">
             <option value="best_match">Best match (auto)</option>
             <option value="icon_eu">ICON-EU</option>
-            <option value="ecmwf_ifs04">ECMWF IFS</option>
+            <option value="ecmwf_ifs025">ECMWF IFS</option>
             <option value="gfs_seamless">GFS</option>
             <option value="arome_france">AROME France</option>
           </select>
@@ -913,7 +913,7 @@ async function loadForecast(latlon, model){
 // ---------- Comparativa de 4 models (grafics) ----------
 const COMPARISON_MODELS = [
   { id: 'icon_eu', label: 'ICON-EU', color: '#C8102E' },
-  { id: 'ecmwf_ifs04', label: 'ECMWF IFS', color: '#2f6690' },
+  { id: 'ecmwf_ifs025', label: 'ECMWF IFS', color: '#2f6690' },
   { id: 'gfs_seamless', label: 'GFS', color: '#2e7d46' },
   { id: 'arome_france', label: 'AROME France', color: '#b8860b' },
 ];
@@ -950,6 +950,83 @@ async function loadModelsForecast(latlon){
 }
 
 let chartInstances = {};
+
+// ---------- Linia vertical sincronitzada entre els 4 grafics comparatius ----------
+const CHART_IDS = ['chart-temp', 'chart-hr', 'chart-wind', 'chart-fmc'];
+let syncIndex = null;
+
+const crosshairPlugin = {
+  id: 'crosshairSync',
+  afterDraw(chart){
+    if(syncIndex === null || !chart.scales.x) return;
+    const x = chart.scales.x.getPixelForValue(syncIndex);
+    if(x === undefined || isNaN(x)) return;
+    const { top, bottom } = chart.chartArea;
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x, top);
+    ctx.lineTo(x, bottom);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(200,16,46,0.6)';
+    ctx.setLineDash([3,3]);
+    ctx.stroke();
+    ctx.restore();
+  }
+};
+
+// Marca ben visible on comenca "avui" (frontera entre observat i previsio)
+const todayMarkerPlugin = {
+  id: 'todayMarker',
+  afterDraw(chart){
+    const opts = chart.options.plugins && chart.options.plugins.todayMarker;
+    if(!opts || opts.index === undefined || opts.index === null || !chart.scales.x) return;
+    const x = chart.scales.x.getPixelForValue(opts.index);
+    if(x === undefined || isNaN(x)) return;
+    const { top, bottom } = chart.chartArea;
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x, top);
+    ctx.lineTo(x, bottom);
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(43,43,43,0.55)';
+    ctx.stroke();
+    ctx.font = "600 10px 'Roboto', sans-serif";
+    ctx.fillStyle = 'rgba(43,43,43,0.75)';
+    ctx.textAlign = 'left';
+    ctx.fillText('Avui', x + 4, top + 11);
+    ctx.restore();
+  }
+};
+
+function setSyncIndex(idx){
+  syncIndex = idx;
+  for(const id of CHART_IDS){
+    const c = chartInstances[id];
+    if(c) c.update('none');
+  }
+}
+function clearSyncIndex(){
+  syncIndex = null;
+  for(const id of CHART_IDS){
+    const c = chartInstances[id];
+    if(c) c.update('none');
+  }
+}
+
+// Els listeners es lliguen un sol cop als elements <canvas>, que persisteixen
+// encara que les instancies de Chart es destrueixin i recreiin en cada recalcul.
+CHART_IDS.forEach(id => {
+  const canvas = document.getElementById(id);
+  canvas.addEventListener('mousemove', (e) => {
+    const chart = chartInstances[id];
+    if(!chart) return;
+    const points = chart.getElementsAtEventForMode(e, 'index', { intersect: false }, true);
+    if(points.length) setSyncIndex(points[0].index);
+  });
+  canvas.addEventListener('mouseleave', clearSyncIndex);
+});
 function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, threshold, yFixed){
   const ctx = document.getElementById(canvasId).getContext('2d');
   if(chartInstances[canvasId]) chartInstances[canvasId].destroy();
@@ -999,10 +1076,11 @@ function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, t
   chartInstances[canvasId] = new Chart(ctx, {
     type: 'line',
     data: { labels, datasets },
+    plugins: [crosshairPlugin, todayMarkerPlugin],
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { display: false } },
+      plugins: { legend: { display: false }, todayMarker: { index: nObs } },
       scales: {
         x: {
           ticks: {
