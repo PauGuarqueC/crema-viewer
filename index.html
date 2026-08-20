@@ -1077,14 +1077,15 @@ CHART_IDS.forEach(id => {
   });
   canvas.addEventListener('mouseleave', clearSyncIndex);
 });
-function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, threshold, yFixed, precipValues){
+function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues){
   const ctx = document.getElementById(canvasId).getContext('2d');
   if(chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
-  const pad = (arr, dataAtEnd) => dataAtEnd
-    ? [...new Array(labels.length - arr.length).fill(null), ...arr]
-    : [...arr, ...new Array(labels.length - arr.length).fill(null)];
-
+  // obsValues i modelSeries[*] ja venen alineats hora a hora amb 'labels' des de
+  // updateComparisonCharts (via alignToLabels), amb null explicit allà on no hi
+  // ha dades reals (p.ex. un dia sencer sense observacions publicades encara).
+  // spanGaps:false perque aquests forats es vegin com a tall a la linia, en
+  // lloc de dibuixar-se com si les dades fossin consecutives.
   const datasets = [];
 
   // Banda de llindar (min/max), amb ombrejat suau entre les dues linies.
@@ -1106,14 +1107,14 @@ function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, t
   }
 
   datasets.push({
-    label: 'Observat', data: pad(obsValues, false),
-    borderColor: '#2b2b2b', borderWidth: 2, pointRadius: 0, tension: 0.15, spanGaps: true, order: 1,
+    label: 'Observat', data: obsValues,
+    borderColor: '#2b2b2b', borderWidth: 2, pointRadius: 0, tension: 0.15, spanGaps: false, order: 1,
   });
 
   for(const m of COMPARISON_MODELS){
     datasets.push({
-      label: m.label, data: pad(modelSeries[m.id], true),
-      borderColor: m.color, borderWidth: 1.5, pointRadius: 0, tension: 0.15, spanGaps: true, order: 2,
+      label: m.label, data: modelSeries[m.id],
+      borderColor: m.color, borderWidth: 1.5, pointRadius: 0, tension: 0.15, spanGaps: false, order: 2,
     });
   }
 
@@ -1160,10 +1161,39 @@ function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, t
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { display: false }, todayMarker: { index: nObs } },
+      plugins: { legend: { display: false }, todayMarker: { index: todayIndex } },
       scales,
     },
   });
+}
+
+// Construeix una graella horaria continua (sense salts) entre dues marques
+// de temps ISO locals ('YYYY-MM-DDTHH:MM'), i alinea qualsevol serie a
+// aquesta graella deixant 'null' explicit allà on no hi ha dada real -- aixi
+// un forat de dades (p.ex. un dia sencer sense observacions publicades) es
+// veu com a tall al grafic, en lloc de dibuixar-se com si les dades fossin
+// consecutives.
+function hourStepIso(iso, deltaHours){
+  const d = new Date(iso);
+  d.setHours(d.getHours() + deltaHours);
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function buildHourlyLabels(startIso, endIso){
+  const labels = [];
+  let cur = startIso;
+  let guard = 0;
+  while(cur <= endIso && guard < 24 * 20){
+    labels.push(cur);
+    cur = hourStepIso(cur, 1);
+    guard++;
+  }
+  return labels;
+}
+function alignToLabels(sourceTimes, sourceValues, labels){
+  const map = {};
+  for(let i = 0; i < sourceTimes.length; i++) map[sourceTimes[i]] = sourceValues[i];
+  return labels.map(t => (t in map) ? map[t] : null);
 }
 
 function updateComparisonCharts(){
@@ -1185,21 +1215,25 @@ function updateComparisonCharts(){
     return;
   }
 
-  const labels = [...last5.map(h => h.time), ...modelsForecastData.time];
-  const nObs = last5.length;
+  const obsTimes = last5.map(h => h.time);
+  const fcTimes = modelsForecastData.time;
+  const labels = buildHourlyLabels(obsTimes[0], fcTimes[fcTimes.length - 1]);
+  let todayIndex = labels.indexOf(fcTimes[0]);
+  if(todayIndex === -1) todayIndex = obsTimes.length; // fallback poc probable (desajust d'arrodoniment)
   const plan = readPlan();
 
   try{
-    renderComparisonChart('chart-temp', labels, nObs, last5.map(h=>h.temp),
-      Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, modelsForecastData.models[m.id].temp])),
+    const alignObs = (field) => alignToLabels(obsTimes, last5.map(h => h[field]), labels);
+    const alignModels = (field) => Object.fromEntries(COMPARISON_MODELS.map(m =>
+      [m.id, alignToLabels(fcTimes, modelsForecastData.models[m.id][field], labels)]));
+
+    renderComparisonChart('chart-temp', labels, todayIndex, alignObs('temp'), alignModels('temp'),
       { min: plan.tempMin, max: plan.tempMax });
 
-    renderComparisonChart('chart-hr', labels, nObs, last5.map(h=>h.hr),
-      Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, modelsForecastData.models[m.id].hr])),
+    renderComparisonChart('chart-hr', labels, todayIndex, alignObs('hr'), alignModels('hr'),
       { min: plan.hrMin, max: plan.hrMax }, { min: 0, max: 100 });
 
-    renderComparisonChart('chart-wind', labels, nObs, last5.map(h=>h.wind),
-      Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, modelsForecastData.models[m.id].wind])),
+    renderComparisonChart('chart-wind', labels, todayIndex, alignObs('wind'), alignModels('wind'),
       { min: 0, max: plan.windMax });
 
     // FMC1h per model: reaprofita buildCombinedSeries (obs + previsio d'un sol model) per calcular-lo igual que el model actiu
@@ -1207,19 +1241,20 @@ function updateComparisonCharts(){
     for(const m of COMPARISON_MODELS){
       const combined = buildCombinedSeries(regionalObs, modelsForecastData.models[m.id]);
       const forecastPart = combined.filter(h => h.isForecast);
-      fmcByModel[m.id] = forecastPart.map(h => h.fmc);
+      fmcByModel[m.id] = alignToLabels(forecastPart.map(h => h.time), forecastPart.map(h => h.fmc), labels);
     }
     const obsFmc = calcFMC1h(last5); // aproximacio: FMC dels ultims 5 dies observats en aillament
+    const obsFmcAligned = alignToLabels(obsTimes, obsFmc, labels);
 
     // Precipitacio (observada + previsio del model actiu seleccionat al desplegable),
     // per mostrar-la com a barres sota la linia de FMC1h.
-    const forecastLen = modelsForecastData.time.length;
-    const forecastPrecipRaw = (forecastHourly && forecastHourly.precip) ? forecastHourly.precip : [];
-    const forecastPrecip = new Array(forecastLen).fill(null).map((_, i) =>
-      forecastPrecipRaw[i] !== undefined ? forecastPrecipRaw[i] : null);
-    const precipValues = [...last5.map(h => (h.precip === null || h.precip === undefined) ? null : h.precip), ...forecastPrecip];
+    const obsPrecipAligned = alignToLabels(obsTimes, last5.map(h => (h.precip === null || h.precip === undefined) ? null : h.precip), labels);
+    const fcPrecipTimes = (forecastHourly && forecastHourly.time) ? forecastHourly.time : fcTimes;
+    const fcPrecipValues = (forecastHourly && forecastHourly.precip) ? forecastHourly.precip : [];
+    const fcPrecipAligned = alignToLabels(fcPrecipTimes, fcPrecipValues, labels);
+    const precipValues = labels.map((_, i) => obsPrecipAligned[i] !== null ? obsPrecipAligned[i] : fcPrecipAligned[i]);
 
-    renderComparisonChart('chart-fmc', labels, nObs, obsFmc,
+    renderComparisonChart('chart-fmc', labels, todayIndex, obsFmcAligned,
       fmcByModel,
       { min: plan.fmcMin, max: plan.fmcMax }, undefined, precipValues);
 
