@@ -938,7 +938,7 @@ async function loadModelsForecast(latlon){
 }
 
 let chartInstances = {};
-function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, threshold, decimals){
+function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, threshold, yFixed){
   const ctx = document.getElementById(canvasId).getContext('2d');
   if(chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
@@ -948,17 +948,18 @@ function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, t
 
   const datasets = [];
 
-  // Banda de llindar (min/max), dibuixada com dues linies constants amb farciment entre elles
-  if(threshold && threshold.min !== null && threshold.max !== null &&
-     !isNaN(threshold.min) && !isNaN(threshold.max)){
+  const hasMax = threshold && threshold.max !== null && threshold.max !== undefined && !isNaN(threshold.max);
+  if(hasMax){
+    const effectiveMin = (threshold.min !== null && threshold.min !== undefined && !isNaN(threshold.min))
+      ? threshold.min : 0;
     datasets.push({
       label: 'Llindar màx', data: labels.map(() => threshold.max),
-      borderColor: 'rgba(46,125,70,0.35)', borderDash: [4,4], borderWidth: 1, pointRadius: 0, fill: false, order: 10,
+      borderColor: 'rgba(46,125,70,0.4)', borderDash: [4,4], borderWidth: 1, pointRadius: 0, fill: false, order: 10,
     });
     datasets.push({
-      label: 'Llindar mín', data: labels.map(() => threshold.min),
-      borderColor: 'rgba(46,125,70,0.35)', borderDash: [4,4], borderWidth: 1, pointRadius: 0,
-      fill: { target: -1, above: 'rgba(46,125,70,0.10)', below: 'rgba(46,125,70,0.10)' }, order: 10,
+      label: 'Llindar mín', data: labels.map(() => effectiveMin),
+      borderColor: 'rgba(46,125,70,0.4)', borderDash: [4,4], borderWidth: 1, pointRadius: 0,
+      backgroundColor: 'rgba(46,125,70,0.15)', fill: '-1', order: 10,
     });
   }
 
@@ -974,15 +975,19 @@ function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, t
     });
   }
 
+  const yScale = { ticks: { font: { size: 10 } }, grid: { color: '#eee' } };
+  if(yFixed){
+    yScale.min = yFixed.min;
+    yScale.max = yFixed.max;
+  }
+
   chartInstances[canvasId] = new Chart(ctx, {
     type: 'line',
     data: { labels, datasets },
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { display: false }, tooltip: { callbacks: {
-        label: (item) => `${item.dataset.label}: ${item.formattedValue}${decimals!==undefined?'':''}`
-      }}},
+      plugins: { legend: { display: false } },
       scales: {
         x: {
           ticks: {
@@ -994,12 +999,11 @@ function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, t
           },
           grid: { display: false },
         },
-        y: { ticks: { font: { size: 10 } }, grid: { color: '#eee' } },
+        y: yScale,
       },
     },
   });
 }
-
 function updateComparisonCharts(){
   if(!modelsForecastData || !nearbyStationsCache) return;
   const wrap = document.getElementById('charts-wrap');
@@ -1030,7 +1034,7 @@ function updateComparisonCharts(){
 
     renderComparisonChart('chart-hr', labels, nObs, last5.map(h=>h.hr),
       Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, modelsForecastData.models[m.id].hr])),
-      { min: plan.hrMin, max: plan.hrMax });
+      { min: plan.hrMin, max: plan.hrMax }, { min: 0, max: 100 });
 
     renderComparisonChart('chart-wind', labels, nObs, last5.map(h=>h.wind),
       Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, modelsForecastData.models[m.id].wind])),
