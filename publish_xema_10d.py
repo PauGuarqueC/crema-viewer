@@ -23,7 +23,7 @@ import pandas as pd
 
 DATA_ROOT = Path("/home/labfire/data/SMC-STATIONS")
 METADATA_ROOT = Path("/home/labfire/data/SMC-STATIONS/metadata")
-OUTPUT_PATH = Path("/home/labfire/crema-viewer/data/observacions_10d.json")  # ajustar al repo real (clonat a labfire)
+OUTPUT_PATH = Path("/home/pguarque/cremes_viewer/data/observacions_10d.json")
 
 N_DAYS = 10
 
@@ -126,6 +126,8 @@ def process_station(station_code: str, days) -> dict | None:
         "rad": rad,
         "precip": precip,
     })
+    # Coerceix a numeric (columnes que venien de None -> NaN, no None)
+    combined = combined.apply(pd.to_numeric, errors="coerce")
     combined = combined.dropna(how="all", subset=["temp", "hr", "vent"])
     if combined.empty:
         return None
