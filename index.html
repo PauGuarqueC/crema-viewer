@@ -34,6 +34,7 @@
 
   #app { flex: 1; display: grid; grid-template-columns: 1fr 1fr; min-height: 0; }
   #map { height: 100%; width: 100%; background: var(--map-bg); }
+  #map.locked { cursor: not-allowed; }
 
   #panel {
     background: var(--bg); border-left: 1px solid var(--panel-border);
@@ -88,8 +89,8 @@
   .stat-row .value { font-family: var(--font-mono); font-weight: 500; color: var(--charcoal); }
   .stat-note { font-size: 11.5px; color: var(--text-dim); margin-top: 4px; }
 
-  #radius-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-  #radius-row input[type=range] { flex: 1; accent-color: var(--red); }
+  #radius-row, .radius-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  #radius-row input[type=range], .radius-row input[type=range] { flex: 1; accent-color: var(--red); }
   #radius-label { font-size: 12.5px; color: var(--charcoal); font-family: var(--font-mono); min-width: 46px; text-align: right; }
 
   .plan-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
@@ -246,6 +247,15 @@
     <div id="tab-manual-pane" class="tab-pane" style="display:none;">
       <div class="block">
         Clica un punt qualsevol al mapa per consultar-lo manualment. Podràs editar tu mateix tots els llindars i la finestra marc més avall.
+      </div>
+      <div class="block">
+        <div class="block-title">Punt seleccionat</div>
+        <div class="stat-row"><span class="label">Coordenades</span><span class="value" id="coord-val-manual">—</span></div>
+        <div class="stat-row"><span class="label">Estacions properes</span><span class="value" id="n-stations-manual">—</span></div>
+        <div class="radius-row" style="margin-top:10px;">
+          <input type="range" id="radius-slider-manual" min="5" max="20" step="1" value="20">
+          <span id="radius-label-manual">20 km</span>
+        </div>
       </div>
     </div>
 
@@ -410,7 +420,10 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   maxZoom: 18
 }).addTo(map);
 
+let activeTab = 'plans';
+
 map.on('click', (e) => {
+  if(activeTab !== 'manual') return; // nomes es pot clicar el mapa a "Consulta oberta"
   selectedLatLon = [e.latlng.lat, e.latlng.lng];
   placeMarker(selectedLatLon);
   onPointSelected(selectedLatLon);
@@ -1398,10 +1411,12 @@ function updateNearbyStations(){
   if(!selectedLatLon || !obsData) return;
   nearbyStationsCache = findNearbyStations(selectedLatLon);
   document.getElementById('n-stations').textContent = nearbyStationsCache.length;
+  document.getElementById('n-stations-manual').textContent = nearbyStationsCache.length;
 }
 
 async function onPointSelected(latlon){
   document.getElementById('content').style.display = 'block';
+  document.getElementById('coord-val-manual').textContent = latlon[0].toFixed(4) + ', ' + latlon[1].toFixed(4);
 
   if(obsData) updateNearbyStations();
   await refreshForecastAndPlan();
@@ -1415,6 +1430,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById('tab-plans-pane').style.display = btn.dataset.tab === 'plans' ? 'block' : 'none';
     document.getElementById('tab-manual-pane').style.display = btn.dataset.tab === 'manual' ? 'block' : 'none';
 
+    activeTab = btn.dataset.tab;
+    document.getElementById('map').classList.toggle('locked', activeTab !== 'manual');
+
     // A "Consulta oberta" els llindars cal editar-los -> els desplega automaticament
     if(btn.dataset.tab === 'manual'){
       ['details-llindars', 'details-marc', 'details-context'].forEach(id => {
@@ -1423,12 +1441,15 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     }
   });
 });
+document.getElementById('map').classList.add('locked'); // pestanya "Plans" activa per defecte en carregar
 
 // ---------- Radi configurable ----------
-const radiusSlider = document.getElementById('radius-slider');
-radiusSlider.addEventListener('input', () => {
-  RADIUS_KM = parseInt(radiusSlider.value, 10);
+function onRadiusChange(newRadius){
+  RADIUS_KM = newRadius;
+  document.getElementById('radius-slider').value = RADIUS_KM;
+  document.getElementById('radius-slider-manual').value = RADIUS_KM;
   document.getElementById('radius-label').textContent = RADIUS_KM + ' km';
+  document.getElementById('radius-label-manual').textContent = RADIUS_KM + ' km';
   if(selectedLatLon){
     placeMarker(selectedLatLon); // redibuixa el cercle amb el nou radi
     updateNearbyStations();
@@ -1439,7 +1460,9 @@ radiusSlider.addEventListener('input', () => {
       recomputeAndRender();
     }
   }
-});
+}
+document.getElementById('radius-slider').addEventListener('input', (e) => onRadiusChange(parseInt(e.target.value, 10)));
+document.getElementById('radius-slider-manual').addEventListener('input', (e) => onRadiusChange(parseInt(e.target.value, 10)));
 
 document.getElementById('model-select').addEventListener('change', refreshForecastAndPlan);
 [
