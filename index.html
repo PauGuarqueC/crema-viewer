@@ -152,6 +152,25 @@
   <div id="map"></div>
   <div id="panel">
 
+    <div class="block">
+      <div class="block-title">Capes de cremes prescrites</div>
+      <div class="field" style="flex-direction:row;align-items:center;gap:8px;margin-bottom:8px;">
+        <input type="checkbox" id="layer-planificades" style="width:auto;">
+        <label for="layer-planificades" style="text-transform:none;font-size:13px;color:var(--charcoal);">Cremes planificades</label>
+      </div>
+      <div class="field" style="flex-direction:row;align-items:center;gap:8px;">
+        <input type="checkbox" id="layer-executades" style="width:auto;">
+        <label for="layer-executades" style="text-transform:none;font-size:13px;color:var(--charcoal);">Cremes executades</label>
+      </div>
+      <div id="layers-status" class="stat-note" style="margin-top:8px;"></div>
+      <div class="legend" style="margin-top:8px;">
+        <div><span class="sw" style="background:#2e7d46;"></span>Planificada — Favorable</div>
+        <div><span class="sw" style="background:#C8102E;"></span>Planificada — Desfavorable</div>
+        <div><span class="sw" style="background:#8a8a86;"></span>Planificada — sense resolució</div>
+        <div><span class="sw" style="background:#5a3820;"></span>Executada</div>
+      </div>
+    </div>
+
     <div id="empty-state" class="block">
       Clica un punt al mapa per veure les condicions observades a les estacions properes i la previsió (5 dies) per aquell punt.
     </div>
@@ -321,6 +340,91 @@ function haversineKm(lat1, lon1, lat2, lon2){
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
+
+// ---------- Capes de cremes prescrites (planificades / executades) ----------
+const CREMES_PLANIFICADES_URL = "data/cremes_planificades.geojson";
+const CREMES_EXECUTADES_URL = "data/cremes_executades.geojson";
+let planificadesLayer = null, executadesLayer = null;
+let planificadesData = null, executadesData = null;
+
+function stylePlanificada(feature){
+  const r = feature.properties.RESOLUCIO;
+  let color = '#8a8a86'; // sense resolucio
+  if(r === 'Favorable') color = '#2e7d46';
+  else if(r === 'Desfavorable') color = '#C8102E';
+  return { color, weight: 1, fillColor: color, fillOpacity: 0.35 };
+}
+
+function styleExecutada(){
+  return { color: '#5a3820', weight: 1, fillColor: '#5a3820', fillOpacity: 0.3 };
+}
+
+function popupPlanificada(feature){
+  const p = feature.properties;
+  return `<strong>${p.NOM_PDC || '(sense nom)'}</strong><br>` +
+    `${p.ID_PLA || ''}<br>` +
+    `Àrea: ${p.AREA ? p.AREA.toFixed(1) : '—'} ha<br>` +
+    `Resolució: ${p.RESOLUCIO || 'sense resolució'}` +
+    (p.RESOLUCIO_ ? `<br>Vigència: ${p.RESOLUCIO_} → ${p.RESOLUCIO1 || '—'}` : '');
+}
+
+function popupExecutada(feature){
+  const p = feature.properties;
+  return `<strong>${p.NOM_CREMA || '(sense nom)'}</strong><br>` +
+    `${p.ID_PLA || ''}<br>` +
+    `Data: ${p.DATA_CREMA || '—'}<br>` +
+    `Àrea: ${p.AREA ? p.AREA.toFixed(1) : '—'} ha` +
+    (p.OBJECTIUS ? `<br>Objectiu: ${p.OBJECTIUS}` : '') +
+    (p.TEV ? `<br>TEV: ${p.TEV}` : '');
+}
+
+async function toggleLayer(kind, show){
+  const statusEl = document.getElementById('layers-status');
+  if(kind === 'planificades'){
+    if(show){
+      if(!planificadesData){
+        statusEl.textContent = 'Carregant cremes planificades…';
+        try{
+          const res = await fetch(CREMES_PLANIFICADES_URL);
+          if(!res.ok) throw new Error('no trobat');
+          planificadesData = await res.json();
+        }catch(err){
+          statusEl.textContent = "No s'ha pogut carregar " + CREMES_PLANIFICADES_URL;
+          document.getElementById('layer-planificades').checked = false;
+          return;
+        }
+      }
+      planificadesLayer = L.geoJSON(planificadesData, { style: stylePlanificada, onEachFeature: (f,l) => l.bindPopup(popupPlanificada(f)) }).addTo(map);
+      statusEl.textContent = '';
+    } else if(planificadesLayer){
+      map.removeLayer(planificadesLayer);
+      planificadesLayer = null;
+    }
+  } else if(kind === 'executades'){
+    if(show){
+      if(!executadesData){
+        statusEl.textContent = 'Carregant cremes executades…';
+        try{
+          const res = await fetch(CREMES_EXECUTADES_URL);
+          if(!res.ok) throw new Error('no trobat');
+          executadesData = await res.json();
+        }catch(err){
+          statusEl.textContent = "No s'ha pogut carregar " + CREMES_EXECUTADES_URL;
+          document.getElementById('layer-executades').checked = false;
+          return;
+        }
+      }
+      executadesLayer = L.geoJSON(executadesData, { style: styleExecutada, onEachFeature: (f,l) => l.bindPopup(popupExecutada(f)) }).addTo(map);
+      statusEl.textContent = '';
+    } else if(executadesLayer){
+      map.removeLayer(executadesLayer);
+      executadesLayer = null;
+    }
+  }
+}
+
+document.getElementById('layer-planificades').addEventListener('change', (e) => toggleLayer('planificades', e.target.checked));
+document.getElementById('layer-executades').addEventListener('change', (e) => toggleLayer('executades', e.target.checked));
 
 async function loadObs(){
   const res = await fetch(OBS_JSON_URL);
