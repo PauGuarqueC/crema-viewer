@@ -85,10 +85,10 @@
   .cell.match { background: var(--green); }
   .cell.ctx-blocked { background: var(--amber); opacity: .6; }
   .cell.no-data { background: transparent; border: 1px dashed var(--panel-border); }
-  .cell:hover::after {
-    content: attr(data-tip); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
+  #cell-tooltip {
+    position: fixed; display: none; z-index: 2000; pointer-events: none;
     background: var(--charcoal); color: #fff; font-family: var(--font-mono); font-size: 10.5px;
-    padding: 4px 6px; border-radius: 4px; white-space: nowrap; z-index: 20; pointer-events: none;
+    padding: 5px 8px; border-radius: 4px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,.25);
   }
   .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: 11px; color: var(--text-dim); }
   .legend .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
@@ -205,6 +205,8 @@
     </div>
   </div>
 </div>
+
+<div id="cell-tooltip"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -358,6 +360,28 @@ function dailyAggregates(hourlySeries){
 }
 
 function fmt(v, d=1){ return v===null || v===undefined || isNaN(v) ? '—' : v.toFixed(d); }
+
+// Tooltip unic, posicionat amb JS i sempre dins dels limits de la finestra
+// (evita que es talli a les hores properes als extrems del dia, on el panell
+// lateral o la vora de la pantalla el retallaven).
+const cellTooltipEl = document.getElementById('cell-tooltip');
+function showCellTooltip(cellEl, text){
+  cellTooltipEl.textContent = text;
+  cellTooltipEl.style.display = 'block';
+  const margin = 8;
+  const rect = cellEl.getBoundingClientRect();
+  const tw = cellTooltipEl.offsetWidth, th = cellTooltipEl.offsetHeight;
+
+  let left = rect.left + rect.width/2 - tw/2;
+  left = Math.max(margin, Math.min(left, window.innerWidth - tw - margin));
+
+  let top = rect.top - th - 8;
+  if(top < margin) top = rect.bottom + 8; // si no hi ha espai a sobre, el mostra a sota
+
+  cellTooltipEl.style.left = left + 'px';
+  cellTooltipEl.style.top = top + 'px';
+}
+function hideCellTooltip(){ cellTooltipEl.style.display = 'none'; }
 
 function renderObsStats(stats){
   document.getElementById('n-stations').textContent = stats.nStations;
@@ -534,7 +558,9 @@ function renderStrip(results){
         if(r.match) cls += ' match';
         else if(r.hourOk && !r.ctxOk) cls += ' ctx-blocked';
         cell.className = cls;
-        cell.setAttribute('data-tip', `${h}h · ${fmt(r.temp,0)}°C · ${fmt(r.hr,0)}% · ${fmt(r.wind,1)}m/s · FMC1h ${fmt(r.fmc,1)}%${(r.hourOk && !r.ctxOk) ? ' · context no compleix' : ''}`);
+        const tip = `${h}h · ${fmt(r.temp,0)}°C · ${fmt(r.hr,0)}% · ${fmt(r.wind,1)}m/s · FMC1h ${fmt(r.fmc,1)}%${(r.hourOk && !r.ctxOk) ? ' · context no compleix' : ''}`;
+        cell.addEventListener('mouseenter', () => showCellTooltip(cell, tip));
+        cell.addEventListener('mouseleave', hideCellTooltip);
       }
       strip.appendChild(cell);
     }
