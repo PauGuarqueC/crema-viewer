@@ -61,6 +61,22 @@
   .tab-btn.active { background: var(--panel); color: var(--charcoal); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
   .tab-pane { margin-bottom: 4px; }
 
+  details.block summary {
+    cursor: pointer;
+    list-style: none;
+  }
+  details.block summary::-webkit-details-marker { display: none; }
+  details.block summary.block-title::before {
+    content: "▸";
+    display: inline-block;
+    margin-right: 6px;
+    font-size: 10px;
+    transition: transform .15s;
+  }
+  details.block[open] summary.block-title::before {
+    transform: rotate(90deg);
+  }
+
   .stat-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; font-size: 13.5px; }
   .stat-row .label { color: var(--text-dim); }
   .stat-row .value { font-family: var(--font-mono); font-weight: 500; color: var(--charcoal); }
@@ -240,8 +256,30 @@
       </div>
 
       <div class="block">
-        <div class="block-title">Pla de crema — llindars</div>
-        <div class="plan-form">
+        <div class="block-title">Finestra de crema — previsió 5 dies</div>
+        <div class="field" style="margin-bottom:12px;">
+          <label>Model de previsió (Open-Meteo)</label>
+          <select id="model-select">
+            <option value="best_match">Best match (auto)</option>
+            <option value="icon_eu">ICON-EU</option>
+            <option value="ecmwf_ifs04">ECMWF IFS</option>
+            <option value="gfs_seamless">GFS</option>
+            <option value="arome_france">AROME France</option>
+          </select>
+        </div>
+        <div id="forecast-status" class="loading">Carregant previsió…</div>
+        <div id="strip-wrap" style="display:none;"></div>
+        <div class="legend">
+          <div><span class="sw" style="background:var(--green);"></span>Dins de pla</div>
+          <div><span class="sw" style="background:var(--amber);opacity:.6;"></span>Hora OK, context no</div>
+          <div><span class="sw" style="background:#e5e5e3;"></span>Fora de pla</div>
+        </div>
+        <div id="match-list" class="match-list"></div>
+      </div>
+
+      <details class="block" id="details-llindars">
+        <summary class="block-title">Pla de crema — llindars</summary>
+        <div class="plan-form" style="margin-top:10px;">
           <div class="field"><label>Temp. mín (°C)</label><input type="number" id="plan-temp-min" value="10" step="1"></div>
           <div class="field"><label>Temp. màx (°C)</label><input type="number" id="plan-temp-max" value="22" step="1"></div>
           <div class="field"><label>HR mín (%)</label><input type="number" id="plan-hr-min" value="40" step="1"></div>
@@ -250,23 +288,11 @@
           <div class="field"><label>FMC 1h mín (%)</label><input type="number" id="plan-fmc-min" value="8" step="0.5"></div>
           <div class="field"><label>FMC 1h màx (%)</label><input type="number" id="plan-fmc-max" value="12" step="0.5"></div>
         </div>
-        <div style="margin-top:14px;">
-          <div class="field">
-            <label>Model de previsió (Open-Meteo)</label>
-            <select id="model-select">
-              <option value="best_match">Best match (auto)</option>
-              <option value="icon_eu">ICON-EU</option>
-              <option value="ecmwf_ifs04">ECMWF IFS</option>
-              <option value="gfs_seamless">GFS</option>
-              <option value="arome_france">AROME France</option>
-            </select>
-          </div>
-        </div>
-      </div>
+      </details>
 
-      <div class="block">
-        <div class="block-title">Finestra marc (dia -1 / 0 / +1)</div>
-        <div class="plan-form cols-3">
+      <details class="block" id="details-marc">
+        <summary class="block-title">Finestra marc (dia -1 / 0 / +1)</summary>
+        <div class="plan-form cols-3" style="margin-top:10px;">
           <div class="field"><label>T màx dia -1 (°C)</label><input type="number" id="marc-tmax-m1" placeholder="sense límit"></div>
           <div class="field"><label>HR mín dia -1 (%)</label><input type="number" id="marc-hrmin-m1" value="40"></div>
           <div class="field"><label>Vent màx dia -1 (m/s)</label><input type="number" id="marc-wind-m1" placeholder="sense límit"></div>
@@ -277,12 +303,12 @@
           <div class="field"><label>HR mín dia +1 (%)</label><input type="number" id="marc-hrmin-p1" value="40"></div>
           <div class="field"><label>Vent màx dia +1 (m/s)</label><input type="number" id="marc-wind-p1" value="5.6"></div>
         </div>
-        <div class="stat-note">Buit = sense restricció per aquell dia/variable. Dia -1 s'avalua amb observacions reals; dies 0/+1 amb previsió.</div>
-      </div>
+        <div class="stat-note" style="margin-top:8px;">Buit = sense restricció per aquell dia/variable. Dia -1 s'avalua amb observacions reals; dies 0/+1 amb previsió.</div>
+      </details>
 
-      <div class="block">
-        <div class="block-title">Context dies previs</div>
-        <div class="plan-form">
+      <details class="block" id="details-context">
+        <summary class="block-title">Context dies previs</summary>
+        <div class="plan-form" style="margin-top:10px;">
           <div class="field"><label>Precip. màx acum. 10d (mm)</label><input type="number" id="ctx-precip-max" value="5" step="0.5"></div>
           <div class="field"><label>HR matinada — recuperació (%)</label><input type="number" id="ctx-recovery-hr" value="65" step="1"></div>
           <div class="field"><label>Nits sense recuperar (màx)</label><input type="number" id="ctx-recovery-nights" value="2" step="1"></div>
@@ -290,19 +316,7 @@
           <div class="field full"><label>Dies amb vent fort permesos (últims 7 dies)</label><input type="number" id="ctx-wind-strong-days" value="1" step="1"></div>
         </div>
         <div id="ctx-summary" class="stat-note" style="margin-top:8px;"></div>
-      </div>
-
-      <div class="block">
-        <div class="block-title">Finestra de crema — previsió 5 dies</div>
-        <div id="forecast-status" class="loading">Carregant previsió…</div>
-        <div id="strip-wrap" style="display:none;"></div>
-        <div class="legend">
-          <div><span class="sw" style="background:var(--green);"></span>Dins de pla</div>
-          <div><span class="sw" style="background:var(--amber);opacity:.6;"></span>Hora OK, context no</div>
-          <div><span class="sw" style="background:#e5e5e3;"></span>Fora de pla</div>
-        </div>
-        <div id="match-list" class="match-list"></div>
-      </div>
+      </details>
 
     </div>
   </div>
@@ -669,6 +683,11 @@ function applyPlanToForm(p){
   applyDay(m.dia_m1, 'm1');
   applyDay(m.dia_0, '0');
   applyDay(m.dia_p1, 'p1');
+
+  // Un cop carregat un pla, aquests blocs son nomes de consulta -> es tanquen
+  ['details-llindars', 'details-marc', 'details-context'].forEach(id => {
+    document.getElementById(id).removeAttribute('open');
+  });
 
   document.getElementById('plan-picker-status').textContent = `Carregat: ${p.nom || p.id_pla}`;
   if(combinedSeries) recomputeAndRender();
@@ -1082,6 +1101,13 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('tab-plans-pane').style.display = btn.dataset.tab === 'plans' ? 'block' : 'none';
     document.getElementById('tab-manual-pane').style.display = btn.dataset.tab === 'manual' ? 'block' : 'none';
+
+    // A "Consulta oberta" els llindars cal editar-los -> els desplega automaticament
+    if(btn.dataset.tab === 'manual'){
+      ['details-llindars', 'details-marc', 'details-context'].forEach(id => {
+        document.getElementById(id).setAttribute('open', '');
+      });
+    }
   });
 });
 
