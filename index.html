@@ -251,11 +251,6 @@
       </div>
 
       <div class="block">
-        <div class="block-title">Condicions observades (mitjana 10 dies, estacions properes)</div>
-        <div id="obs-stats"><span class="loading">Carregant…</span></div>
-      </div>
-
-      <div class="block">
         <div class="block-title">Finestra de crema — previsió 5 dies</div>
         <div class="field" style="margin-bottom:12px;">
           <label>Model de previsió (Open-Meteo)</label>
@@ -405,7 +400,7 @@ function haversineKm(lat1, lon1, lat2, lon2){
 // ---------- Capes de cremes prescrites (planificades / executades) ----------
 const CREMES_PLANIFICADES_URL = "data/cremes_planificades.geojson";
 const CREMES_EXECUTADES_URL = "data/cremes_executades.geojson";
-let planificadesLayer = null, executadesLayer = null;
+let planificadesLayer = null, executadesLayer = null, estacionsLayer = null;
 let planificadesData = null, executadesData = null;
 
 function stylePlanificada(){
@@ -477,6 +472,28 @@ async function toggleLayer(kind, show){
       map.removeLayer(executadesLayer);
       executadesLayer = null;
     }
+  } else if(kind === 'estacions'){
+    if(show){
+      if(!obsData){
+        statusEl.textContent = 'Carregant estacions…';
+        await obsLoadPromise;
+      }
+      if(!obsData){
+        statusEl.textContent = "No s'han pogut carregar les estacions.";
+        document.getElementById('layer-estacions').checked = false;
+        return;
+      }
+      const markers = Object.entries(obsData.estacions).map(([code, meta]) => {
+        return L.circleMarker([meta.lat, meta.lon], {
+          radius: 4, color: '#2b6cb0', fillColor: '#2b6cb0', fillOpacity: 0.85, weight: 1
+        }).bindPopup(`<strong>${meta.nom || code}</strong><br>${code}<br>Alt: ${meta.alt ?? '—'} m`);
+      });
+      estacionsLayer = L.layerGroup(markers).addTo(map);
+      statusEl.textContent = '';
+    } else if(estacionsLayer){
+      map.removeLayer(estacionsLayer);
+      estacionsLayer = null;
+    }
   }
 }
 
@@ -490,6 +507,7 @@ const LayersControl = L.Control.extend({
       '<div class="layers-dropdown" id="layers-dropdown" style="display:none;">' +
         '<label><input type="checkbox" id="layer-planificades" checked> Cremes planificades</label>' +
         '<label><input type="checkbox" id="layer-executades" checked> Cremes executades</label>' +
+        '<label><input type="checkbox" id="layer-estacions"> Estacions meteo (XEMA)</label>' +
         '<div id="layers-status"></div>' +
       '</div>';
     L.DomEvent.disableClickPropagation(container);
@@ -504,6 +522,7 @@ document.getElementById('layers-toggle-btn').addEventListener('click', () => {
 });
 document.getElementById('layer-planificades').addEventListener('change', (e) => toggleLayer('planificades', e.target.checked));
 document.getElementById('layer-executades').addEventListener('change', (e) => toggleLayer('executades', e.target.checked));
+document.getElementById('layer-estacions').addEventListener('change', (e) => toggleLayer('estacions', e.target.checked));
 
 // Carrega les dues capes visibles per defecte en obrir la pàgina
 toggleLayer('planificades', true);
@@ -709,23 +728,6 @@ function findNearbyStations(latlon){
   return nearby;
 }
 
-function computeObsStats(nearby){
-  let tempSum=0, tempN=0, hrSum=0, hrN=0, windSum=0, windN=0;
-  for(const code of nearby){
-    const s = obsData.series[code];
-    if(!s) continue;
-    for(const v of s.temp){ if(v!==null){ tempSum+=v; tempN++; } }
-    for(const v of s.hr){ if(v!==null){ hrSum+=v; hrN++; } }
-    for(const v of s.vent){ if(v!==null){ windSum+=v; windN++; } }
-  }
-  return {
-    nStations: nearby.length,
-    avgTemp: tempN ? tempSum/tempN : null,
-    avgHr: hrN ? hrSum/hrN : null,
-    avgWind: windN ? windSum/windN : null,
-  };
-}
-
 function buildRegionalHourlyObs(nearby){
   const byHour = {};
   for(const code of nearby){
@@ -824,21 +826,6 @@ function showCellTooltip(cellEl, text){
   cellTooltipEl.style.top = top + 'px';
 }
 function hideCellTooltip(){ cellTooltipEl.style.display = 'none'; }
-
-function renderObsStats(stats){
-  document.getElementById('n-stations').textContent = stats.nStations;
-  const el = document.getElementById('obs-stats');
-  if(stats.nStations === 0){
-    el.innerHTML = '<div class="no-match">Cap estació XEMA en aquest radi.</div>';
-    return;
-  }
-  el.innerHTML = `
-    <div class="stat-row"><span class="label">Temp. mitjana</span><span class="value">${fmt(stats.avgTemp)} °C</span></div>
-    <div class="stat-row"><span class="label">HR mitjana</span><span class="value">${fmt(stats.avgHr)} %</span></div>
-    <div class="stat-row"><span class="label">Vent mitjà</span><span class="value">${fmt(stats.avgWind)} m/s</span></div>
-    <div class="stat-note">Generat: ${obsData.generat} · dies ${obsData.dies[0]} → ${obsData.dies[obsData.dies.length-1]}</div>
-  `;
-}
 
 async function loadForecast(latlon, model){
   const [lat, lon] = latlon;
@@ -1080,17 +1067,17 @@ async function refreshForecastAndPlan(){
   }
 }
 
-function updateNearbyAndObsStats(){
+function updateNearbyStations(){
   if(!selectedLatLon || !obsData) return;
   nearbyStationsCache = findNearbyStations(selectedLatLon);
-  renderObsStats(computeObsStats(nearbyStationsCache));
+  document.getElementById('n-stations').textContent = nearbyStationsCache.length;
 }
 
 async function onPointSelected(latlon){
   document.getElementById('content').style.display = 'block';
   document.getElementById('coord-val').textContent = latlon[0].toFixed(4) + ', ' + latlon[1].toFixed(4);
 
-  if(obsData) updateNearbyAndObsStats();
+  if(obsData) updateNearbyStations();
   await refreshForecastAndPlan();
 }
 
@@ -1118,7 +1105,7 @@ radiusSlider.addEventListener('input', () => {
   document.getElementById('radius-label').textContent = RADIUS_KM + ' km';
   if(selectedLatLon){
     placeMarker(selectedLatLon); // redibuixa el cercle amb el nou radi
-    updateNearbyAndObsStats();
+    updateNearbyStations();
     // el radi només afecta les observacions regionals -> cal reconstruir la serie combinada
     if(forecastHourly){
       const regionalObs = buildRegionalHourlyObs(nearbyStationsCache);
@@ -1137,7 +1124,7 @@ document.getElementById('model-select').addEventListener('change', refreshForeca
   document.getElementById(id).addEventListener('input', recomputeAndRender);
 });
 
-loadObs().catch(err => {
+const obsLoadPromise = loadObs().catch(err => {
   console.error(err);
   const el = document.getElementById('global-error');
   el.style.display = 'block';
