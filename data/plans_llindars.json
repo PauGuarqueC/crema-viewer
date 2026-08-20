@@ -1,0 +1,2749 @@
+{
+  "_instruccions": "56 plans actius. Ubicacio (opcional, tria UNA opcio): 1) 'lat'/'lon' directes, o 2) 'utm_x'/'utm_y' (ETRS89, tal com surt al PDF; 'utm_zone' per defecte 31), o 3) deixa-ho tot a null i es cercara automaticament pel id_pla al cremes_planificades.geojson. Vent en km/h (com al PDF); el visor el converteix a m/s.",
+  "plans": [
+    {
+      "id_pla": "REC_2019_10_La Traveria - Obertes - Garriga",
+      "nom": "La Traveria - Obertes - Garriga",
+      "regio": "REC",
+      "lat": null,
+      "lon": null,
+      "utm_x": 421000,
+      "utm_y": 4639000,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 22
+        },
+        "hr": {
+          "baix": 35,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REC_2022_01_El Muntaner",
+      "nom": "El Muntaner",
+      "regio": "REC",
+      "lat": null,
+      "lon": null,
+      "utm_x": 430900,
+      "utm_y": 4652600,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 24
+        },
+        "hr": {
+          "baix": 35,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REC_2023_02_Pi negre Coll de Port",
+      "nom": "Coll de Port",
+      "regio": "REC",
+      "lat": null,
+      "lon": null,
+      "utm_x": 380200,
+      "utm_y": 4674050,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 22
+        },
+        "hr": {
+          "baix": 35,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 24,
+          "hrmin": 25,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REC_2023_03_Pi negre Estivella",
+      "nom": "Estivella",
+      "regio": "REC",
+      "lat": null,
+      "lon": null,
+      "utm_x": 379500,
+      "utm_y": 4670750,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 22
+        },
+        "hr": {
+          "baix": 35,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 24,
+          "hrmin": 25,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REC_2023_04 Pi negre Querol",
+      "nom": "Querol",
+      "regio": "REC",
+      "lat": null,
+      "lon": null,
+      "utm_x": 381700,
+      "utm_y": 4668750,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 22
+        },
+        "hr": {
+          "baix": 35,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 24,
+          "hrmin": 25,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REC_2023_06_Font del Morral",
+      "nom": "Font del Morral",
+      "regio": "REC",
+      "lat": null,
+      "lon": null,
+      "utm_x": 409675,
+      "utm_y": 4635250,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 24
+        },
+        "hr": {
+          "baix": 35,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REC_2023_09_Pujol Melós",
+      "nom": "Pujol Melós",
+      "regio": "REC",
+      "lat": null,
+      "lon": null,
+      "utm_x": 387400,
+      "utm_y": 4652400,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 24
+        },
+        "hr": {
+          "baix": 35,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REC_2023_10_Can Feliu 2",
+      "nom": "Can Feliu 2",
+      "regio": "REC",
+      "lat": null,
+      "lon": null,
+      "utm_x": 388000,
+      "utm_y": 4651100,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 24
+        },
+        "hr": {
+          "baix": 35,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REC_2024_01_Clapers",
+      "nom": "Clapers",
+      "regio": "REC",
+      "lat": null,
+      "lon": null,
+      "utm_x": 419000,
+      "utm_y": 4630400,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 24
+        },
+        "hr": {
+          "baix": 35,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REC_2024_02_El Corralot",
+      "nom": "El Corralot",
+      "regio": "REC",
+      "lat": null,
+      "lon": null,
+      "utm_x": 368460,
+      "utm_y": 4641900,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 24
+        },
+        "hr": {
+          "baix": 35,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REC_2024_03_Vilarassau",
+      "nom": "Vilarassau",
+      "regio": "REC",
+      "lat": null,
+      "lon": null,
+      "utm_x": 420500,
+      "utm_y": 4632000,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 24
+        },
+        "hr": {
+          "baix": 35,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REC_2026_01_El Pinel",
+      "nom": "El Pinell",
+      "regio": "REC",
+      "lat": null,
+      "lon": null,
+      "utm_x": 392800,
+      "utm_y": 4641000,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 24
+        },
+        "hr": {
+          "baix": 38,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 26,
+          "hrmin": 35,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REC_2026_02_Can Tomàs",
+      "nom": "Can Tomàs",
+      "regio": "REC",
+      "lat": null,
+      "lon": null,
+      "utm_x": 415075,
+      "utm_y": 4633050,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 24
+        },
+        "hr": {
+          "baix": 38,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 26,
+          "hrmin": 35,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REG_2008_02_Mas Fumats",
+      "nom": "Mas Fumats",
+      "regio": "REG",
+      "lat": null,
+      "lon": null,
+      "utm_x": 516150,
+      "utm_y": 4683105,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": 5,
+          "desitjat": 10,
+          "alt": 20
+        },
+        "hr": {
+          "baix": 35,
+          "desitjat": 50,
+          "alt": 80
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": 10,
+          "alt": 20
+        },
+        "fmc1h": {
+          "baix": 8,
+          "desitjat": 10,
+          "alt": 12
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 15,
+          "hrmin": 60,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 15,
+          "hrmin": null,
+          "vent_kmh_max": 5
+        }
+      }
+    },
+    {
+      "id_pla": "REG_2016_01_Coll de Banyuls_II",
+      "nom": "Coll de Banyuls II",
+      "regio": "REG",
+      "lat": null,
+      "lon": null,
+      "utm_x": 504500,
+      "utm_y": 4699500,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": 2,
+          "desitjat": 10,
+          "alt": 20
+        },
+        "hr": {
+          "baix": 40,
+          "desitjat": 65,
+          "alt": 85
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": 15,
+          "alt": 25
+        },
+        "fmc1h": {
+          "baix": 8,
+          "desitjat": 10,
+          "alt": 12
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 15,
+          "hrmin": 60,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 15,
+          "hrmin": null,
+          "vent_kmh_max": 5
+        }
+      }
+    },
+    {
+      "id_pla": "REG_2023_03_Montgrí III",
+      "nom": "Montgrí III",
+      "regio": "REG",
+      "lat": null,
+      "lon": null,
+      "utm_x": 513660,
+      "utm_y": 4659090,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": 5,
+          "desitjat": null,
+          "alt": 30
+        },
+        "hr": {
+          "baix": 30,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 25
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 30,
+          "hrmin": 55,
+          "vent_kmh_max": 25
+        },
+        "dia_p1": {
+          "tmax": 25,
+          "hrmin": 60,
+          "vent_kmh_max": 25
+        }
+      }
+    },
+    {
+      "id_pla": "RET_2019_03_Bonastre",
+      "nom": "Bonastre",
+      "regio": "RETITE",
+      "lat": 41.2187,
+      "lon": 1.4699,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "RET_2015_01_Rojals",
+      "nom": "Rojals",
+      "regio": "RETITE",
+      "lat": 41.3507,
+      "lon": 1.0943,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "RETITE_2003_02_Colladetes Perelló",
+      "nom": "Colladetes Perelló",
+      "regio": "RETITE",
+      "lat": null,
+      "lon": null,
+      "utm_x": 334900,
+      "utm_y": 4569000,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 25
+        },
+        "hr": {
+          "baix": 30,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REP_2022_02_Bosc de Salas",
+      "nom": "Bosc de Salas",
+      "regio": "REP",
+      "lat": null,
+      "lon": null,
+      "utm_x": 325840,
+      "utm_y": 4678516,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": 17,
+          "alt": 26
+        },
+        "hr": {
+          "baix": 35,
+          "desitjat": 45,
+          "alt": 60
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": 5,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": 8,
+          "desitjat": 10,
+          "alt": 12
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 26,
+          "hrmin": 35,
+          "vent_kmh_max": 7
+        },
+        "dia_p1": {
+          "tmax": 28,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REP_2022_07_Corroncui",
+      "nom": "Corroncui",
+      "regio": "REP",
+      "lat": null,
+      "lon": null,
+      "utm_x": 323691,
+      "utm_y": 4688517,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": 10,
+          "alt": 25
+        },
+        "hr": {
+          "baix": 25,
+          "desitjat": 45,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": 5,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": 8,
+          "desitjat": 10,
+          "alt": 12
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 15,
+          "hrmin": 40,
+          "vent_kmh_max": 15
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "REP_2024_02_Sant Esteve de la Sarga - Alzina",
+      "nom": "Sant Esteve de la Sarga - Alzina",
+      "regio": "REP",
+      "lat": null,
+      "lon": null,
+      "utm_x": 318686,
+      "utm_y": 4659920,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": 5,
+          "desitjat": null,
+          "alt": 20
+        },
+        "hr": {
+          "baix": 40,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 25,
+          "hrmin": 70,
+          "vent_kmh_max": 15
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": 70,
+          "vent_kmh_max": 5
+        }
+      }
+    },
+    {
+      "id_pla": "REP_2025_03_Adraén",
+      "nom": "Adraén",
+      "regio": "REP",
+      "lat": null,
+      "lon": null,
+      "utm_x": 378700,
+      "utm_y": 4683400,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 24
+        },
+        "hr": {
+          "baix": 35,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 26,
+          "hrmin": 35,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "REP_2026_01_Llagunes",
+      "nom": "Llagunes",
+      "regio": "REP",
+      "lat": null,
+      "lon": null,
+      "utm_x": 334700,
+      "utm_y": 4695000,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": 10,
+          "alt": 25
+        },
+        "hr": {
+          "baix": 25,
+          "desitjat": 45,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": 5,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": 8,
+          "desitjat": 10,
+          "alt": 12
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 15,
+          "hrmin": 35,
+          "vent_kmh_max": 15
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": 30
+        }
+      }
+    },
+    {
+      "id_pla": "RELL_2022_06_Almatret",
+      "nom": "Almatret",
+      "regio": "RELL",
+      "lat": null,
+      "lon": null,
+      "utm_x": 283529,
+      "utm_y": 4577576,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": 10,
+          "desitjat": 17,
+          "alt": 28
+        },
+        "hr": {
+          "baix": 30,
+          "desitjat": 35,
+          "alt": 50
+        },
+        "vent_kmh": {
+          "baix": 2,
+          "desitjat": 5,
+          "alt": 8
+        },
+        "fmc1h": {
+          "baix": 8,
+          "desitjat": 10,
+          "alt": 12
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 23,
+          "hrmin": 30,
+          "vent_kmh_max": 15
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "REMN_2020_01_Agora_Parc",
+      "nom": "Agora Parc",
+      "regio": "REMN",
+      "lat": null,
+      "lon": null,
+      "utm_x": 471609,
+      "utm_y": 4617039,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 20
+        },
+        "hr": {
+          "baix": 30,
+          "desitjat": null,
+          "alt": 60
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    },
+    {
+      "id_pla": "",
+      "nom": "",
+      "regio": "",
+      "lat": null,
+      "lon": null,
+      "utm_x": null,
+      "utm_y": null,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
+    }
+  ]
+}

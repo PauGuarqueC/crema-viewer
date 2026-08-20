@@ -210,6 +210,17 @@
       </div>
 
       <div class="block">
+        <div class="block-title">Pla de crema actiu</div>
+        <div class="field">
+          <label>Selecciona un pla</label>
+          <select id="plan-picker">
+            <option value="">— cap seleccionat —</option>
+          </select>
+        </div>
+        <div id="plan-picker-status" class="stat-note" style="margin-top:6px;"></div>
+      </div>
+
+      <div class="block">
         <div class="block-title">Pla de crema — llindars</div>
         <div class="plan-form">
           <div class="field"><label>Temp. mín (°C)</label><input type="number" id="plan-temp-min" value="10" step="1"></div>
@@ -464,6 +475,185 @@ document.getElementById('layer-executades').addEventListener('change', (e) => to
 // Carrega les dues capes visibles per defecte en obrir la pàgina
 toggleLayer('planificades', true);
 toggleLayer('executades', true);
+
+// ---------- Plans de crema actius (llindars pre-carregats) ----------
+const PLANS_LLINDARS_URL = "data/plans_llindars.json";
+let plansData = [];
+
+function kmhToMs(v){ return v === null || v === undefined ? null : v / 3.6; }
+function setFieldValue(id, v){ document.getElementById(id).value = (v === null || v === undefined) ? '' : v; }
+
+async function loadPlans(){
+  const statusEl = document.getElementById('plan-picker-status');
+  try{
+    const res = await fetch(PLANS_LLINDARS_URL);
+    if(!res.ok) throw new Error('no trobat');
+    const data = await res.json();
+    // Ignora entrades encara sense id_pla (pendents d'omplir): no cal
+    // esborrar-les del fitxer, simplement no apareixen al desplegable.
+    plansData = (data.plans || []).filter(p => p.id_pla && p.id_pla.trim() !== '');
+  }catch(err){
+    statusEl.textContent = 'Sense plans pre-carregats (data/plans_llindars.json no disponible).';
+    return;
+  }
+
+  const select = document.getElementById('plan-picker');
+  const byRegio = {};
+  for(const p of plansData){
+    const regio = p.regio || 'Sense regió';
+    (byRegio[regio] = byRegio[regio] || []).push(p);
+  }
+  for(const [regio, plans] of Object.entries(byRegio)){
+    const group = document.createElement('optgroup');
+    group.label = regio;
+    for(const p of plans){
+      const opt = document.createElement('option');
+      opt.value = p.id_pla;
+      opt.textContent = `${p.nom || '(sense nom)'} — ${p.id_pla}`;
+      group.appendChild(opt);
+    }
+    select.appendChild(group);
+  }
+
+  select.addEventListener('change', async () => {
+    const p = plansData.find(x => x.id_pla === select.value);
+    if(!p) return;
+    applyPlanToForm(p);
+
+    // Ubicacio del pla, per ordre de prioritat:
+    // 1. lat/lon directes (si estan al fitxer de llindars)
+    // 2. coordenades UTM (utm_x/utm_y, tal com surten al PDF del pla)
+    // 3. centroide del poligon a cremes_planificades.geojson (per ID_PLA)
+    let latlon = null;
+    if(typeof p.lat === 'number' && typeof p.lon === 'number'){
+      latlon = [p.lat, p.lon];
+    } else if(typeof p.utm_x === 'number' && typeof p.utm_y === 'number'){
+      const zone = typeof p.utm_zone === 'number' ? p.utm_zone : 31;
+      latlon = utmToLatLon(p.utm_x, p.utm_y, zone, true);
+    } else {
+      latlon = await findPlanCentroid(p.id_pla);
+    }
+
+    if(latlon){
+      map.setView(latlon, 12);
+      selectedLatLon = latlon;
+      placeMarker(latlon);
+      await onPointSelected(latlon);
+      applyPlanToForm(p); // torna a aplicar els llindars (onPointSelected no els toca, pero per seguretat)
+    } else {
+      document.getElementById('plan-picker-status').textContent =
+        `Carregat: ${p.nom || p.id_pla} (sense ubicació — afegeix lat/lon al pla o comprova l'ID_PLA)`;
+    }
+  });
+}
+
+// Busca el centroide (mitjana simple dels vertexs) del poligon d'un pla al
+// cremes_planificades.geojson, a partir del seu ID_PLA. Retorna [lat, lon] o null.
+// Conversio UTM (ETRS89, zona per defecte 31N a Catalunya) -> lat/lon WGS84.
+// Formules estandard de Snyder; precisio de pocs metres, mes que suficient
+// per centrar el mapa i cercar estacions properes.
+function utmToLatLon(easting, northing, zoneNum, northernHemisphere = true){
+  const a = 6378137.0;
+  const f = 1/298.257223563;
+  const k0 = 0.9996;
+  const e = Math.sqrt(f*(2-f));
+  const x = easting - 500000.0;
+  let y = northing;
+  if(!northernHemisphere) y -= 10000000.0;
+
+  const m = y / k0;
+  const mu = m / (a*(1-e*e/4-3*Math.pow(e,4)/64-5*Math.pow(e,6)/256));
+  const e1 = (1-Math.sqrt(1-e*e))/(1+Math.sqrt(1-e*e));
+  const j1 = 3*e1/2 - 27*Math.pow(e1,3)/32;
+  const j2 = 21*Math.pow(e1,2)/16 - 55*Math.pow(e1,4)/32;
+  const j3 = 151*Math.pow(e1,3)/96;
+  const j4 = 1097*Math.pow(e1,4)/512;
+  const fp = mu + j1*Math.sin(2*mu) + j2*Math.sin(4*mu) + j3*Math.sin(6*mu) + j4*Math.sin(8*mu);
+
+  const e2sq = e*e/(1-e*e);
+  const c1 = e2sq*Math.pow(Math.cos(fp),2);
+  const t1 = Math.pow(Math.tan(fp),2);
+  const r1 = a*(1-e*e)/Math.pow(1-e*e*Math.pow(Math.sin(fp),2),1.5);
+  const n1 = a/Math.sqrt(1-e*e*Math.pow(Math.sin(fp),2));
+  const d = x/(n1*k0);
+
+  const q1 = n1*Math.tan(fp)/r1;
+  const q2 = d*d/2;
+  const q3 = (5+3*t1+10*c1-4*c1*c1-9*e2sq)*Math.pow(d,4)/24;
+  const q4 = (61+90*t1+298*c1+45*t1*t1-252*e2sq-3*c1*c1)*Math.pow(d,6)/720;
+  const lat = fp - q1*(q2-q3+q4);
+
+  const q5 = d;
+  const q6 = (1+2*t1+c1)*Math.pow(d,3)/6;
+  const q7 = (5-2*c1+28*t1-3*c1*c1+8*e2sq+24*t1*t1)*Math.pow(d,5)/120;
+  const lon = (q5-q6+q7)/Math.cos(fp);
+
+  const latDeg = lat*180/Math.PI;
+  const lonOrigin = (zoneNum-1)*6 - 180 + 3;
+  const lonDeg = lonOrigin + lon*180/Math.PI;
+  return [latDeg, lonDeg];
+}
+
+async function findPlanCentroid(idPla){
+  if(!planificadesData){
+    try{
+      const res = await fetch(CREMES_PLANIFICADES_URL);
+      if(!res.ok) return null;
+      planificadesData = await res.json();
+    }catch(err){ return null; }
+  }
+  const feature = planificadesData.features.find(ft => ft.properties.ID_PLA === idPla);
+  if(!feature || !feature.geometry) return null;
+
+  let sumLat = 0, sumLon = 0, n = 0;
+  const walk = (coords) => {
+    if(typeof coords[0] === 'number'){
+      sumLon += coords[0]; sumLat += coords[1]; n++;
+    } else {
+      for(const c of coords) walk(c);
+    }
+  };
+  walk(feature.geometry.coordinates);
+  if(n === 0) return null;
+  return [sumLat / n, sumLon / n];
+}
+
+function applyPlanToForm(p){
+  const f = p.finestra || {};
+  // 'baix' i 'alt' no sempre estan en ordre numeric ascendent (p.ex. a la HR,
+  // menys humitat = mes risc, aixi que "Alt" pot tenir un valor mes petit que "Baix").
+  // Sempre agafem el minim/maxim REAL dels dos valors, no assumim quin es quin.
+  const applyRange = (obj, idMin, idMax) => {
+    if(!obj) return;
+    const vals = [obj.baix, obj.alt].filter(v => v !== null && v !== undefined);
+    if(vals.length === 0) { setFieldValue(idMin, null); setFieldValue(idMax, null); return; }
+    setFieldValue(idMin, Math.min(...vals));
+    setFieldValue(idMax, Math.max(...vals));
+  };
+  applyRange(f.temp, 'plan-temp-min', 'plan-temp-max');
+  applyRange(f.hr, 'plan-hr-min', 'plan-hr-max');
+  applyRange(f.fmc1h, 'plan-fmc-min', 'plan-fmc-max');
+  if(f.vent_kmh){
+    const vals = [f.vent_kmh.baix, f.vent_kmh.alt].filter(v => v !== null && v !== undefined);
+    const maxKmh = vals.length ? Math.max(...vals) : null;
+    setFieldValue('plan-wind-max', kmhToMs(maxKmh)?.toFixed(1));
+  }
+
+  const m = p.marc || {};
+  const applyDay = (day, suffix) => {
+    if(!day) return;
+    setFieldValue(`marc-tmax-${suffix}`, day.tmax);
+    setFieldValue(`marc-hrmin-${suffix}`, day.hrmin);
+    const w = kmhToMs(day.vent_kmh_max);
+    setFieldValue(`marc-wind-${suffix}`, w !== null ? w.toFixed(1) : null);
+  };
+  applyDay(m.dia_m1, 'm1');
+  applyDay(m.dia_0, '0');
+  applyDay(m.dia_p1, 'p1');
+
+  document.getElementById('plan-picker-status').textContent = `Carregat: ${p.nom || p.id_pla}`;
+  if(combinedSeries) recomputeAndRender();
+}
 
 async function loadObs(){
   const res = await fetch(OBS_JSON_URL);
@@ -898,6 +1088,7 @@ loadObs().catch(err => {
   document.getElementById('empty-state').innerHTML =
     "No s'ha pogut carregar <code>data/observacions_10d.json</code>. Comprova que el fitxer existeix al repo.";
 });
+loadPlans();
 
 } // fi de runApp()
 
