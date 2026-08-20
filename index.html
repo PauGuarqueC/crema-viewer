@@ -477,9 +477,9 @@ function stationIcon(){
       <circle cx="8" cy="1" r="1.3" fill="#3d5a73"/>
       <circle cx="8" cy="11" r="5.2" fill="#3d5a73" stroke="#ffffff" stroke-width="1.6"/>
     </svg>`,
-    iconSize: [11, 14],
-    iconAnchor: [5.5, 9.5],
-    popupAnchor: [0, -8],
+    iconSize: [9, 12],
+    iconAnchor: [3.5, 7.5],
+    popupAnchor: [0, -6],
   });
 }
 
@@ -729,11 +729,25 @@ function applyPlanToForm(p){
   // menys humitat = mes risc, aixi que "Alt" pot tenir un valor mes petit que "Baix").
   // Sempre agafem el minim/maxim REAL dels dos valors, no assumim quin es quin.
   const applyRange = (obj, idMin, idMax) => {
-    if(!obj) return;
-    const vals = [obj.baix, obj.alt].filter(v => v !== null && v !== undefined);
-    if(vals.length === 0) { setFieldValue(idMin, null); setFieldValue(idMax, null); return; }
-    setFieldValue(idMin, Math.min(...vals));
-    setFieldValue(idMax, Math.max(...vals));
+      if(!obj) { setFieldValue(idMin, null); setFieldValue(idMax, null); return; }
+      const hasBaix = obj.baix !== null && obj.baix !== undefined;
+      const hasAlt = obj.alt !== null && obj.alt !== undefined;
+  
+      if(!hasBaix && !hasAlt){ setFieldValue(idMin, null); setFieldValue(idMax, null); return; }
+  
+      if(hasBaix && hasAlt){
+        // Tots dos definits: agafem el minim/maxim REAL (l'ordre baix<alt no sempre
+        // es compleix, p.ex. a la HR menys humitat = mes risc i "Alt" pot ser mes petit).
+        setFieldValue(idMin, Math.min(obj.baix, obj.alt));
+        setFieldValue(idMax, Math.max(obj.baix, obj.alt));
+        return;
+      }
+  
+      // Nomes un dels dos definit: respectem quin camp es (baix=minim, alt=maxim),
+      // en lloc d'assumir sempre que es el maxim. L'altre queda buit (sense restriccio;
+      // pel minim de temp/hr/vent/fmc als grafics, "buit" es tracta com a 0).
+      if(hasBaix){ setFieldValue(idMin, obj.baix); setFieldValue(idMax, null); }
+      else{ setFieldValue(idMin, null); setFieldValue(idMax, obj.alt); }
   };
   applyRange(f.temp, 'plan-temp-min', 'plan-temp-max');
   applyRange(f.hr, 'plan-hr-min', 'plan-hr-max');
