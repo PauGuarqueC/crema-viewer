@@ -307,6 +307,7 @@
             <div><span class="sw" style="background:#2e7d46;"></span>GFS</div>
             <div><span class="sw" style="background:#b8860b;"></span>AROME France</div>
             <div><span class="sw" style="background:var(--green-bg);border:1px solid var(--green);"></span>Dins de llindar</div>
+            <div><span class="sw" style="background:rgba(47,102,144,0.45);"></span>Precipitació (a FMC1h)</div>
           </div>
         </div>
       </div>
@@ -1040,7 +1041,7 @@ CHART_IDS.forEach(id => {
   });
   canvas.addEventListener('mouseleave', clearSyncIndex);
 });
-function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, threshold, yFixed){
+function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, threshold, yFixed, precipValues){
   const ctx = document.getElementById(canvasId).getContext('2d');
   if(chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
@@ -1080,10 +1081,36 @@ function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, t
     });
   }
 
-  const yScale = { ticks: { font: { size: 10 } }, grid: { color: '#eee' } };
+  const scales = {
+    x: {
+      ticks: {
+        maxTicksLimit: 6, font: { size: 10 },
+        callback: (val, idx) => {
+          const t = labels[idx];
+          return t ? t.slice(5,10) + ' ' + t.slice(11,16) : '';
+        }
+      },
+      grid: { display: false },
+    },
+    y: { ticks: { font: { size: 10 } }, grid: { color: '#eee' } },
+  };
   if(yFixed){
-    yScale.min = yFixed.min;
-    yScale.max = yFixed.max;
+    scales.y.min = yFixed.min;
+    scales.y.max = yFixed.max;
+  }
+
+  // Barres de precipitacio, comprimides al 25% inferior del grafic amb un eix
+  // Y secundari propi (max artificialment alt) per no tapar la linia principal.
+  if(precipValues){
+    const maxPrecip = Math.max(1, ...precipValues.filter(v => v !== null && !isNaN(v)));
+    datasets.push({
+      type: 'bar', label: 'Precipitació', data: precipValues,
+      backgroundColor: 'rgba(47,102,144,0.45)', yAxisID: 'yPrecip', order: 50, barPercentage: 1, categoryPercentage: 1,
+    });
+    scales.yPrecip = {
+      position: 'right', min: 0, max: maxPrecip * 4,
+      ticks: { display: false }, grid: { display: false }, border: { display: false },
+    };
   }
 
   chartInstances[canvasId] = new Chart(ctx, {
@@ -1094,19 +1121,7 @@ function renderComparisonChart(canvasId, labels, nObs, obsValues, modelSeries, t
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       plugins: { legend: { display: false }, todayMarker: { index: nObs } },
-      scales: {
-        x: {
-          ticks: {
-            maxTicksLimit: 6, font: { size: 10 },
-            callback: (val, idx) => {
-              const t = labels[idx];
-              return t ? t.slice(5,10) + ' ' + t.slice(11,16) : '';
-            }
-          },
-          grid: { display: false },
-        },
-        y: yScale,
-      },
+      scales,
     },
   });
 }
@@ -1155,9 +1170,18 @@ function updateComparisonCharts(){
       fmcByModel[m.id] = forecastPart.map(h => h.fmc);
     }
     const obsFmc = calcFMC1h(last5); // aproximacio: FMC dels ultims 5 dies observats en aillament
+
+    // Precipitacio (observada + previsio del model actiu seleccionat al desplegable),
+    // per mostrar-la com a barres sota la linia de FMC1h.
+    const forecastLen = modelsForecastData.time.length;
+    const forecastPrecipRaw = (forecastHourly && forecastHourly.precip) ? forecastHourly.precip : [];
+    const forecastPrecip = new Array(forecastLen).fill(null).map((_, i) =>
+      forecastPrecipRaw[i] !== undefined ? forecastPrecipRaw[i] : null);
+    const precipValues = [...last5.map(h => (h.precip === null || h.precip === undefined) ? null : h.precip), ...forecastPrecip];
+
     renderComparisonChart('chart-fmc', labels, nObs, obsFmc,
       fmcByModel,
-      { min: plan.fmcMin, max: plan.fmcMax });
+      { min: plan.fmcMin, max: plan.fmcMax }, undefined, precipValues);
 
     statusEl.textContent = '';
     wrap.style.display = 'block';
