@@ -103,6 +103,42 @@
 
   .loading { color: var(--text-dim); font-size: 13px; }
   #ctx-summary { line-height: 1.7; }
+
+  /* Control flotant de capes, sobre el mapa (estil Leaflet natiu) */
+  .layers-control {
+    background: var(--panel);
+    border-radius: 6px;
+    box-shadow: 0 1px 5px rgba(0,0,0,.4);
+  }
+  .layers-toggle-btn {
+    display: block;
+    background: var(--panel);
+    border: none;
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--charcoal);
+    cursor: pointer;
+  }
+  .layers-toggle-btn:hover { background: #f2f2f0; }
+  .layers-dropdown {
+    padding: 10px 12px;
+    border-top: 1px solid var(--panel-border);
+    min-width: 170px;
+  }
+  .layers-dropdown label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12.5px;
+    color: var(--charcoal);
+    padding: 4px 0;
+    cursor: pointer;
+  }
+  .layers-dropdown input[type=checkbox] { width: auto; accent-color: var(--red); }
+  #layers-status { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
 </style>
 <style>
   #auth-gate {
@@ -151,25 +187,6 @@
 <div id="app">
   <div id="map"></div>
   <div id="panel">
-
-    <div class="block">
-      <div class="block-title">Capes de cremes prescrites</div>
-      <div class="field" style="flex-direction:row;align-items:center;gap:8px;margin-bottom:8px;">
-        <input type="checkbox" id="layer-planificades" style="width:auto;">
-        <label for="layer-planificades" style="text-transform:none;font-size:13px;color:var(--charcoal);">Cremes planificades</label>
-      </div>
-      <div class="field" style="flex-direction:row;align-items:center;gap:8px;">
-        <input type="checkbox" id="layer-executades" style="width:auto;">
-        <label for="layer-executades" style="text-transform:none;font-size:13px;color:var(--charcoal);">Cremes executades</label>
-      </div>
-      <div id="layers-status" class="stat-note" style="margin-top:8px;"></div>
-      <div class="legend" style="margin-top:8px;">
-        <div><span class="sw" style="background:#2e7d46;"></span>Planificada — Favorable</div>
-        <div><span class="sw" style="background:#C8102E;"></span>Planificada — Desfavorable</div>
-        <div><span class="sw" style="background:#8a8a86;"></span>Planificada — sense resolució</div>
-        <div><span class="sw" style="background:#5a3820;"></span>Executada</div>
-      </div>
-    </div>
 
     <div id="empty-state" class="block">
       Clica un punt al mapa per veure les condicions observades a les estacions properes i la previsió (5 dies) per aquell punt.
@@ -347,12 +364,8 @@ const CREMES_EXECUTADES_URL = "data/cremes_executades.geojson";
 let planificadesLayer = null, executadesLayer = null;
 let planificadesData = null, executadesData = null;
 
-function stylePlanificada(feature){
-  const r = feature.properties.RESOLUCIO;
-  let color = '#8a8a86'; // sense resolucio
-  if(r === 'Favorable') color = '#2e7d46';
-  else if(r === 'Desfavorable') color = '#C8102E';
-  return { color, weight: 1, fillColor: color, fillOpacity: 0.35 };
+function stylePlanificada(){
+  return { color: '#b8860b', weight: 1, fillColor: '#b8860b', fillOpacity: 0.35 };
 }
 
 function styleExecutada(){
@@ -423,6 +436,28 @@ async function toggleLayer(kind, show){
   }
 }
 
+// Control flotant de capes sobre el mapa (en lloc del panell lateral)
+const LayersControl = L.Control.extend({
+  options: { position: 'topright' },
+  onAdd: function(){
+    const container = L.DomUtil.create('div', 'layers-control');
+    container.innerHTML =
+      '<button class="layers-toggle-btn" id="layers-toggle-btn">Capes ▾</button>' +
+      '<div class="layers-dropdown" id="layers-dropdown" style="display:none;">' +
+        '<label><input type="checkbox" id="layer-planificades"> Cremes planificades</label>' +
+        '<label><input type="checkbox" id="layer-executades"> Cremes executades</label>' +
+        '<div id="layers-status"></div>' +
+      '</div>';
+    L.DomEvent.disableClickPropagation(container);
+    return container;
+  }
+});
+map.addControl(new LayersControl());
+
+document.getElementById('layers-toggle-btn').addEventListener('click', () => {
+  const dd = document.getElementById('layers-dropdown');
+  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+});
 document.getElementById('layer-planificades').addEventListener('change', (e) => toggleLayer('planificades', e.target.checked));
 document.getElementById('layer-executades').addEventListener('change', (e) => toggleLayer('executades', e.target.checked));
 
