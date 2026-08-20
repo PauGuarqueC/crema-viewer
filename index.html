@@ -349,7 +349,7 @@
 <div id="cell-tooltip"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://unpkg.com/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script>
 // ---------- Accés (NO és seguretat real: nomes evita entrades accidentals.
 // El codi es visible per qualsevol al navegador, no protegeix dades sensibles). ----------
@@ -390,6 +390,12 @@ const OBS_JSON_URL = "data/observacions_10d.json";
 let RADIUS_KM = 20;
 
 let obsData = null;
+const obsLoadPromise = loadObs().catch(err => {
+  console.error(err);
+  const el = document.getElementById('global-error');
+  el.style.display = 'block';
+  el.innerHTML = "No s'ha pogut carregar <code>data/observacions_10d.json</code>. Comprova que el fitxer existeix al repo.";
+});
 let map, marker, radiusCircle;
 let selectedLatLon = null;
 let forecastHourly = null;
@@ -398,7 +404,7 @@ let combinedSeries = null;
 let nearbyStationsCache = [];
 
 // ---------- Map setup (light basemap, coherent amb onofre-viewer) ----------
-map = L.map('map', { zoomControl: true }).setView([41.85, 1.5], 9);
+map = L.map('map', { zoomControl: true, zoomSnap: 0.5, zoomDelta: 0.5 }).setView([41.85, 1.5], 8.5);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; OpenStreetMap &copy; CARTO',
   maxZoom: 18
@@ -999,6 +1005,12 @@ function updateComparisonCharts(){
   const wrap = document.getElementById('charts-wrap');
   const statusEl = document.getElementById('charts-status');
 
+  if(typeof Chart === 'undefined'){
+    statusEl.textContent = "No s'ha pogut carregar la llibreria de gràfics (Chart.js). Comprova la connexió.";
+    wrap.style.display = 'none';
+    return;
+  }
+
   const regionalObs = buildRegionalHourlyObs(nearbyStationsCache);
   const last5 = regionalObs.slice(-5*24);
   if(last5.length === 0){
@@ -1011,32 +1023,38 @@ function updateComparisonCharts(){
   const nObs = last5.length;
   const plan = readPlan();
 
-  renderComparisonChart('chart-temp', labels, nObs, last5.map(h=>h.temp),
-    Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, modelsForecastData.models[m.id].temp])),
-    { min: plan.tempMin, max: plan.tempMax });
+  try{
+    renderComparisonChart('chart-temp', labels, nObs, last5.map(h=>h.temp),
+      Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, modelsForecastData.models[m.id].temp])),
+      { min: plan.tempMin, max: plan.tempMax });
 
-  renderComparisonChart('chart-hr', labels, nObs, last5.map(h=>h.hr),
-    Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, modelsForecastData.models[m.id].hr])),
-    { min: plan.hrMin, max: plan.hrMax });
+    renderComparisonChart('chart-hr', labels, nObs, last5.map(h=>h.hr),
+      Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, modelsForecastData.models[m.id].hr])),
+      { min: plan.hrMin, max: plan.hrMax });
 
-  renderComparisonChart('chart-wind', labels, nObs, last5.map(h=>h.wind),
-    Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, modelsForecastData.models[m.id].wind])),
-    { min: 0, max: plan.windMax });
+    renderComparisonChart('chart-wind', labels, nObs, last5.map(h=>h.wind),
+      Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, modelsForecastData.models[m.id].wind])),
+      { min: 0, max: plan.windMax });
 
-  // FMC1h per model: reaprofita buildCombinedSeries (obs + previsio d'un sol model) per calcular-lo igual que el model actiu
-  const fmcByModel = {};
-  for(const m of COMPARISON_MODELS){
-    const combined = buildCombinedSeries(regionalObs, modelsForecastData.models[m.id]);
-    const forecastPart = combined.filter(h => h.isForecast);
-    fmcByModel[m.id] = forecastPart.map(h => h.fmc);
+    // FMC1h per model: reaprofita buildCombinedSeries (obs + previsio d'un sol model) per calcular-lo igual que el model actiu
+    const fmcByModel = {};
+    for(const m of COMPARISON_MODELS){
+      const combined = buildCombinedSeries(regionalObs, modelsForecastData.models[m.id]);
+      const forecastPart = combined.filter(h => h.isForecast);
+      fmcByModel[m.id] = forecastPart.map(h => h.fmc);
+    }
+    const obsFmc = calcFMC1h(last5); // aproximacio: FMC dels ultims 5 dies observats en aillament
+    renderComparisonChart('chart-fmc', labels, nObs, obsFmc,
+      fmcByModel,
+      { min: plan.fmcMin, max: plan.fmcMax });
+
+    statusEl.textContent = '';
+    wrap.style.display = 'block';
+  }catch(err){
+    console.error('Error construint els grafics:', err);
+    statusEl.textContent = 'Error construint els gràfics: ' + err.message;
+    wrap.style.display = 'none';
   }
-  const obsFmc = calcFMC1h(last5).map(v => v); // aproximacio: FMC dels ultims 5 dies observats en aillament
-  renderComparisonChart('chart-fmc', labels, nObs, obsFmc,
-    fmcByModel,
-    { min: plan.fmcMin, max: plan.fmcMax });
-
-  statusEl.textContent = '';
-  wrap.style.display = 'block';
 }
 
 function buildCombinedSeries(regionalObs, forecast){
@@ -1325,12 +1343,6 @@ document.getElementById('model-select').addEventListener('change', refreshForeca
   document.getElementById(id).addEventListener('input', recomputeAndRender);
 });
 
-const obsLoadPromise = loadObs().catch(err => {
-  console.error(err);
-  const el = document.getElementById('global-error');
-  el.style.display = 'block';
-  el.innerHTML = "No s'ha pogut carregar <code>data/observacions_10d.json</code>. Comprova que el fitxer existeix al repo.";
-});
 loadPlans();
 
 } // fi de runApp()
