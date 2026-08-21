@@ -518,7 +518,8 @@ function haversineKm(lat1, lon1, lat2, lon2){
 // ---------- Capes de cremes prescrites (planificades / executades) ----------
 const CREMES_PLANIFICADES_URL = "data/cremes_planificades.geojson";
 const CREMES_EXECUTADES_URL = "data/cremes_executades.geojson";
-let planificadesLayer = null, executadesLayer = null, estacionsLayer = null;
+let planificadesLayer = null, executadesLayer = null, estacionsLayer = null, plansStatusLayer = null;
+let plansStatusData = null;
 let planificadesData = null, executadesData = null;
 
 function stylePlanificada(){
@@ -559,6 +560,22 @@ function stationIcon(){
     iconSize: [7, 7],
     iconAnchor: [3.5, 3.5],
     popupAnchor: [0, -5],
+  });
+}
+
+// Icona de semafor de disponibilitat (verd/groc/vermell) per als plans actius,
+// calculada de nou cada dia via l'script headless (data/plans_status.json).
+const PLAN_STATUS_COLORS = { green: '#2e7d46', yellow: '#b8860b', red: '#C8102E' };
+function planStatusIcon(status){
+  const color = PLAN_STATUS_COLORS[status] || '#8a8a86';
+  return L.divIcon({
+    className: 'station-icon',
+    html: `<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="8" cy="8" r="6.5" fill="${color}" stroke="#ffffff" stroke-width="2"/>
+    </svg>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+    popupAnchor: [0, -10],
   });
 }
 
@@ -625,6 +642,47 @@ async function toggleLayer(kind, show){
       map.removeLayer(estacionsLayer);
       estacionsLayer = null;
     }
+  } else if(kind === 'plansStatus'){
+    if(show){
+      if(!plansStatusData){
+        statusEl.textContent = 'Carregant disponibilitat de plans…';
+        try{
+          const res = await fetch(PLANS_STATUS_URL);
+          if(!res.ok) throw new Error('no trobat');
+          plansStatusData = await res.json();
+        }catch(err){
+          statusEl.textContent = "No s'ha pogut carregar data/plans_status.json (encara no generat?).";
+          document.getElementById('layer-plans-status').checked = false;
+          return;
+        }
+      }
+      if(allPlansRaw.length === 0) await loadPlans();
+      const markers = [];
+      for(const plan of allPlansRaw){
+        if(!plan.id_pla) continue;
+        let latlon = null;
+        if(typeof plan.lat === 'number' && typeof plan.lon === 'number'){
+          latlon = [plan.lat, plan.lon];
+        } else if(typeof plan.utm_x === 'number' && typeof plan.utm_y === 'number'){
+          const zone = typeof plan.utm_zone === 'number' ? plan.utm_zone : 31;
+          latlon = utmToLatLon(plan.utm_x, plan.utm_y, zone, true);
+        }
+        if(!latlon) continue;
+        const entry = plansStatusData.plans ? plansStatusData.plans[plan.id_pla] : null;
+        const status = entry ? entry.status : null;
+        if(!status) continue;
+        const label = { green: 'Disponibilitat', yellow: 'Disponibilitat parcial (context)', red: 'Sense disponibilitat' }[status] || status;
+        markers.push(
+          L.marker(latlon, { icon: planStatusIcon(status) })
+            .bindPopup(`<strong>${plan.nom || plan.id_pla}</strong><br>${plan.id_pla}<br>${label} (propers 5 dies)`)
+        );
+      }
+      plansStatusLayer = L.layerGroup(markers).addTo(map);
+      statusEl.textContent = plansStatusData.generat ? `Calculat: ${plansStatusData.generat}` : '';
+    } else if(plansStatusLayer){
+      map.removeLayer(plansStatusLayer);
+      plansStatusLayer = null;
+    }
   }
 }
 
@@ -639,6 +697,12 @@ const LayersControl = L.Control.extend({
         '<label><input type="checkbox" id="layer-planificades" checked> Cremes planificades</label>' +
         '<label><input type="checkbox" id="layer-executades" checked> Cremes executades</label>' +
         '<label><input type="checkbox" id="layer-estacions" checked> Estacions meteo (XEMA)</label>' +
+        '<label><input type="checkbox" id="layer-plans-status" checked> Disponibilitat plans (5 dies)</label>' +
+        '<div style="font-size:10.5px;color:var(--text-dim);margin:2px 0 4px 22px;">' +
+          '<span style="color:#2e7d46;">●</span> ≥6h disponibles &nbsp;' +
+          '<span style="color:#b8860b;">●</span> parcial &nbsp;' +
+          '<span style="color:#C8102E;">●</span> cap' +
+        '</div>' +
         '<div id="layers-status"></div>' +
       '</div>';
     L.DomEvent.disableClickPropagation(container);
@@ -654,14 +718,17 @@ document.getElementById('layers-toggle-btn').addEventListener('click', () => {
 document.getElementById('layer-planificades').addEventListener('change', (e) => toggleLayer('planificades', e.target.checked));
 document.getElementById('layer-executades').addEventListener('change', (e) => toggleLayer('executades', e.target.checked));
 document.getElementById('layer-estacions').addEventListener('change', (e) => toggleLayer('estacions', e.target.checked));
+document.getElementById('layer-plans-status').addEventListener('change', (e) => toggleLayer('plansStatus', e.target.checked));
 
 // Carrega les dues capes visibles per defecte en obrir la pàgina
 toggleLayer('planificades', true);
 toggleLayer('executades', true);
 toggleLayer('estacions', true);
+toggleLayer('plansStatus', true);
 
 // ---------- Plans de crema actius (llindars pre-carregats) ----------
 const PLANS_LLINDARS_URL = "data/plans_llindars.json";
+const PLANS_STATUS_URL = "data/plans_status.json";
 let plansData = [];
 let allPlansRaw = [];
 let allPlansInstruccions = '';
