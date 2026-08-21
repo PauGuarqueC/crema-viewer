@@ -320,7 +320,7 @@
           <select id="model-select">
             <option value="best_match">Best match (auto)</option>
             <option value="icon_eu">ICON-EU</option>
-            <option value="ecmwf_ifs025">ECMWF IFS</option>
+            <option value="ecmwf_ifs">ECMWF IFS HRES</option>
             <option value="gfs_seamless">GFS</option>
             <option value="arome_france">AROME France</option>
           </select>
@@ -355,7 +355,7 @@
           <div class="legend" style="margin-top:2px;">
             <div><span class="sw" style="background:#2b2b2b;"></span>Observat</div>
             <div><span class="sw" style="background:#C8102E;"></span>ICON-EU</div>
-            <div><span class="sw" style="background:#2f6690;"></span>ECMWF IFS</div>
+            <div><span class="sw" style="background:#2f6690;"></span>ECMWF IFS HRES</div>
             <div><span class="sw" style="background:#2e7d46;"></span>GFS</div>
             <div><span class="sw" style="background:#b8860b;"></span>AROME France</div>
           </div>
@@ -1004,7 +1004,7 @@ async function loadForecast(latlon, model){
 // ---------- Comparativa de 4 models (grafics) ----------
 const COMPARISON_MODELS = [
   { id: 'icon_eu', label: 'ICON-EU', color: '#C8102E' },
-  { id: 'ecmwf_ifs025', label: 'ECMWF IFS', color: '#2f6690' },
+  { id: 'ecmwf_ifs', label: 'ECMWF IFS HRES', color: '#2f6690' },
   { id: 'gfs_seamless', label: 'GFS', color: '#2e7d46' },
   { id: 'arome_france', label: 'AROME France', color: '#b8860b' },
 ];
