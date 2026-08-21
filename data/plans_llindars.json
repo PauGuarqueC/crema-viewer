@@ -835,51 +835,51 @@
       }
     },
     {
-      "id_pla": "RET_2015_01_Rojals",
-      "nom": "Rojals",
+      "id_pla": "RET_2019_01_Plans de Sant Joan",
+      "nom": "Plans de Sant Joan",
       "regio": "RETITE",
-      "lat": 41.3507,
-      "lon": 1.0943,
-      "utm_x": null,
-      "utm_y": null,
+      "lat": null,
+      "lon": null,
+      "utm_x": 340565,
+      "utm_y": 4577920,
       "utm_zone": 31,
       "finestra": {
         "temp": {
-          "baix": null,
-          "desitjat": null,
-          "alt": null
+          "baix": 10,
+          "desitjat": 18,
+          "alt": 24
         },
         "hr": {
-          "baix": null,
-          "desitjat": null,
-          "alt": null
+          "baix": 25,
+          "desitjat": 45,
+          "alt": 70
         },
         "vent_kmh": {
-          "baix": null,
-          "desitjat": null,
-          "alt": null
+          "baix": 0,
+          "desitjat": 10,
+          "alt": 20
         },
         "fmc1h": {
-          "baix": null,
-          "desitjat": null,
-          "alt": null
+          "baix": 8,
+          "desitjat": 10,
+          "alt": 12
         }
       },
       "marc": {
         "dia_m1": {
           "tmax": null,
-          "hrmin": null,
+          "hrmin": 40,
           "vent_kmh_max": null
         },
         "dia_0": {
-          "tmax": null,
-          "hrmin": null,
-          "vent_kmh_max": null
+          "tmax": 25,
+          "hrmin": 25,
+          "vent_kmh_max": 25
         },
         "dia_p1": {
-          "tmax": null,
-          "hrmin": null,
-          "vent_kmh_max": null
+          "tmax": 25,
+          "hrmin": 40,
+          "vent_kmh_max": 30
         }
       }
     },
