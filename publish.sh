@@ -1,17 +1,13 @@
 #!/bin/bash
 # publish.sh — genera l'observacions_10d.json i el publica a GitHub Pages.
-# Pensat per cron a labfire.ctfc.cat, mateix patró que echotops-viewer.
 set -euo pipefail
 
-REPO_DIR="/home/labfire/crema-viewer"
-CONDA_ENV="graf_env"
+REPO_DIR="/home/pguarque/cremes_viewer"
+PYTHON_BIN="/home/pguarque/graf_env/bin/python"
 
 cd "$REPO_DIR"
 
-source "$(conda info --base)/etc/profile.d/conda.sh"
-conda activate "$CONDA_ENV"
-
-python publish_xema_10d.py
+"$PYTHON_BIN" publish_xema_10d.py
 
 git add data/observacions_10d.json
 if ! git diff --cached --quiet; then
