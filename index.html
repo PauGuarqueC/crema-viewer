@@ -243,6 +243,56 @@
           <input type="range" id="radius-slider" min="5" max="20" step="1" value="20">
           <span id="radius-label">20 km</span>
         </div>
+        <button id="btn-toggle-newplan" style="margin-top:12px;width:100%;background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;padding:8px;font-family:var(--font-ui);font-size:12.5px;color:var(--charcoal);cursor:pointer;">+ Afegir PdC nou</button>
+      </div>
+
+      <div class="block" id="newplan-form" style="display:none;">
+        <div class="block-title">Nou pla de crema</div>
+        <div class="plan-form">
+          <div class="field"><label>ID_PLA (obligatori)</label><input type="text" id="np-id-pla" placeholder="p.ex. REC_2026_01"></div>
+          <div class="field"><label>Nom</label><input type="text" id="np-nom" placeholder="Nom de la parcel·la"></div>
+          <div class="field full"><label>Regió</label><input type="text" id="np-regio" placeholder="p.ex. REC"></div>
+        </div>
+        <div class="stat-note" style="margin:8px 0;">Ubicació (omple lat/lon o UTM, el que tinguis més a mà — pots deixar-ho buit i s'agafarà del geojson si l'ID_PLA hi coincideix)</div>
+        <div class="plan-form">
+          <div class="field"><label>Lat</label><input type="number" id="np-lat" step="0.00001"></div>
+          <div class="field"><label>Lon</label><input type="number" id="np-lon" step="0.00001"></div>
+          <div class="field"><label>UTM X</label><input type="number" id="np-utm-x" step="1"></div>
+          <div class="field"><label>UTM Y</label><input type="number" id="np-utm-y" step="1"></div>
+        </div>
+
+        <div class="block-title" style="margin-top:16px;">Finestra (Baix / Desitjat / Alt)</div>
+        <div class="plan-form cols-3">
+          <div class="field"><label>Temp baix</label><input type="number" id="np-temp-baix"></div>
+          <div class="field"><label>Temp desitjat</label><input type="number" id="np-temp-des"></div>
+          <div class="field"><label>Temp alt</label><input type="number" id="np-temp-alt"></div>
+          <div class="field"><label>HR baix</label><input type="number" id="np-hr-baix"></div>
+          <div class="field"><label>HR desitjat</label><input type="number" id="np-hr-des"></div>
+          <div class="field"><label>HR alt</label><input type="number" id="np-hr-alt"></div>
+          <div class="field"><label>Vent baix (km/h)</label><input type="number" id="np-vent-baix"></div>
+          <div class="field"><label>Vent desitjat (km/h)</label><input type="number" id="np-vent-des"></div>
+          <div class="field"><label>Vent alt (km/h)</label><input type="number" id="np-vent-alt"></div>
+          <div class="field"><label>FMC1h baix</label><input type="number" id="np-fmc-baix"></div>
+          <div class="field"><label>FMC1h desitjat</label><input type="number" id="np-fmc-des"></div>
+          <div class="field"><label>FMC1h alt</label><input type="number" id="np-fmc-alt"></div>
+        </div>
+
+        <div class="block-title" style="margin-top:16px;">Finestra marc (dia -1 / 0 / +1)</div>
+        <div class="plan-form cols-3">
+          <div class="field"><label>T màx dia -1</label><input type="number" id="np-marc-tmax-m1"></div>
+          <div class="field"><label>HR mín dia -1</label><input type="number" id="np-marc-hrmin-m1"></div>
+          <div class="field"><label>Vent màx dia -1 (km/h)</label><input type="number" id="np-marc-vent-m1"></div>
+          <div class="field"><label>T màx dia 0</label><input type="number" id="np-marc-tmax-0"></div>
+          <div class="field"><label>HR mín dia 0</label><input type="number" id="np-marc-hrmin-0"></div>
+          <div class="field"><label>Vent màx dia 0 (km/h)</label><input type="number" id="np-marc-vent-0"></div>
+          <div class="field"><label>T màx dia +1</label><input type="number" id="np-marc-tmax-p1"></div>
+          <div class="field"><label>HR mín dia +1</label><input type="number" id="np-marc-hrmin-p1"></div>
+          <div class="field"><label>Vent màx dia +1 (km/h)</label><input type="number" id="np-marc-vent-p1"></div>
+        </div>
+
+        <div id="newplan-status" class="stat-note" style="margin-top:10px;"></div>
+        <button id="btn-save-newplan" style="margin-top:8px;width:100%;background:var(--red);border:none;color:#fff;padding:9px;border-radius:5px;font-family:var(--font-ui);font-weight:500;font-size:13.5px;cursor:pointer;">Afegeix i descarrega JSON actualitzat</button>
+        <div class="stat-note" style="margin-top:8px;">Això descarrega un fitxer <code>plans_llindars.json</code> complet i actualitzat (tots els plans existents + aquest nou). Substitueix-lo al repo i fes push per publicar-lo.</div>
       </div>
     </div>
 
@@ -308,7 +358,9 @@
             <div><span class="sw" style="background:#2f6690;"></span>ECMWF IFS</div>
             <div><span class="sw" style="background:#2e7d46;"></span>GFS</div>
             <div><span class="sw" style="background:#b8860b;"></span>AROME France</div>
-            <div><span class="sw" style="background:var(--green-bg);border:1px solid var(--green);"></span>Dins de llindar</div>
+            <div><span class="sw" style="background:rgba(120,120,120,0.2);border:1px solid rgba(120,120,120,0.5);"></span>Llindar de la finestra</div>
+            <div><span class="sw" style="background:rgba(46,125,70,0.35);"></span>Dins de finestra</div>
+            <div><span class="sw" style="background:rgba(184,134,11,0.35);"></span>Hora OK, context no</div>
           </div>
         </div>
       </div>
@@ -609,6 +661,8 @@ toggleLayer('estacions', true);
 // ---------- Plans de crema actius (llindars pre-carregats) ----------
 const PLANS_LLINDARS_URL = "data/plans_llindars.json";
 let plansData = [];
+let allPlansRaw = [];
+let allPlansInstruccions = '';
 
 function kmhToMs(v){ return v === null || v === undefined ? null : v / 3.6; }
 function setFieldValue(id, v){ document.getElementById(id).value = (v === null || v === undefined) ? '' : v; }
@@ -619,15 +673,22 @@ async function loadPlans(){
     const res = await fetch(PLANS_LLINDARS_URL);
     if(!res.ok) throw new Error('no trobat');
     const data = await res.json();
+    allPlansRaw = data.plans || []; // sencer, incloent entrades buides pendents d'omplir
+    allPlansInstruccions = data._instruccions || '';
     // Ignora entrades encara sense id_pla (pendents d'omplir): no cal
     // esborrar-les del fitxer, simplement no apareixen al desplegable.
-    plansData = (data.plans || []).filter(p => p.id_pla && p.id_pla.trim() !== '');
+    plansData = allPlansRaw.filter(p => p.id_pla && p.id_pla.trim() !== '');
   }catch(err){
     statusEl.textContent = 'Sense plans pre-carregats (data/plans_llindars.json no disponible).';
     return;
   }
 
+  rebuildPlanPickerOptions();
+}
+
+function rebuildPlanPickerOptions(){
   const select = document.getElementById('plan-picker');
+  select.innerHTML = '<option value="">— cap seleccionat —</option>';
   const byRegio = {};
   for(const p of plansData){
     const regio = p.regio || 'Sense regió';
@@ -644,38 +705,39 @@ async function loadPlans(){
     }
     select.appendChild(group);
   }
-
-  select.addEventListener('change', async () => {
-    const p = plansData.find(x => x.id_pla === select.value);
-    if(!p) return;
-    applyPlanToForm(p);
-
-    // Ubicacio del pla, per ordre de prioritat:
-    // 1. lat/lon directes (si estan al fitxer de llindars)
-    // 2. coordenades UTM (utm_x/utm_y, tal com surten al PDF del pla)
-    // 3. centroide del poligon a cremes_planificades.geojson (per ID_PLA)
-    let latlon = null;
-    if(typeof p.lat === 'number' && typeof p.lon === 'number'){
-      latlon = [p.lat, p.lon];
-    } else if(typeof p.utm_x === 'number' && typeof p.utm_y === 'number'){
-      const zone = typeof p.utm_zone === 'number' ? p.utm_zone : 31;
-      latlon = utmToLatLon(p.utm_x, p.utm_y, zone, true);
-    } else {
-      latlon = await findPlanCentroid(p.id_pla);
-    }
-
-    if(latlon){
-      map.setView(latlon, 11);
-      selectedLatLon = latlon;
-      placeMarker(latlon);
-      await onPointSelected(latlon);
-      applyPlanToForm(p); // torna a aplicar els llindars (onPointSelected no els toca, pero per seguretat)
-    } else {
-      document.getElementById('plan-picker-status').textContent =
-        `Carregat: ${p.nom || p.id_pla} (sense ubicació — afegeix lat/lon al pla o comprova l'ID_PLA)`;
-    }
-  });
 }
+
+document.getElementById('plan-picker').addEventListener('change', async () => {
+  const select = document.getElementById('plan-picker');
+  const p = plansData.find(x => x.id_pla === select.value);
+  if(!p) return;
+  applyPlanToForm(p);
+
+  // Ubicacio del pla, per ordre de prioritat:
+  // 1. lat/lon directes (si estan al fitxer de llindars)
+  // 2. coordenades UTM (utm_x/utm_y, tal com surten al PDF del pla)
+  // 3. centroide del poligon a cremes_planificades.geojson (per ID_PLA)
+  let latlon = null;
+  if(typeof p.lat === 'number' && typeof p.lon === 'number'){
+    latlon = [p.lat, p.lon];
+  } else if(typeof p.utm_x === 'number' && typeof p.utm_y === 'number'){
+    const zone = typeof p.utm_zone === 'number' ? p.utm_zone : 31;
+    latlon = utmToLatLon(p.utm_x, p.utm_y, zone, true);
+  } else {
+    latlon = await findPlanCentroid(p.id_pla);
+  }
+
+  if(latlon){
+    map.setView(latlon, 11);
+    selectedLatLon = latlon;
+    placeMarker(latlon);
+    await onPointSelected(latlon);
+    applyPlanToForm(p); // torna a aplicar els llindars (onPointSelected no els toca, pero per seguretat)
+  } else {
+    document.getElementById('plan-picker-status').textContent =
+      `Carregat: ${p.nom || p.id_pla} (sense ubicació — afegeix lat/lon al pla o comprova l'ID_PLA)`;
+  }
+});
 
 // Busca el centroide (mitjana simple dels vertexs) del poligon d'un pla al
 // cremes_planificades.geojson, a partir del seu ID_PLA. Retorna [lat, lon] o null.
@@ -1051,6 +1113,32 @@ const precipAxisLabelPlugin = {
   }
 };
 
+// Ombrejat vertical per hora segons si compleix el pla de crema: verd = dins
+// de finestra (hora OK + context OK), groc = hora OK pero context no. Es
+// dibuixa DARRERE les linies/barres (beforeDatasetsDraw).
+const matchShadingPlugin = {
+  id: 'matchShading',
+  beforeDatasetsDraw(chart){
+    const opts = chart.options.plugins && chart.options.plugins.matchShading;
+    if(!opts || !opts.statuses || !chart.scales.x) return;
+    const { top, bottom, left, right } = chart.chartArea;
+    const n = opts.statuses.length;
+    if(n === 0) return;
+    const colWidth = (right - left) / n;
+    const ctx = chart.ctx;
+    ctx.save();
+    for(let i = 0; i < n; i++){
+      const status = opts.statuses[i];
+      if(!status) continue;
+      const color = status === 'match' ? 'rgba(46,125,70,0.14)' : 'rgba(184,134,11,0.14)';
+      const xCenter = chart.scales.x.getPixelForValue(i);
+      ctx.fillStyle = color;
+      ctx.fillRect(xCenter - colWidth/2, top, colWidth, bottom - top);
+    }
+    ctx.restore();
+  }
+};
+
 function setSyncIndex(idx){
   syncIndex = idx;
   for(const id of CHART_IDS){
@@ -1078,7 +1166,7 @@ CHART_IDS.forEach(id => {
   });
   canvas.addEventListener('mouseleave', clearSyncIndex);
 });
-function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues){
+function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues, matchStatuses){
   const ctx = document.getElementById(canvasId).getContext('2d');
   if(chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
@@ -1098,12 +1186,12 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
     const effectiveMin = isFinite_(threshold.min) ? threshold.min : 0;
     datasets.push({
       label: 'Llindar màx', data: labels.map(() => threshold.max),
-      borderColor: 'rgba(46,125,70,0.4)', borderDash: [4,4], borderWidth: 1, pointRadius: 0, fill: false, order: 10,
+      borderColor: 'rgba(120,120,120,0.45)', borderDash: [4,4], borderWidth: 1, pointRadius: 0, fill: false, order: 10,
     });
     datasets.push({
       label: 'Llindar mín', data: labels.map(() => effectiveMin),
-      borderColor: 'rgba(46,125,70,0.4)', borderDash: [4,4], borderWidth: 1, pointRadius: 0,
-      backgroundColor: 'rgba(46,125,70,0.15)', fill: '-1', order: 10,
+      borderColor: 'rgba(120,120,120,0.45)', borderDash: [4,4], borderWidth: 1, pointRadius: 0,
+      backgroundColor: 'rgba(120,120,120,0.12)', fill: '-1', order: 10,
     });
   }
 
@@ -1159,11 +1247,17 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
   chartInstances[canvasId] = new Chart(ctx, {
     type: 'line',
     data: { labels, datasets },
-    plugins: hasPrecip ? [crosshairPlugin, todayMarkerPlugin, precipAxisLabelPlugin] : [crosshairPlugin, todayMarkerPlugin],
+    plugins: hasPrecip
+      ? [matchShadingPlugin, crosshairPlugin, todayMarkerPlugin, precipAxisLabelPlugin]
+      : [matchShadingPlugin, crosshairPlugin, todayMarkerPlugin],
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { display: false }, todayMarker: { index: todayIndex } },
+      plugins: {
+        legend: { display: false },
+        todayMarker: { index: todayIndex },
+        matchShading: { statuses: matchStatuses || [] },
+      },
       scales,
     },
   });
@@ -1198,7 +1292,7 @@ function alignToLabels(sourceTimes, sourceValues, labels){
   return labels.map(t => (t in map) ? map[t] : null);
 }
 
-function updateComparisonCharts(){
+function updateComparisonCharts(results){
   if(!modelsForecastData || !nearbyStationsCache) return;
   const wrap = document.getElementById('charts-wrap');
   const statusEl = document.getElementById('charts-status');
@@ -1224,19 +1318,29 @@ function updateComparisonCharts(){
   if(todayIndex === -1) todayIndex = obsTimes.length; // fallback poc probable (desajust d'arrodoniment)
   const plan = readPlan();
 
+  // Estat de cada hora (verd=dins de pla, groc=hora OK pero context no) segons
+  // la mateixa avaluacio que ja es fa servir per la franja horaria de dalt.
+  const statusByTime = {};
+  if(results){
+    for(const r of results){
+      statusByTime[r.time] = r.match ? 'match' : (r.hourOk && !r.ctxOk ? 'ctx-blocked' : null);
+    }
+  }
+  const matchStatuses = labels.map(t => statusByTime[t] || null);
+
   try{
     const alignObs = (field) => alignToLabels(obsTimes, last5.map(h => h[field]), labels);
     const alignModels = (field) => Object.fromEntries(COMPARISON_MODELS.map(m =>
       [m.id, alignToLabels(fcTimes, modelsForecastData.models[m.id][field], labels)]));
 
     renderComparisonChart('chart-temp', labels, todayIndex, alignObs('temp'), alignModels('temp'),
-      { min: plan.tempMin, max: plan.tempMax });
+      { min: plan.tempMin, max: plan.tempMax }, undefined, undefined, matchStatuses);
 
     renderComparisonChart('chart-hr', labels, todayIndex, alignObs('hr'), alignModels('hr'),
-      { min: plan.hrMin, max: plan.hrMax }, { min: 0, max: 100 });
+      { min: plan.hrMin, max: plan.hrMax }, { min: 0, max: 100 }, undefined, matchStatuses);
 
     renderComparisonChart('chart-wind', labels, todayIndex, alignObs('wind'), alignModels('wind'),
-      { min: 0, max: plan.windMax });
+      { min: 0, max: plan.windMax }, undefined, undefined, matchStatuses);
 
     // FMC1h per model: reaprofita buildCombinedSeries (obs + previsio d'un sol model) per calcular-lo igual que el model actiu
     const fmcByModel = {};
@@ -1258,7 +1362,7 @@ function updateComparisonCharts(){
 
     renderComparisonChart('chart-fmc', labels, todayIndex, obsFmcAligned,
       fmcByModel,
-      { min: plan.fmcMin, max: plan.fmcMax }, undefined, precipValues);
+      { min: plan.fmcMin, max: plan.fmcMax }, undefined, precipValues, matchStatuses);
 
     statusEl.textContent = '';
     wrap.style.display = 'block';
@@ -1480,7 +1584,7 @@ function recomputeAndRender(){
   renderStrip(results);
   renderMatchList(results);
   renderContextSummary(dayContexts);
-  updateComparisonCharts();
+  updateComparisonCharts(results);
 }
 
 async function refreshForecastAndPlan(){
@@ -1589,6 +1693,78 @@ document.getElementById('model-select').addEventListener('change', refreshForeca
   'ctx-precip-max','ctx-recovery-hr','ctx-recovery-nights','ctx-wind-strong','ctx-wind-strong-days',
 ].forEach(id => {
   document.getElementById(id).addEventListener('input', recomputeAndRender);
+});
+
+// ---------- Formulari "Afegir PdC nou" ----------
+document.getElementById('btn-toggle-newplan').addEventListener('click', () => {
+  const form = document.getElementById('newplan-form');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+});
+
+function numOrNull(id){
+  const v = document.getElementById(id).value;
+  if(v === '') return null;
+  const n = parseFloat(v);
+  return isNaN(n) ? null : n;
+}
+function strOrEmpty(id){
+  return document.getElementById(id).value.trim();
+}
+
+document.getElementById('btn-save-newplan').addEventListener('click', () => {
+  const statusEl = document.getElementById('newplan-status');
+  const idPla = strOrEmpty('np-id-pla');
+  if(!idPla){
+    statusEl.textContent = "Cal omplir l'ID_PLA com a mínim.";
+    statusEl.style.color = 'var(--red)';
+    return;
+  }
+  if(allPlansRaw.some(p => p.id_pla === idPla)){
+    statusEl.textContent = `Ja existeix un pla amb ID_PLA "${idPla}". Tria'n un altre o edita'l directament al fitxer.`;
+    statusEl.style.color = 'var(--red)';
+    return;
+  }
+
+  const newPlan = {
+    id_pla: idPla,
+    nom: strOrEmpty('np-nom'),
+    regio: strOrEmpty('np-regio'),
+    lat: numOrNull('np-lat'),
+    lon: numOrNull('np-lon'),
+    utm_x: numOrNull('np-utm-x'),
+    utm_y: numOrNull('np-utm-y'),
+    utm_zone: 31,
+    finestra: {
+      temp:     { baix: numOrNull('np-temp-baix'), desitjat: numOrNull('np-temp-des'), alt: numOrNull('np-temp-alt') },
+      hr:       { baix: numOrNull('np-hr-baix'),   desitjat: numOrNull('np-hr-des'),   alt: numOrNull('np-hr-alt') },
+      vent_kmh: { baix: numOrNull('np-vent-baix'), desitjat: numOrNull('np-vent-des'), alt: numOrNull('np-vent-alt') },
+      fmc1h:    { baix: numOrNull('np-fmc-baix'),  desitjat: numOrNull('np-fmc-des'),  alt: numOrNull('np-fmc-alt') },
+    },
+    marc: {
+      dia_m1: { tmax: numOrNull('np-marc-tmax-m1'), hrmin: numOrNull('np-marc-hrmin-m1'), vent_kmh_max: numOrNull('np-marc-vent-m1') },
+      dia_0:  { tmax: numOrNull('np-marc-tmax-0'),  hrmin: numOrNull('np-marc-hrmin-0'),  vent_kmh_max: numOrNull('np-marc-vent-0') },
+      dia_p1: { tmax: numOrNull('np-marc-tmax-p1'), hrmin: numOrNull('np-marc-hrmin-p1'), vent_kmh_max: numOrNull('np-marc-vent-p1') },
+    },
+  };
+
+  allPlansRaw.push(newPlan);
+  plansData.push(newPlan);
+  rebuildPlanPickerOptions();
+
+  // Genera i descarrega el fitxer complet actualitzat
+  const out = { _instruccions: allPlansInstruccions, plans: allPlansRaw };
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'plans_llindars.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+
+  statusEl.style.color = 'var(--text-dim)';
+  statusEl.textContent = `Afegit "${idPla}" i descarregat plans_llindars.json actualitzat. Ja el tens disponible al desplegable per provar-lo ara mateix (sense guardar) — substitueix el fitxer al repo per fer-ho permanent.`;
 });
 
 loadPlans();
