@@ -15,6 +15,7 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 # ---------------------------------------------------------------------------
@@ -31,10 +32,11 @@ N_DAYS = 10
 VAR_TEMP = 32          # Temp instantania
 VAR_HR = 33            # HR instantania
 VAR_WIND_SPEED_PRIORITY = [30, 48, 46]   # 10m, 6m, 2m (escalar)
+VAR_WIND_DIR_PRIORITY = [31, 49, 47]     # 10m, 6m, 2m (m1, parella de l'escalar)
 VAR_PRECIP = 35        # Precipitacio (mm, acumulat interval 30min)
 VAR_RAD = 36           # Radiacio global (W/m2) -- necessaria pel model Nelson 1h (FMC1h)
 
-ALL_NEEDED_VARS = {VAR_TEMP, VAR_HR, VAR_PRECIP, VAR_RAD, *VAR_WIND_SPEED_PRIORITY}
+ALL_NEEDED_VARS = {VAR_TEMP, VAR_HR, VAR_PRECIP, VAR_RAD, *VAR_WIND_SPEED_PRIORITY, *VAR_WIND_DIR_PRIORITY}
 
 
 def find_latest_metadata_file() -> Path:
@@ -92,6 +94,32 @@ def pick_first_available(df: pd.DataFrame, priority_codes: list[int]) -> pd.Seri
     return None
 
 
+def pick_first_available_with_index(df: pd.DataFrame, priority_codes: list[int]):
+    """Igual que pick_first_available, pero tambe retorna l'index dins la llista
+    de prioritat (per poder aparellar amb el codi de direccio corresponent)."""
+    for i, code in enumerate(priority_codes):
+        if code in df.columns and df[code].notna().any():
+            return df[code], i
+    return None, None
+
+
+def circular_mean_hourly(raw_long: pd.DataFrame, dir_code: int) -> pd.Series | None:
+    """Mitjana vectorial (no aritmetica) de la direccio del vent (graus), per
+    evitar l'error de wrap-around a prop de 0/360 graus quan es fa mitjana
+    horaria dels dos valors de 30 min."""
+    dir_raw = raw_long[raw_long["variable_code"] == dir_code]
+    if dir_raw.empty:
+        return None
+    dir_wide = dir_raw.pivot_table(index="date", columns="variable_code", values="value", aggfunc="mean")
+    if dir_code not in dir_wide.columns:
+        return None
+    rad = np.radians(dir_wide[dir_code])
+    sin_s = pd.Series(np.sin(rad), index=dir_wide.index).resample("1h").mean()
+    cos_s = pd.Series(np.cos(rad), index=dir_wide.index).resample("1h").mean()
+    deg = (np.degrees(np.arctan2(sin_s, cos_s)) + 360) % 360
+    return deg
+
+
 def process_station(station_code: str, days) -> dict | None:
     raw = load_station_period(station_code, days)
     if raw is None:
@@ -111,9 +139,14 @@ def process_station(station_code: str, days) -> dict | None:
 
     temp = hourly_mean[VAR_TEMP] if VAR_TEMP in hourly_mean.columns else None
     hr = hourly_mean[VAR_HR] if VAR_HR in hourly_mean.columns else None
-    wind_speed = pick_first_available(hourly_mean, VAR_WIND_SPEED_PRIORITY)
+    wind_speed, speed_idx = pick_first_available_with_index(hourly_mean, VAR_WIND_SPEED_PRIORITY)
     rad = hourly_mean[VAR_RAD] if VAR_RAD in hourly_mean.columns else None
     precip = hourly_sum[VAR_PRECIP] if VAR_PRECIP in hourly_sum.columns else None
+
+    wind_dir = None
+    if speed_idx is not None:
+        dir_code = VAR_WIND_DIR_PRIORITY[speed_idx]
+        wind_dir = circular_mean_hourly(raw, dir_code)
 
     if temp is None and hr is None and wind_speed is None:
         return None
@@ -123,6 +156,7 @@ def process_station(station_code: str, days) -> dict | None:
         "temp": temp,
         "hr": hr,
         "vent": wind_speed,
+        "ventdir": wind_dir,
         "rad": rad,
         "precip": precip,
     })
@@ -134,12 +168,15 @@ def process_station(station_code: str, days) -> dict | None:
 
     combined[["temp", "hr", "vent", "rad"]] = combined[["temp", "hr", "vent", "rad"]].round(1)
     combined["precip"] = combined["precip"].round(2)
+    if "ventdir" in combined.columns:
+        combined["ventdir"] = combined["ventdir"].round(0)
 
     return {
         "t": [ts.strftime("%Y-%m-%dT%H:%M") for ts in combined.index],
         "temp": [None if pd.isna(v) else v for v in combined["temp"]],
         "hr": [None if pd.isna(v) else v for v in combined["hr"]],
         "vent": [None if pd.isna(v) else v for v in combined["vent"]],
+        "ventdir": [None if pd.isna(v) else v for v in combined["ventdir"]],
         "rad": [None if pd.isna(v) else v for v in combined["rad"]],
         "precip": [None if pd.isna(v) else v for v in combined["precip"]],
     }

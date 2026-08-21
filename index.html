@@ -971,23 +971,37 @@ function buildRegionalHourlyObs(nearby){
     if(!s) continue;
     for(let i=0;i<s.t.length;i++){
       const t = s.t[i];
-      const bucket = byHour[t] || {tempSum:0,tempN:0,hrSum:0,hrN:0,windSum:0,windN:0,radSum:0,radN:0,precipSum:0,precipN:0};
+      const bucket = byHour[t] || {tempSum:0,tempN:0,hrSum:0,hrN:0,windSum:0,windN:0,radSum:0,radN:0,precipSum:0,precipN:0,dirSinSum:0,dirCosSum:0,dirN:0};
       if(s.temp[i]!==null){ bucket.tempSum+=s.temp[i]; bucket.tempN++; }
       if(s.hr[i]!==null){ bucket.hrSum+=s.hr[i]; bucket.hrN++; }
       if(s.vent[i]!==null){ bucket.windSum+=s.vent[i]; bucket.windN++; }
       if(s.rad && s.rad[i]!==null && s.rad[i]!==undefined){ bucket.radSum+=s.rad[i]; bucket.radN++; }
       if(s.precip && s.precip[i]!==null && s.precip[i]!==undefined){ bucket.precipSum+=s.precip[i]; bucket.precipN++; }
+      // Direccio: mitjana VECTORIAL (no aritmetica) entre estacions, per evitar
+      // el mateix error de wrap-around a prop de 0/360 graus.
+      if(s.ventdir && s.ventdir[i]!==null && s.ventdir[i]!==undefined){
+        const rad = s.ventdir[i] * Math.PI / 180;
+        bucket.dirSinSum += Math.sin(rad);
+        bucket.dirCosSum += Math.cos(rad);
+        bucket.dirN++;
+      }
       byHour[t] = bucket;
     }
   }
   const times = Object.keys(byHour).sort();
   return times.map(t => {
     const b = byHour[t];
+    let windDir = null;
+    if(b.dirN){
+      const deg = Math.atan2(b.dirSinSum, b.dirCosSum) * 180 / Math.PI;
+      windDir = (deg + 360) % 360;
+    }
     return {
       time: t,
       temp: b.tempN ? b.tempSum/b.tempN : null,
       hr: b.hrN ? b.hrSum/b.hrN : null,
       wind: b.windN ? b.windSum/b.windN : null,
+      windDir: windDir,
       rad: b.radN ? Math.max(b.radSum/b.radN, 0) : null,
       precip: b.precipN ? b.precipSum/b.precipN : null,
     };
@@ -1066,7 +1080,7 @@ function hideCellTooltip(){ cellTooltipEl.style.display = 'none'; }
 async function loadForecast(latlon, model){
   const [lat, lon] = latlon;
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}` +
-    `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,shortwave_radiation,precipitation` +
+    `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,shortwave_radiation,precipitation` +
     `&models=${model}&forecast_days=5&timezone=Europe%2FMadrid`;
   const res = await fetch(url);
   if(!res.ok) throw new Error("Error consultant Open-Meteo");
@@ -1076,6 +1090,7 @@ async function loadForecast(latlon, model){
     temp: data.hourly.temperature_2m,
     hr: data.hourly.relative_humidity_2m,
     wind: data.hourly.wind_speed_10m.map(v => v / 3.6),
+    windDir: data.hourly.wind_direction_10m,
     rad: data.hourly.shortwave_radiation,
     precip: data.hourly.precipitation,
   };
@@ -1195,6 +1210,54 @@ const precipAxisLabelPlugin = {
   }
 };
 
+// Fletxes de direccio del vent a la part superior del grafic de vent (dies
+// previs: mitjana vectorial regional; previsio: model seleccionat al
+// desplegable). L'angle segueix la convencio meteorologica (direccio D'ON ve
+// el vent); es dibuixa cap a on el vent BUFA (D+180) perque es llegeixi com
+// una fletxa de fluxe, no com una agulla que assenyala l'origen.
+const windDirPlugin = {
+  id: 'windDirArrows',
+  afterDraw(chart){
+    const opts = chart.options.plugins && chart.options.plugins.windDirArrows;
+    if(!opts || !opts.dirs || !chart.scales.x) return;
+    const { top, left, right } = chart.chartArea;
+    const n = opts.dirs.length;
+    if(n === 0) return;
+    const y = top + 9;
+    const len = 7;
+    // Un espaiat minim entre fletxes perque no es solapin en pantalles petites
+    const colWidth = (right - left) / n;
+    const step = Math.max(1, Math.ceil(18 / colWidth));
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(90,90,90,0.65)';
+    ctx.fillStyle = 'rgba(90,90,90,0.65)';
+    ctx.lineWidth = 1.1;
+    for(let i = 0; i < n; i += step){
+      const dir = opts.dirs[i];
+      if(dir === null || dir === undefined) continue;
+      const x = chart.scales.x.getPixelForValue(i);
+      if(x < left || x > right) continue;
+      const flowRad = (dir + 180) * Math.PI / 180;
+      const dx = Math.sin(flowRad), dy = -Math.cos(flowRad);
+      const x2 = x + dx * len, y2 = y + dy * len;
+      ctx.beginPath();
+      ctx.moveTo(x - dx * len, y - dy * len);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      // Cap de fletxa
+      const headAngle = Math.atan2(dy, dx);
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - 3.5 * Math.cos(headAngle - 0.5), y2 - 3.5 * Math.sin(headAngle - 0.5));
+      ctx.lineTo(x2 - 3.5 * Math.cos(headAngle + 0.5), y2 - 3.5 * Math.sin(headAngle + 0.5));
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+};
+
 // Ombrejat vertical per hora segons si compleix el pla de crema: verd = dins
 // de finestra (hora OK + context OK), groc = hora OK pero context no. Es
 // dibuixa DARRERE les linies/barres (beforeDatasetsDraw).
@@ -1248,7 +1311,7 @@ CHART_IDS.forEach(id => {
   });
   canvas.addEventListener('mouseleave', clearSyncIndex);
 });
-function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues, matchStatuses){
+function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues, matchStatuses, windDirs){
   const ctx = document.getElementById(canvasId).getContext('2d');
   if(chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
@@ -1326,19 +1389,24 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
     };
   }
 
+  const hasWindDir = !!windDirs;
+  const pluginList = [matchShadingPlugin, crosshairPlugin, todayMarkerPlugin];
+  if(hasPrecip) pluginList.push(precipAxisLabelPlugin);
+  if(hasWindDir) pluginList.push(windDirPlugin);
+
   chartInstances[canvasId] = new Chart(ctx, {
     type: 'line',
     data: { labels, datasets },
-    plugins: hasPrecip
-      ? [matchShadingPlugin, crosshairPlugin, todayMarkerPlugin, precipAxisLabelPlugin]
-      : [matchShadingPlugin, crosshairPlugin, todayMarkerPlugin],
+    plugins: pluginList,
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
+      layout: hasWindDir ? { padding: { top: 16 } } : undefined,
       plugins: {
         legend: { display: false },
         todayMarker: { index: todayIndex },
         matchShading: { statuses: matchStatuses || [] },
+        windDirArrows: { dirs: windDirs || [] },
       },
       scales,
     },
@@ -1421,8 +1489,17 @@ function updateComparisonCharts(results){
     renderComparisonChart('chart-hr', labels, todayIndex, alignObs('hr'), alignModels('hr'),
       { min: plan.hrMin, max: plan.hrMax }, { min: 0, max: 100 }, undefined, matchStatuses);
 
+    // Direccio del vent: nomes UNA serie (no els 4 models), per no saturar de
+    // fletxes -- observat (mitjana regional vectorial) + previsio del model
+    // seleccionat al desplegable.
+    const obsDirAligned = alignToLabels(obsTimes, last5.map(h => h.windDir), labels);
+    const fcDirTimes = (forecastHourly && forecastHourly.time) ? forecastHourly.time : fcTimes;
+    const fcDirValues = (forecastHourly && forecastHourly.windDir) ? forecastHourly.windDir : [];
+    const fcDirAligned = alignToLabels(fcDirTimes, fcDirValues, labels);
+    const windDirs = labels.map((_, i) => obsDirAligned[i] !== null ? obsDirAligned[i] : fcDirAligned[i]);
+
     renderComparisonChart('chart-wind', labels, todayIndex, alignObs('wind'), alignModels('wind'),
-      { min: 0, max: plan.windMax }, undefined, undefined, matchStatuses);
+      { min: 0, max: plan.windMax }, undefined, undefined, matchStatuses, windDirs);
 
     // FMC1h per model: reaprofita buildCombinedSeries (obs + previsio d'un sol model) per calcular-lo igual que el model actiu
     const fmcByModel = {};
