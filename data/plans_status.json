@@ -1,0 +1,551 @@
+{
+  "generat": "2026-08-21T19:06:17Z",
+  "plans": {
+    "REC_2019_10_La Traveria - Obertes - Garriga": {
+      "status": "red",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 1
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 5
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 1
+        }
+      }
+    },
+    "REC_2022_01_El Muntaner": {
+      "status": "red",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 3
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 3
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 3
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 3
+        }
+      }
+    },
+    "REC_2023_02_Pi negre Coll de Port": {
+      "status": "yellow",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 12
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 15
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 9
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 4
+        }
+      }
+    },
+    "REC_2023_03_Pi negre Estivella": {
+      "status": "yellow",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 12
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 15
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 9
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 3
+        }
+      }
+    },
+    "REC_2023_04 Pi negre Querol": {
+      "status": "yellow",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 12
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 15
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 9
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 3
+        }
+      }
+    },
+    "REC_2023_06_Font del Morral": {
+      "status": "red",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 1
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 7
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 3
+        }
+      }
+    },
+    "REC_2023_09_Pujol Melós": {
+      "status": "red",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 3
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 6
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        }
+      }
+    },
+    "REC_2023_10_Can Feliu 2": {
+      "status": "red",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 3
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 6
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        }
+      }
+    },
+    "REC_2024_01_Clapers": {
+      "status": "red",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 8
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        }
+      }
+    },
+    "REC_2024_02_El Corralot": {
+      "status": "red",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 3
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 5
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        }
+      }
+    },
+    "REC_2024_03_Vilarassau": {
+      "status": "red",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 4
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 4
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 12
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 4
+        }
+      }
+    },
+    "REC_2026_01_El Pinel": {
+      "status": "red",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 1
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 3
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 3
+        }
+      }
+    },
+    "REC_2026_02_Can Tomàs": {
+      "status": "red",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 9
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 3
+        }
+      }
+    },
+    "REG_2008_02_Mas Fumats": {
+      "status": "red",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 3
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 5
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 1
+        }
+      }
+    },
+    "REG_2016_01_Coll de Banyuls_II": {
+      "status": "yellow",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 7
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 1
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 9
+        }
+      }
+    },
+    "REG_2023_03_Montgrí III": {
+      "status": "yellow",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 35
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 35
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 34
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 35
+        }
+      }
+    },
+    "RET_2019_03_Bonastre": {
+      "status": "green",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 24,
+          "hour_ok_streak": 120
+        },
+        "ecmwf_ifs": {
+          "match_streak": 24,
+          "hour_ok_streak": 120
+        },
+        "gfs_seamless": {
+          "match_streak": 24,
+          "hour_ok_streak": 120
+        },
+        "arome_france": {
+          "match_streak": 24,
+          "hour_ok_streak": 69
+        }
+      }
+    },
+    "RET_2015_01_Rojals": {
+      "status": "green",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 48,
+          "hour_ok_streak": 120
+        },
+        "ecmwf_ifs": {
+          "match_streak": 120,
+          "hour_ok_streak": 120
+        },
+        "gfs_seamless": {
+          "match_streak": 96,
+          "hour_ok_streak": 120
+        },
+        "arome_france": {
+          "match_streak": 69,
+          "hour_ok_streak": 69
+        }
+      }
+    },
+    "RETITE_2003_02_Colladetes Perelló": {
+      "status": "red",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 9
+        },
+        "ecmwf_ifs": {
+          "match_streak": 3,
+          "hour_ok_streak": 3
+        },
+        "gfs_seamless": {
+          "match_streak": 5,
+          "hour_ok_streak": 5
+        },
+        "arome_france": {
+          "match_streak": 3,
+          "hour_ok_streak": 3
+        }
+      }
+    },
+    "REP_2022_02_Bosc de Salas": {
+      "status": "yellow",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 4
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 6
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 6
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 6
+        }
+      }
+    },
+    "REP_2022_07_Corroncui": {
+      "status": "yellow",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 8
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 5
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 8
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 12
+        }
+      }
+    },
+    "REP_2024_02_Sant Esteve de la Sarga - Alzina": {
+      "status": "red",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 6
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 5
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 5
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        }
+      }
+    },
+    "REP_2025_03_Adraén": {
+      "status": "yellow",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 10
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 14
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 9
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 13
+        }
+      }
+    },
+    "REP_2026_01_Llagunes": {
+      "status": "yellow",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 7
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 8
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 8
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 12
+        }
+      }
+    },
+    "RELL_2022_06_Almatret": {
+      "status": "red",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 2
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 3
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 1
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 1
+        }
+      }
+    },
+    "REMN_2020_01_Agora_Parc": {
+      "status": "red",
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 0
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 0
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 0
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 0
+        }
+      }
+    }
+  }
+}
