@@ -674,10 +674,12 @@ async function toggleLayer(kind, show){
         const status = entry ? entry.status : null;
         if(!status) continue;
         const label = { green: 'Disponibilitat', yellow: 'Disponibilitat parcial (context)', red: 'Sense disponibilitat' }[status] || status;
-        markers.push(
-          L.marker(latlon, { icon: planStatusIcon(status) })
-            .bindPopup(`<strong>${plan.nom || plan.id_pla}</strong><br>${plan.id_pla}<br>${label} (propers 5 dies)`)
-        );
+        const marker = L.marker(latlon, { icon: planStatusIcon(status) })
+          .bindPopup(`<strong>${plan.nom || plan.id_pla}</strong><br>${plan.id_pla}<br>${label} (propers 5 dies)<br><em>Clica per veure el detall complet</em>`);
+        marker.on('mouseover', () => marker.openPopup());
+        marker.on('mouseout', () => marker.closePopup());
+        marker.on('click', () => selectPlanById(plan.id_pla));
+        markers.push(marker);
       }
       plansStatusLayer = L.layerGroup(markers).addTo(map);
       statusEl.textContent = plansStatusData.generat ? `Calculat: ${plansStatusData.generat}` : '';
@@ -774,6 +776,17 @@ function rebuildPlanPickerOptions(){
     }
     select.appendChild(group);
   }
+}
+
+// Selecciona un pla programaticament (des d'un marcador del mapa, per exemple):
+// canvia a la pestanya "Plans de crema actius" si cal, i dispara la mateixa
+// logica que si l'usuari l'hagues triat manualment al desplegable.
+function selectPlanById(idPla){
+  const plansTabBtn = document.getElementById('tab-btn-plans');
+  if(!plansTabBtn.classList.contains('active')) plansTabBtn.click();
+  const select = document.getElementById('plan-picker');
+  select.value = idPla;
+  select.dispatchEvent(new Event('change'));
 }
 
 document.getElementById('plan-picker').addEventListener('change', async () => {
