@@ -62,7 +62,8 @@
   .tab-btn.active { background: var(--panel); color: var(--charcoal); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
   .tab-pane { margin-bottom: 4px; }
 
-  .station-icon { background: transparent; border: none; filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.3)); }
+  .station-icon { background: transparent; border: none; }
+  .plan-status-icon { background: transparent; border: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
 
   .chart-block { margin-bottom: 16px; }
   .chart-title { font-size: 11.5px; font-weight: 600; color: var(--text-dim); margin-bottom: 4px; }
@@ -556,12 +557,12 @@ function popupExecutada(feature){
 function stationIcon(){
   return L.divIcon({
     className: 'station-icon',
-    html: `<svg width="7" height="7" viewBox="0 0 7 7" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="3.5" cy="3.5" r="3" fill="#3d5a73" stroke="#ffffff" stroke-width="1"/>
+    html: `<svg width="6" height="6" viewBox="0 0 6 6" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="3" cy="3" r="2.4" fill="#6b8299" fill-opacity="0.6"/>
     </svg>`,
-    iconSize: [7, 7],
-    iconAnchor: [3.5, 3.5],
-    popupAnchor: [0, -5],
+    iconSize: [6, 6],
+    iconAnchor: [3, 3],
+    popupAnchor: [0, -4],
   });
 }
 
@@ -571,7 +572,7 @@ const PLAN_STATUS_COLORS = { green: '#2e7d46', yellow: '#b8860b', red: '#C8102E'
 function planStatusIcon(status){
   const color = PLAN_STATUS_COLORS[status] || '#8a8a86';
   return L.divIcon({
-    className: 'station-icon',
+    className: 'plan-status-icon',
     html: `<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
       <circle cx="8" cy="8" r="6.5" fill="${color}" stroke="#ffffff" stroke-width="2"/>
     </svg>`,
@@ -724,7 +725,7 @@ document.getElementById('layer-executades').addEventListener('change', (e) => to
 document.getElementById('layer-estacions').addEventListener('change', (e) => toggleLayer('estacions', e.target.checked));
 document.getElementById('layer-plans-status').addEventListener('change', (e) => toggleLayer('plansStatus', e.target.checked));
 
-// Carrega les dues capes visibles per defecte en obrir la pàgina
+// Totes les capes visibles per defecte en obrir la pàgina
 toggleLayer('planificades', true);
 toggleLayer('executades', true);
 toggleLayer('estacions', true);
@@ -1227,7 +1228,7 @@ const windDirPlugin = {
     const len = 7;
     // Un espaiat minim entre fletxes perque no es solapin en pantalles petites
     const colWidth = (right - left) / n;
-    const step = Math.max(1, Math.ceil(13 / colWidth));
+    const step = Math.max(1, Math.ceil(10 / colWidth));
     const ctx = chart.ctx;
     ctx.save();
     ctx.strokeStyle = 'rgba(90,90,90,0.65)';
