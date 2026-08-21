@@ -518,8 +518,10 @@ function haversineKm(lat1, lon1, lat2, lon2){
 // ---------- Capes de cremes prescrites (planificades / executades) ----------
 const CREMES_PLANIFICADES_URL = "data/cremes_planificades.geojson";
 const CREMES_EXECUTADES_URL = "data/cremes_executades.geojson";
+const PLANS_STATUS_URL = "data/plans_status.json";
 let planificadesLayer = null, executadesLayer = null, estacionsLayer = null, plansStatusLayer = null;
 let plansStatusData = null;
+let allPlansRaw = [];
 let planificadesData = null, executadesData = null;
 
 function stylePlanificada(){
@@ -728,9 +730,7 @@ toggleLayer('plansStatus', true);
 
 // ---------- Plans de crema actius (llindars pre-carregats) ----------
 const PLANS_LLINDARS_URL = "data/plans_llindars.json";
-const PLANS_STATUS_URL = "data/plans_status.json";
 let plansData = [];
-let allPlansRaw = [];
 let allPlansInstruccions = '';
 
 function kmhToMs(v){ return v === null || v === undefined ? null : v / 3.6; }
