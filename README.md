@@ -190,7 +190,7 @@ Dins de "Finestra de crema — previsió 5 dies": 4 gràfics (Temperatura, HR,
 Vent, FMC1h+Precipitació), cadascun amb:
 
 - Línia negra: observat (últims 5 dies, mitjana regional).
-- 4 línies de color: ICON-EU, ECMWF IFS, GFS, AROME France (previsió 5 dies).
+- 4 línies de color: ICON-EU, ECMWF IFS HRES, GFS, AROME France (previsió 5 dies).
 - Banda grisa ombrejada: llindar del pla (mín-màx), sense línia de contorn.
 - Ombrejat verd/ambre per hora: mateix estat que la franja horària (dins de
   pla / hora OK però context no).
