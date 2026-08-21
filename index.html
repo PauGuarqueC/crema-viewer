@@ -249,11 +249,11 @@
       <div class="block" id="newplan-form" style="display:none;">
         <div class="block-title">Nou pla de crema</div>
         <div class="plan-form">
-          <div class="field"><label>ID_PLA (obligatori)</label><input type="text" id="np-id-pla" placeholder="p.ex. REC_2026_01"></div>
-          <div class="field"><label>Nom</label><input type="text" id="np-nom" placeholder="Nom de la parcel·la"></div>
-          <div class="field full"><label>Regió</label><input type="text" id="np-regio" placeholder="p.ex. REC"></div>
+          <div class="field"><label>ID_PLA *</label><input type="text" id="np-id-pla" placeholder="p.ex. REC_2026_01"></div>
+          <div class="field"><label>Nom *</label><input type="text" id="np-nom" placeholder="Nom de la parcel·la"></div>
+          <div class="field full"><label>Regió *</label><input type="text" id="np-regio" placeholder="p.ex. REC"></div>
         </div>
-        <div class="stat-note" style="margin:8px 0;">Ubicació (omple lat/lon o UTM, el que tinguis més a mà — pots deixar-ho buit i s'agafarà del geojson si l'ID_PLA hi coincideix)</div>
+        <div class="stat-note" style="margin:8px 0;">Ubicació * — omple lat+lon <strong>o</strong> UTM X+Y (una de les dues parelles sencera). És obligatori: el geojson sovint no té l'ID_PLA i el pla quedaria sense ubicació.</div>
         <div class="plan-form">
           <div class="field"><label>Lat</label><input type="number" id="np-lat" step="0.00001"></div>
           <div class="field"><label>Lon</label><input type="number" id="np-lon" step="0.00001"></div>
@@ -358,7 +358,9 @@
             <div><span class="sw" style="background:#2f6690;"></span>ECMWF IFS</div>
             <div><span class="sw" style="background:#2e7d46;"></span>GFS</div>
             <div><span class="sw" style="background:#b8860b;"></span>AROME France</div>
-            <div><span class="sw" style="background:rgba(120,120,120,0.2);border:1px solid rgba(120,120,120,0.5);"></span>Llindar de la finestra</div>
+          </div>
+          <div class="legend" style="margin-top:6px;">
+            <div><span class="sw" style="background:rgba(120,120,120,0.25);"></span>Llindar de la finestra</div>
             <div><span class="sw" style="background:rgba(46,125,70,0.35);"></span>Dins de finestra</div>
             <div><span class="sw" style="background:rgba(184,134,11,0.35);"></span>Hora OK, context no</div>
           </div>
@@ -468,7 +470,7 @@ let combinedSeries = null;
 let nearbyStationsCache = [];
 
 // ---------- Map setup (light basemap, coherent amb onofre-viewer) ----------
-map = L.map('map', { zoomControl: true, zoomSnap: 0.5, zoomDelta: 0.5 }).setView([41.85, 1.5], 8.5);
+map = L.map('map', { zoomControl: true, zoomSnap: 0.5, zoomDelta: 0.5 }).setView([41.85, 1.5], 8);
 
 const lightBasemap = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; OpenStreetMap &copy; CARTO',
@@ -1186,11 +1188,11 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
     const effectiveMin = isFinite_(threshold.min) ? threshold.min : 0;
     datasets.push({
       label: 'Llindar màx', data: labels.map(() => threshold.max),
-      borderColor: 'rgba(120,120,120,0.45)', borderDash: [4,4], borderWidth: 1, pointRadius: 0, fill: false, order: 10,
+      borderColor: 'transparent', borderWidth: 0, pointRadius: 0, fill: false, order: 10,
     });
     datasets.push({
       label: 'Llindar mín', data: labels.map(() => effectiveMin),
-      borderColor: 'rgba(120,120,120,0.45)', borderDash: [4,4], borderWidth: 1, pointRadius: 0,
+      borderColor: 'transparent', borderWidth: 0, pointRadius: 0,
       backgroundColor: 'rgba(120,120,120,0.12)', fill: '-1', order: 10,
     });
   }
@@ -1714,11 +1716,29 @@ function strOrEmpty(id){
 document.getElementById('btn-save-newplan').addEventListener('click', () => {
   const statusEl = document.getElementById('newplan-status');
   const idPla = strOrEmpty('np-id-pla');
-  if(!idPla){
-    statusEl.textContent = "Cal omplir l'ID_PLA com a mínim.";
+  const nom = strOrEmpty('np-nom');
+  const regio = strOrEmpty('np-regio');
+
+  const missing = [];
+  if(!idPla) missing.push('ID_PLA');
+  if(!nom) missing.push('Nom');
+  if(!regio) missing.push('Regió');
+  if(missing.length){
+    statusEl.textContent = `Camps obligatoris pendents: ${missing.join(', ')}.`;
     statusEl.style.color = 'var(--red)';
     return;
   }
+
+  const lat = numOrNull('np-lat'), lon = numOrNull('np-lon');
+  const utmX = numOrNull('np-utm-x'), utmY = numOrNull('np-utm-y');
+  const hasLatLon = lat !== null && lon !== null;
+  const hasUtm = utmX !== null && utmY !== null;
+  if(!hasLatLon && !hasUtm){
+    statusEl.textContent = "Cal omplir la ubicació: lat+lon o UTM X+Y (tots dos camps de la parella). Sense això el pla no es podrà centrar al mapa i sovint no coincideix amb el geojson.";
+    statusEl.style.color = 'var(--red)';
+    return;
+  }
+
   if(allPlansRaw.some(p => p.id_pla === idPla)){
     statusEl.textContent = `Ja existeix un pla amb ID_PLA "${idPla}". Tria'n un altre o edita'l directament al fitxer.`;
     statusEl.style.color = 'var(--red)';
@@ -1727,12 +1747,12 @@ document.getElementById('btn-save-newplan').addEventListener('click', () => {
 
   const newPlan = {
     id_pla: idPla,
-    nom: strOrEmpty('np-nom'),
-    regio: strOrEmpty('np-regio'),
-    lat: numOrNull('np-lat'),
-    lon: numOrNull('np-lon'),
-    utm_x: numOrNull('np-utm-x'),
-    utm_y: numOrNull('np-utm-y'),
+    nom: nom,
+    regio: regio,
+    lat: lat,
+    lon: lon,
+    utm_x: utmX,
+    utm_y: utmY,
     utm_zone: 31,
     finestra: {
       temp:     { baix: numOrNull('np-temp-baix'), desitjat: numOrNull('np-temp-des'), alt: numOrNull('np-temp-alt') },
