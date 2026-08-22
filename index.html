@@ -1091,15 +1091,22 @@ function dailyAggregates(hourlySeries){
   for(const h of hourlySeries){
     const day = h.time.slice(0,10);
     const hour = parseInt(h.time.slice(11,13));
-    const b = byDay[day] || { tmax:null, hrmin:null, windmax:null, precipsum:0, precipN:0, dawnHrMax:null };
+    const b = byDay[day] || { tmax:null, hrmin:null, windmax:null, precipsum:0, precipN:0, dawnHrSum:0, dawnHrN:0 };
     if(h.temp !== null) b.tmax = b.tmax===null ? h.temp : Math.max(b.tmax, h.temp);
     if(h.hr !== null) b.hrmin = b.hrmin===null ? h.hr : Math.min(b.hrmin, h.hr);
     if(h.wind !== null) b.windmax = b.windmax===null ? h.wind : Math.max(b.windmax, h.wind);
     if(h.precip !== null){ b.precipsum += h.precip; b.precipN++; }
-    if(hour >= 0 && hour <= 9 && h.hr !== null){
-      b.dawnHrMax = b.dawnHrMax===null ? h.hr : Math.max(b.dawnHrMax, h.hr);
+    // Recuperacio d'humitat nocturna: mitjana (no maxim) entre les 2:00 i les
+    // 6:00 locals (5 lectures: 2h,3h,4h,5h,6h), la franja mes freda/humida de
+    // la nit (abans de l'alba).
+    if(hour >= 2 && hour <= 6 && h.hr !== null){
+      b.dawnHrSum += h.hr; b.dawnHrN++;
     }
     byDay[day] = b;
+  }
+  for(const day of Object.keys(byDay)){
+    const b = byDay[day];
+    b.dawnHrMax = b.dawnHrN ? b.dawnHrSum / b.dawnHrN : null; // nom mantingut per compatibilitat, ara es la mitjana
   }
   return byDay;
 }

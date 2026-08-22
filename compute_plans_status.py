@@ -192,7 +192,7 @@ def daily_aggregates(hourly_series):
         hour = int(h["time"][11:13])
         b = by_day.setdefault(day, {
             "tmax": None, "hrmin": None, "windmax": None,
-            "precipsum": 0.0, "precip_n": 0, "dawn_hr_max": None,
+            "precipsum": 0.0, "precip_n": 0, "dawn_hr_sum": 0.0, "dawn_hr_n": 0,
         })
         if h["temp"] is not None:
             b["tmax"] = h["temp"] if b["tmax"] is None else max(b["tmax"], h["temp"])
@@ -203,8 +203,14 @@ def daily_aggregates(hourly_series):
         if h["precip"] is not None:
             b["precipsum"] += h["precip"]
             b["precip_n"] += 1
-        if 0 <= hour <= 9 and h["hr"] is not None:
-            b["dawn_hr_max"] = h["hr"] if b["dawn_hr_max"] is None else max(b["dawn_hr_max"], h["hr"])
+        # Recuperacio d'humitat nocturna: mitjana (no maxim) entre les 2:00 i
+        # les 6:00 locals (5 lectures: 2h,3h,4h,5h,6h), la franja mes
+        # freda/humida de la nit (abans de l'alba).
+        if 2 <= hour <= 6 and h["hr"] is not None:
+            b["dawn_hr_sum"] += h["hr"]
+            b["dawn_hr_n"] += 1
+    for day, b in by_day.items():
+        b["dawn_hr_max"] = (b["dawn_hr_sum"] / b["dawn_hr_n"]) if b["dawn_hr_n"] else None  # nom mantingut, ara es la mitjana
     return by_day
 
 
@@ -487,8 +493,17 @@ def main():
         plan["_lat"], plan["_lon"] = loc
         print(f"  {plan['id_pla']} ({plan.get('nom','')}) @ {loc[0]:.4f},{loc[1]:.4f} ...")
         try:
-            out[plan["id_pla"]] = compute_plan_status(plan, obs_data)
-            print(f"    -> {out[plan['id_pla']]['status']}")
+            status = compute_plan_status(plan, obs_data)
+            out[plan["id_pla"]] = status
+            # Si TOTS els models donen 0 hores ni tan sols dins del llindar
+            # horari pur (sense context), es molt probable que Open-Meteo
+            # no hagi tornat dades valides per aquest punt (i no un resultat
+            # meteorologic real) -> avisa'n explicitament.
+            all_zero = all(s["hour_ok_streak"] == 0 for s in status["streaksByModel"].values())
+            if all_zero:
+                print(f"    -> {status['status']}  [AVIS: 0h a TOTS els models, revisa si Open-Meteo ha tornat dades per aquest punt]")
+            else:
+                print(f"    -> {status['status']}")
         except Exception as e:
             print(f"    [ERROR] {e}")
 
