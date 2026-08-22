@@ -499,7 +499,7 @@ let nearbyStationsCache = [];
 
 // ---------- Map setup (light basemap, coherent amb onofre-viewer) ----------
 const isMobileViewport = window.innerWidth <= 820; // mateix trencament que el CSS responsiu
-const initialZoom = isMobileViewport ? 7 : 8; // al mobil el mapa ocupa molta menys alçada -> cal menys zoom
+const initialZoom = isMobileViewport ? 7.5 : 8; // al mobil el mapa ocupa molta menys alçada -> cal menys zoom
 map = L.map('map', { zoomControl: true, zoomSnap: 0.5, zoomDelta: 0.5 }).setView([41.85, 1.5], initialZoom);
 
 const lightBasemap = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
