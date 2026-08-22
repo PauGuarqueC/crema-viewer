@@ -499,7 +499,7 @@ let nearbyStationsCache = [];
 
 // ---------- Map setup (light basemap, coherent amb onofre-viewer) ----------
 const isMobileViewport = window.innerWidth <= 820; // mateix trencament que el CSS responsiu
-const initialZoom = isMobileViewport ? 7.5 : 8; // al mobil el mapa ocupa molta menys alçada -> cal menys zoom
+const initialZoom = isMobileViewport ? 7 : 8; // al mobil el mapa ocupa molta menys alçada -> cal menys zoom
 map = L.map('map', { zoomControl: true, zoomSnap: 0.5, zoomDelta: 0.5 }).setView([41.85, 1.5], initialZoom);
 
 const lightBasemap = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -1585,12 +1585,17 @@ function updateComparisonCharts(results){
 
 function buildCombinedSeries(regionalObs, forecast){
   const map_ = new Map();
-  for(const h of regionalObs){
-    map_.set(h.time, { time:h.time, temp:h.temp, hr:h.hr, wind:h.wind, rad:h.rad, precip:h.precip, isForecast:false });
-  }
+  // La previsio d'Open-Meteo SEMPRE inclou les hores ja passades d'avui (des
+  // de les 00:00), pero son la previsio d'una tanda anterior "cosida" a la
+  // nova, no observacions reals. Per aixo s'afegeix PRIMER (com a base) i
+  // despres es sobreescriu amb l'observacio real allà on en tinguem -- la
+  // dada real sempre te prioritat sobre la previsio per la mateixa hora.
   for(let i=0;i<forecast.time.length;i++){
     const t = forecast.time[i];
     map_.set(t, { time:t, temp:forecast.temp[i], hr:forecast.hr[i], wind:forecast.wind[i], rad:forecast.rad[i], precip:forecast.precip[i], isForecast:true });
+  }
+  for(const h of regionalObs){
+    map_.set(h.time, { time:h.time, temp:h.temp, hr:h.hr, wind:h.wind, rad:h.rad, precip:h.precip, isForecast:false });
   }
   const times = Array.from(map_.keys()).sort();
   const series = times.map(t => map_.get(t));
