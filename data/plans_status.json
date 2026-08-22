@@ -1,5 +1,5 @@
 {
-  "generat": "2026-08-21T23:53:41Z",
+  "generat": "2026-08-22T00:10:28Z",
   "plans": {
     "REC_2019_10_La Traveria - Obertes - Garriga": {
       "status": "red",
@@ -23,7 +23,7 @@
       }
     },
     "REC_2022_01_El Muntaner": {
-      "status": "yellow",
+      "status": "red",
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
@@ -31,7 +31,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 6
+          "hour_ok_streak": 3
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -52,7 +52,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 21
+          "hour_ok_streak": 19
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -73,7 +73,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 21
+          "hour_ok_streak": 19
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -94,7 +94,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 21
+          "hour_ok_streak": 19
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -115,7 +115,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 2
+          "hour_ok_streak": 1
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -136,7 +136,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 14
+          "hour_ok_streak": 8
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -157,7 +157,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 14
+          "hour_ok_streak": 8
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -199,7 +199,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 12
+          "hour_ok_streak": 7
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -233,7 +233,7 @@
       }
     },
     "REC_2026_01_El Pinel": {
-      "status": "yellow",
+      "status": "red",
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
@@ -241,7 +241,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 13
+          "hour_ok_streak": 5
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -258,7 +258,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 2
+          "hour_ok_streak": 3
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -279,7 +279,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 3
+          "hour_ok_streak": 4
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -321,7 +321,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 23
+          "hour_ok_streak": 24
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -380,23 +380,23 @@
       }
     },
     "RETITE_2003_02_Colladetes Perelló": {
-      "status": "yellow",
+      "status": "red",
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 10
+          "hour_ok_streak": 3
         },
         "ecmwf_ifs": {
-          "match_streak": 2,
-          "hour_ok_streak": 11
+          "match_streak": 0,
+          "hour_ok_streak": 4
         },
         "gfs_seamless": {
-          "match_streak": 4,
-          "hour_ok_streak": 4
+          "match_streak": 0,
+          "hour_ok_streak": 2
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 0
+          "hour_ok_streak": 4
         }
       }
     },
@@ -409,7 +409,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 4
+          "hour_ok_streak": 5
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -447,11 +447,11 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 4
+          "hour_ok_streak": 5
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 3
+          "hour_ok_streak": 5
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -472,7 +472,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 18
+          "hour_ok_streak": 13
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -493,7 +493,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 8
+          "hour_ok_streak": 6
         },
         "gfs_seamless": {
           "match_streak": 0,
