@@ -1,5 +1,5 @@
 {
-  "generat": "2026-08-22T06:00:21Z",
+  "generat": "2026-08-22T09:00:16Z",
   "plans": {
     "REC_2019_10_La Traveria - Obertes - Garriga": {
       "status": "yellow",
@@ -10,7 +10,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 1
+          "hour_ok_streak": 2
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -52,7 +52,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 17
+          "hour_ok_streak": 19
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -73,7 +73,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 17
+          "hour_ok_streak": 19
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -94,7 +94,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 17
+          "hour_ok_streak": 19
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -115,7 +115,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 2
+          "hour_ok_streak": 3
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -136,7 +136,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 7
+          "hour_ok_streak": 15
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -157,7 +157,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 7
+          "hour_ok_streak": 15
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -178,7 +178,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 2
+          "hour_ok_streak": 4
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -199,7 +199,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 6
+          "hour_ok_streak": 14
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -220,7 +220,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 2
+          "hour_ok_streak": 5
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -262,7 +262,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 2
+          "hour_ok_streak": 4
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -325,7 +325,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 22
+          "hour_ok_streak": 23
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -359,7 +359,7 @@
       }
     },
     "RET_2019_01_Plans de Sant Joan": {
-      "status": "red",
+      "status": "yellow",
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
@@ -367,7 +367,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 4
+          "hour_ok_streak": 6
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -388,7 +388,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 5
+          "hour_ok_streak": 2
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -409,7 +409,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 5
+          "hour_ok_streak": 4
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -443,7 +443,7 @@
       }
     },
     "REP_2024_02_Sant Esteve de la Sarga - Alzina": {
-      "status": "red",
+      "status": "yellow",
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
@@ -451,7 +451,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 5
+          "hour_ok_streak": 6
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -472,7 +472,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 13
+          "hour_ok_streak": 10
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -493,7 +493,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 7
+          "hour_ok_streak": 5
         },
         "gfs_seamless": {
           "match_streak": 0,
