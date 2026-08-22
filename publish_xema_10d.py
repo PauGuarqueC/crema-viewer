@@ -129,6 +129,15 @@ def process_station(station_code: str, days) -> dict | None:
     if raw.empty:
         return None
 
+    # Les dades cru del SMC son UTC (confirmat comparant el pic de radiacio
+    # amb el migdia solar real). Les convertim a hora local (Europe/Madrid)
+    # AQUI, abans de qualsevol pivot/resample, perque coincideixi exactament
+    # amb el format que ja fa servir Open-Meteo (timezone=Europe/Madrid) al
+    # visor -- evita un desajust sistematic de 1-2h (segons horari d'estiu)
+    # entre observacions i previsio quan es combinen al client.
+    raw = raw.copy()
+    raw["date"] = raw["date"].dt.tz_localize("UTC").dt.tz_convert("Europe/Madrid").dt.tz_localize(None)
+
     # Pivot: index = timestamp (30 min), columns = variable_code
     wide = raw.pivot_table(index="date", columns="variable_code", values="value", aggfunc="mean")
 
