@@ -821,23 +821,17 @@ function selectPlanById(idPla){
   // una previsio diferent de la que va fer sortir el color al mapa.
   const entry = plansStatusData && plansStatusData.plans ? plansStatusData.plans[idPla] : null;
   if(entry && entry.streaksByModel){
-    // Ordre de prioritat per desempat: ICON-EU > ECMWF > AROME > GFS.
+    // Ordre de prioritat FIX (no per ratxa mes llarga): es queda amb el
+    // PRIMER model d'aquesta llista que arribi a 6h, sense mirar si un altre
+    // en te mes -- ICON-EU sempre guanya a GFS si tots dos qualifiquen,
+    // encara que GFS tingui una ratxa numericament mes llarga.
     const priority = ['icon_eu', 'ecmwf_ifs', 'arome_france', 'gfs_seamless'];
-    const pIdx = id => { const i = priority.indexOf(id); return i === -1 ? 999 : i; };
 
-    // 1a passada: models VERDS (match_streak >= 6) -- sempre preferits per
-    // sobre dels grocs, encara que el groc tingui un numero mes gran.
-    // 2a passada nomes si cap model es verd: models GROCS (hour_ok_streak >= 6).
-    let bestModel = null, bestStreak = -1, bestPriorityIdx = 999;
+    let bestModel = null;
     for(const tier of ['match_streak', 'hour_ok_streak']){
-      for(const modelId of Object.keys(entry.streaksByModel)){
+      for(const modelId of priority){
         const s = entry.streaksByModel[modelId];
-        if(!s) continue;
-        const streak = s[tier] ?? 0;
-        if(streak < 6) continue;
-        if(streak > bestStreak || (streak === bestStreak && pIdx(modelId) < bestPriorityIdx)){
-          bestStreak = streak; bestModel = modelId; bestPriorityIdx = pIdx(modelId);
-        }
+        if(s && (s[tier] ?? 0) >= 6){ bestModel = modelId; break; }
       }
       if(bestModel) break; // ja tenim un verd, no cal mirar els grocs
     }
