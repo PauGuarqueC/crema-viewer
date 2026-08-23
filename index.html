@@ -1661,12 +1661,21 @@ function readContext(){
   };
 }
 
-function dayCheck(agg, thresholds){
-  if(!agg) return true;
-  if(thresholds.tmax !== null && agg.tmax !== null && agg.tmax > thresholds.tmax) return false;
-  if(thresholds.hrmin !== null && agg.hrmin !== null && agg.hrmin < thresholds.hrmin) return false;
-  if(thresholds.windmax !== null && agg.windmax !== null && agg.windmax > thresholds.windmax) return false;
-  return true;
+// Retorna null si el dia compleix, o una llista de textos amb el detall
+// exacte del que falla (p.ex. "T màx 27.3°C > 25°C").
+function dayCheckDetail(agg, thresholds){
+  if(!agg) return null; // sense dades, no bloqueja
+  const fails = [];
+  if(thresholds.tmax !== null && agg.tmax !== null && agg.tmax > thresholds.tmax){
+    fails.push(`T màx ${fmt(agg.tmax,1)}°C > ${thresholds.tmax}°C`);
+  }
+  if(thresholds.hrmin !== null && agg.hrmin !== null && agg.hrmin < thresholds.hrmin){
+    fails.push(`HR mín ${fmt(agg.hrmin,0)}% < ${thresholds.hrmin}%`);
+  }
+  if(thresholds.windmax !== null && agg.windmax !== null && agg.windmax > thresholds.windmax){
+    fails.push(`Vent màx ${fmt(agg.windmax,1)}m/s > ${fmt(thresholds.windmax,1)}m/s`);
+  }
+  return fails.length ? fails : null;
 }
 
 function isoDaysBefore(dayStr, n){
@@ -1681,7 +1690,11 @@ function evaluateDayContext(day, byDayAgg, marc, ctx){
   const d0 = byDayAgg[day];
   const p1 = byDayAgg[isoDaysAfter(day,1)];
 
-  const marcOk = dayCheck(m1, marc.m1) && dayCheck(d0, marc.d0) && dayCheck(p1, marc.p1);
+  const m1Detail = dayCheckDetail(m1, marc.m1);
+  const d0Detail = dayCheckDetail(d0, marc.d0);
+  const p1Detail = dayCheckDetail(p1, marc.p1);
+  const marcOk = !m1Detail && !d0Detail && !p1Detail;
+  const marcDetails = { m1: m1Detail, d0: d0Detail, p1: p1Detail };
 
   let precipSum = 0, precipHasData = false;
   for(let i=1;i<=10;i++){
@@ -1707,7 +1720,7 @@ function evaluateDayContext(day, byDayAgg, marc, ctx){
 
   return {
     ok: marcOk && precipOk && recoveryOk && windTrendOk,
-    marcOk, precipOk, recoveryOk, windTrendOk,
+    marcOk, marcDetails, precipOk, recoveryOk, windTrendOk,
     precipSum: precipHasData ? Math.round(precipSum*10)/10 : null,
     noRecoveryStreak, windStrongDays,
   };
@@ -1727,6 +1740,19 @@ function evaluatePlan(forecastSlice, plan, dayContexts){
     results.push({ time:h.time, temp:t, hr:hr, wind:w, fmc:fmc, hourOk, ctxOk, match: hourOk && ctxOk });
   }
   return results;
+}
+
+// Formata el detall de la finestra marc per mostrar quin dia i quina
+// variable concreta falla (p.ex. "marc (dia+1: Vent màx 8.2m/s > 5.6m/s)").
+function formatMarcDetail(marcDetails){
+  const dayLabels = { m1: 'dia-1', d0: 'dia', p1: 'dia+1' };
+  const parts = [];
+  for(const key of ['m1','d0','p1']){
+    if(marcDetails[key] && marcDetails[key].length){
+      parts.push(`${dayLabels[key]}: ${marcDetails[key].join(', ')}`);
+    }
+  }
+  return parts.length ? `marc (${parts.join('; ')})` : 'marc';
 }
 
 function renderStrip(results, dayContexts){
@@ -1772,7 +1798,7 @@ function renderStrip(results, dayContexts){
         note.textContent = '✓ context OK';
       } else {
         const bits = [];
-        if(!c.marcOk) bits.push('marc');
+        if(!c.marcOk) bits.push(formatMarcDetail(c.marcDetails));
         if(!c.precipOk) bits.push(`precip ${c.precipSum}mm`);
         if(!c.recoveryOk) bits.push(`${c.noRecoveryStreak} nits sense recuperar`);
         if(!c.windTrendOk) bits.push(`${c.windStrongDays} dies vent fort`);
@@ -1806,7 +1832,7 @@ function renderContextSummary(dayContexts){
     const c = dayContexts[day];
     const label = new Date(day+'T12:00').toLocaleDateString('ca-ES', {weekday:'short', day:'numeric', month:'short'});
     const bits = [];
-    if(!c.marcOk) bits.push('marc');
+    if(!c.marcOk) bits.push(formatMarcDetail(c.marcDetails));
     if(!c.precipOk) bits.push(`precip ${c.precipSum}mm`);
     if(!c.recoveryOk) bits.push(`${c.noRecoveryStreak} nits sense recuperar`);
     if(!c.windTrendOk) bits.push(`${c.windStrongDays} dies vent fort`);
