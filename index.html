@@ -1257,8 +1257,8 @@ const crosshairPlugin = {
     boxW += padX * 2;
     const boxH = lineH * (rows.length + 1) + padY * 2;
 
-    let boxX = x + 8;
-    if(boxX + boxW > right) boxX = x - boxW - 8;
+    let boxX = x - boxW - 8; // per defecte a l'esquerra, per veure el que ve a la dreta
+    if(boxX < left) boxX = x + 8; // si no hi cap, es passa a la dreta
     let boxY = top + 6;
     if(boxY + boxH > bottom) boxY = bottom - boxH - 6;
 
