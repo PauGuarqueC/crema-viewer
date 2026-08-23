@@ -1426,12 +1426,22 @@ function clearSyncIndex(){
 // encara que les instancies de Chart es destrueixin i recreiin en cada recalcul.
 CHART_IDS.forEach(id => {
   const canvas = document.getElementById(id);
-  canvas.addEventListener('mousemove', (e) => {
+  const updateFromEvent = (e) => {
     const chart = chartInstances[id];
     if(!chart) return;
+    // Chart.js sap normalitzar tant MouseEvent com TouchEvent aqui mateix.
     const points = chart.getElementsAtEventForMode(e, 'index', { intersect: false }, true);
     if(points.length) setSyncIndex(points[0].index);
-  });
+  };
+  canvas.addEventListener('mousemove', updateFromEvent);
+  // Al mobil, tocar la pantalla no sempre dispara 'mousemove' -> calen
+  // listeners de toc explicits perque el nostre tooltip (lligat a syncIndex)
+  // s'actualitzi tambe amb el dit, no nomes amb ratoli.
+  canvas.addEventListener('touchstart', updateFromEvent, { passive: true });
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault(); // evita que el navegador interpreti el gest com a scroll de pagina
+    updateFromEvent(e);
+  }, { passive: false });
   canvas.addEventListener('mouseleave', clearSyncIndex);
 });
 
