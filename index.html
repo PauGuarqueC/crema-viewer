@@ -1216,7 +1216,7 @@ const crosshairPlugin = {
     if(syncIndex === null || !chart.scales.x) return;
     const x = chart.scales.x.getPixelForValue(syncIndex);
     if(x === undefined || isNaN(x)) return;
-    const { top, bottom } = chart.chartArea;
+    const { top, bottom, left, right } = chart.chartArea;
     const ctx = chart.ctx;
     ctx.save();
     ctx.beginPath();
@@ -1226,6 +1226,61 @@ const crosshairPlugin = {
     ctx.strokeStyle = 'rgba(200,16,46,0.6)';
     ctx.setLineDash([3,3]);
     ctx.stroke();
+    ctx.restore();
+
+    // Tooltip propi (en lloc del natiu de Chart.js): al mobil el tooltip
+    // natiu es quedava enganxat de forma poc fiable (l'estat intern de
+    // Chart.js per a touch no es neteja be). Aquest esta lligat directament
+    // a 'syncIndex', que ja controlem al 100% (es neteja amb clearSyncIndex()
+    // de manera fiable des del gestor global de touchstart).
+    const rows = [];
+    for(const ds of chart.data.datasets){
+      if(!ds.label || ds.label.startsWith('Llindar')) continue;
+      const v = ds.data[syncIndex];
+      if(v === null || v === undefined || isNaN(v)) continue;
+      rows.push({ label: ds.label, value: v, color: ds.borderColor || ds.backgroundColor });
+    }
+    if(rows.length === 0) return;
+
+    ctx.save();
+    ctx.font = "500 10.5px 'Roboto', sans-serif";
+    const lineH = 15;
+    const padX = 8, padY = 6;
+    const titleText = chart.data.labels[syncIndex] ? chart.data.labels[syncIndex].replace('T',' ') : '';
+    ctx.font = "700 10.5px 'Roboto', sans-serif";
+    let boxW = ctx.measureText(titleText).width;
+    ctx.font = "500 10.5px 'Roboto', sans-serif";
+    for(const r of rows){
+      const w = ctx.measureText(`${r.label}: ${typeof r.value==='number' ? r.value.toFixed(1) : r.value}`).width + 16;
+      if(w > boxW) boxW = w;
+    }
+    boxW += padX * 2;
+    const boxH = lineH * (rows.length + 1) + padY * 2;
+
+    let boxX = x + 8;
+    if(boxX + boxW > right) boxX = x - boxW - 8;
+    let boxY = top + 6;
+    if(boxY + boxH > bottom) boxY = bottom - boxH - 6;
+
+    ctx.fillStyle = 'rgba(30,30,30,0.92)';
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(boxX, boxY, boxW, boxH, 5) : ctx.rect(boxX, boxY, boxW, boxH);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = "700 10.5px 'Roboto', sans-serif";
+    ctx.textBaseline = 'top';
+    ctx.fillText(titleText, boxX + padX, boxY + padY);
+
+    ctx.font = "500 10.5px 'Roboto', sans-serif";
+    rows.forEach((r, i) => {
+      const rowY = boxY + padY + lineH * (i + 1);
+      ctx.fillStyle = r.color || '#ffffff';
+      ctx.fillRect(boxX + padX, rowY + 3, 8, 8);
+      ctx.fillStyle = '#ffffff';
+      const valText = typeof r.value === 'number' ? r.value.toFixed(1) : r.value;
+      ctx.fillText(`${r.label}: ${valText}`, boxX + padX + 13, rowY);
+    });
     ctx.restore();
   }
 };
@@ -1381,30 +1436,14 @@ CHART_IDS.forEach(id => {
 });
 
 // Al mobil no hi ha "treure el cursor de sobre" (mouseleave mai es dispara
-// amb el dit) -> els tooltips (franja horaria i grafics) es quedaven fixos
-// per sempre un cop tocats. Aquest gestor global els tanca sempre que es
-// toca fora de l'element concret que els mostrava -- inclou el cas de tocar
-// un ALTRE grafic (abans nomes es netejava si es tocava fora de TOTS els
-// canvas, aixi que tocar els 4 grafics un darrere l'altre els deixava tots
-// quatre oberts alhora).
-function forceHideChartTooltip(chart){
-  if(!chart || !chart.tooltip) return;
-  chart.tooltip._active = [];
-  chart.tooltip.update(true);
-  chart.update('none');
-}
+// amb el dit) -> el tooltip de la franja horaria es quedava fixe per sempre
+// un cop tocat. Aquest gestor global el tanca en tocar fora d'una cel·la.
+// (El tooltip dels grafics ja no cal gestionar-lo aqui: es dibuixa nomes
+// quan syncIndex no es null, i clearSyncIndex() ja el neteja de forma
+// fiable via el listener 'mouseleave'/tocant fora dels canvas mes avall.)
 document.addEventListener('touchstart', (e) => {
   if(!e.target.closest('.cell')) hideCellTooltip();
-
-  const touchedCanvas = e.target.closest('canvas');
-  const touchedChartId = touchedCanvas ? touchedCanvas.id : null;
-
-  if(!touchedChartId) clearSyncIndex();
-
-  for(const id of CHART_IDS){
-    if(id === touchedChartId) continue; // el que s'esta tocant ara, Chart.js ja el gestiona
-    forceHideChartTooltip(chartInstances[id]);
-  }
+  if(!e.target.closest('canvas')) clearSyncIndex();
 }, { passive: true });
 function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues, matchStatuses, windDirs){
   const ctx = document.getElementById(canvasId).getContext('2d');
@@ -1499,6 +1538,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
       layout: hasWindDir ? { padding: { top: 16 } } : undefined,
       plugins: {
         legend: { display: false },
+        tooltip: { enabled: false }, // desactivat: fem servir el tooltip propi (crosshairPlugin), mes fiable al mobil
         todayMarker: { index: todayIndex },
         matchShading: { statuses: matchStatuses || [] },
         windDirArrows: { dirs: windDirs || [] },
