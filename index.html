@@ -1379,6 +1379,24 @@ CHART_IDS.forEach(id => {
   });
   canvas.addEventListener('mouseleave', clearSyncIndex);
 });
+
+// Al mobil no hi ha "treure el cursor de sobre" (mouseleave mai es dispara
+// amb el dit) -> els tooltips (franja horaria i grafics) es quedaven fixos
+// per sempre un cop tocats. Aquest gestor global els tanca en tocar
+// qualsevol altre lloc de la pantalla que no sigui el propi element actiu.
+document.addEventListener('touchstart', (e) => {
+  if(!e.target.closest('.cell')) hideCellTooltip();
+  if(!e.target.closest('canvas')){
+    clearSyncIndex();
+    for(const id of CHART_IDS){
+      const c = chartInstances[id];
+      if(c){
+        if(c.tooltip && c.tooltip.setActiveElements) c.tooltip.setActiveElements([], {x:0,y:0});
+        c.update('none');
+      }
+    }
+  }
+}, { passive: true });
 function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues, matchStatuses, windDirs){
   const ctx = document.getElementById(canvasId).getContext('2d');
   if(chartInstances[canvasId]) chartInstances[canvasId].destroy();
