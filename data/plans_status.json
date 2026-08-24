@@ -1,5 +1,5 @@
 {
-  "generat": "2026-08-24T04:00:17Z",
+  "generat": "2026-08-24T07:00:19Z",
   "plans": {
     "REC_2019_10_La Traveria - Obertes - Garriga": {
       "status": "yellow",
@@ -10,11 +10,11 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 4
+          "hour_ok_streak": 2
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 9
+          "hour_ok_streak": 10
         },
         "arome_france": {
           "match_streak": 0,
@@ -31,7 +31,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 8
+          "hour_ok_streak": 6
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -48,19 +48,19 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 26
+          "hour_ok_streak": 27
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 23
+          "hour_ok_streak": 22
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 31
+          "hour_ok_streak": 25
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 18
+          "hour_ok_streak": 8
         }
       }
     },
@@ -69,19 +69,19 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 26
+          "hour_ok_streak": 27
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 26
+          "hour_ok_streak": 23
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 35
+          "hour_ok_streak": 30
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 9
+          "hour_ok_streak": 8
         }
       }
     },
@@ -90,11 +90,11 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 26
+          "hour_ok_streak": 27
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 31
+          "hour_ok_streak": 23
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -102,7 +102,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 9
+          "hour_ok_streak": 8
         }
       }
     },
@@ -136,15 +136,15 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 16
+          "hour_ok_streak": 15
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 13
+          "hour_ok_streak": 14
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 5
+          "hour_ok_streak": 3
         }
       }
     },
@@ -157,15 +157,15 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 16
+          "hour_ok_streak": 15
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 13
+          "hour_ok_streak": 14
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 5
+          "hour_ok_streak": 3
         }
       }
     },
@@ -178,15 +178,15 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 2
+          "hour_ok_streak": 3
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 10
+          "hour_ok_streak": 9
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 3
+          "hour_ok_streak": 2
         }
       }
     },
@@ -199,11 +199,11 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 16
+          "hour_ok_streak": 7
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 15
+          "hour_ok_streak": 12
         },
         "arome_france": {
           "match_streak": 0,
@@ -220,7 +220,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 3
+          "hour_ok_streak": 4
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -228,7 +228,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 4
+          "hour_ok_streak": 3
         }
       }
     },
@@ -241,7 +241,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 15
+          "hour_ok_streak": 14
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -262,7 +262,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 3
+          "hour_ok_streak": 2
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -270,7 +270,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 1
+          "hour_ok_streak": 2
         }
       }
     },
@@ -308,7 +308,7 @@
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 5
+          "hour_ok_streak": 4
         },
         "arome_france": {
           "match_streak": 0,
@@ -325,15 +325,15 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 10
+          "hour_ok_streak": 13
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 12
+          "hour_ok_streak": 19
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 7
+          "hour_ok_streak": 4
         }
       }
     },
@@ -354,7 +354,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 54
+          "hour_ok_streak": 57
         }
       }
     },
@@ -367,15 +367,15 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 4
+          "hour_ok_streak": 5
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 10
+          "hour_ok_streak": 18
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 10
+          "hour_ok_streak": 11
         }
       }
     },
@@ -395,7 +395,7 @@
           "hour_ok_streak": 7
         },
         "arome_france": {
-          "match_streak": 3,
+          "match_streak": 2,
           "hour_ok_streak": 3
         }
       }
@@ -409,15 +409,15 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 3
+          "hour_ok_streak": 8
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 15
+          "hour_ok_streak": 14
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 10
+          "hour_ok_streak": 7
         }
       }
     },
@@ -430,7 +430,7 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 16
+          "hour_ok_streak": 9
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -438,7 +438,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 6
+          "hour_ok_streak": 15
         }
       }
     },
@@ -459,7 +459,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 8
+          "hour_ok_streak": 10
         }
       }
     },
@@ -468,11 +468,11 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 38
+          "hour_ok_streak": 39
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 14
+          "hour_ok_streak": 12
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -480,7 +480,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 18
+          "hour_ok_streak": 22
         }
       }
     },
@@ -493,15 +493,15 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 7
+          "hour_ok_streak": 3
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 16
+          "hour_ok_streak": 15
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 10
+          "hour_ok_streak": 14
         }
       }
     },
@@ -518,7 +518,7 @@
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 2
+          "hour_ok_streak": 1
         },
         "arome_france": {
           "match_streak": 0,
