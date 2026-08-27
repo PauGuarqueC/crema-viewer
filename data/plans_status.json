@@ -1,12 +1,12 @@
 {
-  "generat": "2026-08-27T08:42:47Z",
+  "generat": "2026-08-27T10:00:19Z",
   "plans": {
     "REC_2019_10_La Traveria - Obertes - Garriga": {
       "status": "yellow",
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 12
+          "hour_ok_streak": 11
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -27,7 +27,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 15
+          "hour_ok_streak": 14
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -48,7 +48,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 59
+          "hour_ok_streak": 42
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -69,7 +69,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 62
+          "hour_ok_streak": 45
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -90,7 +90,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 62
+          "hour_ok_streak": 45
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -111,7 +111,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 6
+          "hour_ok_streak": 5
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -174,7 +174,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 11
+          "hour_ok_streak": 13
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -216,7 +216,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 15
+          "hour_ok_streak": 14
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -258,7 +258,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 5
+          "hour_ok_streak": 7
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -279,7 +279,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 5
+          "hour_ok_streak": 7
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -300,7 +300,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 6
+          "hour_ok_streak": 7
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -363,7 +363,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 12
+          "hour_ok_streak": 17
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -405,7 +405,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 13
+          "hour_ok_streak": 6
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -426,7 +426,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 6
+          "hour_ok_streak": 4
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -447,7 +447,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 10
+          "hour_ok_streak": 12
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -468,7 +468,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 45
+          "hour_ok_streak": 28
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -489,7 +489,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 11
+          "hour_ok_streak": 5
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -510,7 +510,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 6
+          "hour_ok_streak": 7
         },
         "ecmwf_ifs": {
           "match_streak": 0,
