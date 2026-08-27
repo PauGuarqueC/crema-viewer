@@ -504,7 +504,13 @@ const isMobileViewport = window.innerWidth <= 820; // mateix trencament que el C
 const initialZoom = isMobileViewport ? 7 : 8; // al mobil el mapa ocupa molta menys alçada -> cal menys zoom
 map = L.map('map', { zoomControl: true, zoomSnap: 0.5, zoomDelta: 0.5 }).setView([41.85, 1.5], initialZoom);
 
-const lightBasemap = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+// CARTO va comencar a exigir clau d'API pels basemaps raster gratuits a
+// finals d'agost 2026 (gratuita, fins a 5M peticions/mes). Sense clau surt
+// la marca d'aigua "API KEY REQUIRED" a sobre de tot el mapa. Registra'n una
+// a https://carto.com/basemaps/apikey/ i enganxa-la aqui.
+const CARTO_API_KEY = 'cb1_2avx_1_d5adbbe30562bdab4c58877d';
+
+const lightBasemap = L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`, {
   attribution: '&copy; OpenStreetMap &copy; CARTO',
   maxZoom: 18
 }).addTo(map);
