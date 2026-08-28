@@ -11,6 +11,12 @@ PYTHON_BIN="/home/pguarque/graf_env/bin/python"
 
 cd "$REPO_DIR"
 
+# El formulari "+ Afegir PdC nou" (via Cloudflare Worker) pot fer commits
+# directament a GitHub sense passar per aquest clonatge local -- cal
+# sincronitzar abans de fer push, o el push seguent quedaria rebutjat
+# (branques divergents) i tot l'script fallaria per el 'set -euo pipefail'.
+git pull --no-rebase origin main --quiet || true
+
 "$PYTHON_BIN" publish_xema_10d.py
 
 git add data/observacions_10d.json
