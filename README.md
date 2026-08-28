@@ -5,23 +5,19 @@ XEMA dels darrers 10 dies amb previsió de 4 models meteorològics (Open-Meteo)
 per identificar les hores que compleixen un pla de crema, ja sigui triant un
 pla pre-carregat o consultant qualsevol punt manualment.
 
-Publicat a `https://pauguarquec.github.io/crema-viewer/` (protegit amb
-contrasenya senzilla, veure secció corresponent).
+Publicat a `https://pauguarquec.github.io/crema-viewer/`.
 
 ## Arquitectura
 
 - **`index.html`** — pàgina única (Leaflet + Chart.js autoallotjat + JS
   vanilla), servida per GitHub Pages. Tota la lògica de filtratge, càlcul de
   FMC1h, i avaluació del pla corre al navegador; no hi ha backend.
-- **`publish_xema_10d.py`** — s'executa a `labfire.ctfc.cat` (usuari
-  `pguarque`). Llegeix els parquet de
+- **`publish_xema_10d.py`** —  Llegeix els parquet de
   `/home/labfire/data/SMC-STATIONS/{YYYY}/{MM}/station={CODI}/` dels darrers
-  10 dies per a totes les estacions XEMA actives (segons el fitxer de
-  metadades mensual més recent a `/home/labfire/data/SMC-STATIONS/metadata/`),
+  10 dies per a totes les estacions XEMA actives,
   en fa un resample horari i publica `data/observacions_10d.json`.
 - **`publish.sh`** — wrapper per cron: executa el publicador amb l'intèrpret
-  de l'entorn virtual (`/home/pguarque/graf_env/bin/python`, **no** és conda)
-  i fa `git add`/`commit`/`push` si hi ha canvis.
+  de l'entorn virtual i fa `git add`/`commit`/`push` si hi ha canvis.
 - **`vendor/chart.umd.js`** — Chart.js autoallotjat (no es carrega des de cap
   CDN extern) per evitar problemes de xarxa/firewall.
 - **`data/cremes_planificades.geojson`** i **`data/cremes_executades.geojson`**
@@ -70,14 +66,6 @@ independents, totes visibles per defecte:
 **Basemap**: selector natiu de Leaflet (cantonada inferior esquerra) entre
 "Clar" (CartoDB Positron) i "Topogràfic" (OpenTopoMap, útil per valorar
 relleu/vegetació a l'hora de triar estacions o interpretar un punt).
-
-## Contrasenya
-
-La pàgina té una pantalla d'entrada amb contrasenya (`GRAF26`, definida a la
-constant `AUTH_PASSWORD` dins `index.html`). **No és seguretat real** — el
-codi és visible per qualsevol al navegador; només evita entrades accidentals
-(enllaç compartit sense voler, indexació per cercadors). Es desa a
-`localStorage` un cop encertada, no torna a demanar-se al mateix navegador.
 
 ## Variables i codis SMC
 
@@ -210,15 +198,6 @@ model es calcula per separat (Open-Meteo no proporciona aquesta variable).
 **Important**: el model ECMWF antic (`ecmwf_ifs04`, resolució 0,4°) va
 quedar obsolet — Open-Meteo el va substituir per `ecmwf_ifs025` (0,25°).
 
-## Cron (a labfire.ctfc.cat)
-
-```
-15 3 * * * /home/pguarque/cremes_viewer/publish.sh >> /home/pguarque/logs/crema-viewer.log 2>&1
-```
-
-Un sol cop al dia, a les 03:15 UTC (les dades XEMA es pengen al servidor a
-les 3 UTC).
-
 ## Previsió (Open-Meteo)
 
 Sense clau d'API, CORS habilitat, límit gratuït de 10.000 crides/dia (ús no
@@ -231,15 +210,3 @@ el de més resolució disponible per la zona (pot barrejar-ne més d'un dins
 del mateix horitzó de 5 dies), i **no indica quin ha fet servir** a la
 resposta. Recomanable evitar-lo per l'avaluació del pla si es vol saber amb
 certesa quin model ha donat el resultat mostrat.
-
-## Pendent / decisions obertes
-
-- Si en el futur el pla de crema necessita direcció de vent, caldrà afegir-la
-  fent mitjana **vectorial** (no aritmètica) per evitar l'error de wrap-around
-  a prop de 0°/360°.
-- Automatitzar l'alta de plans nous (Google Form + script que actualitzi
-  `plans_llindars.json` sol via el mateix cron) — valorat i descartat de
-  moment per volum d'ús baix; el formulari intern ja evita l'edició manual
-  de JSON.
-- Si mai cal tornar a exportar els GeoJSON de cremes, fer-ho via QGIS (no
-  ArcGIS Pro "Features To JSON", que dona geometria `null` en aquest entorn).
