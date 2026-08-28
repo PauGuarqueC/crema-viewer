@@ -268,6 +268,10 @@
           </select>
         </div>
         <div id="plan-picker-status" class="stat-note" style="margin-top:6px;">Selecciona un pla per carregar-ne la ubicació i els llindars automàticament.</div>
+        <div id="plan-edit-delete-row" style="display:none;margin-top:8px;gap:8px;grid-template-columns:1fr 1fr;">
+          <button id="btn-edit-plan" style="background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;padding:7px;font-family:var(--font-ui);font-size:12px;color:var(--charcoal);cursor:pointer;">✎ Editar aquest pla</button>
+          <button id="btn-delete-plan" style="background:var(--panel);border:1px solid var(--red);border-radius:6px;padding:7px;font-family:var(--font-ui);font-size:12px;color:var(--red);cursor:pointer;">🗑 Esborra aquest pla</button>
+        </div>
         <div class="stat-row" style="margin-top:10px;"><span class="label">Estacions properes</span><span class="value" id="n-stations">—</span></div>
         <div id="radius-row" style="margin-top:8px;">
           <input type="range" id="radius-slider" min="5" max="20" step="1" value="20">
@@ -858,8 +862,10 @@ function selectPlanById(idPla){
 
 document.getElementById('plan-picker').addEventListener('change', async () => {
   const select = document.getElementById('plan-picker');
+  const editDeleteRow = document.getElementById('plan-edit-delete-row');
   const p = plansData.find(x => x.id_pla === select.value);
-  if(!p) return;
+  if(!p){ editDeleteRow.style.display = 'none'; return; }
+  editDeleteRow.style.display = 'grid';
   applyPlanToForm(p);
 
   // Ubicacio del pla, per ordre de prioritat:
@@ -2054,10 +2060,118 @@ document.getElementById('model-select').addEventListener('change', refreshForeca
   document.getElementById(id).addEventListener('input', recomputeAndRender);
 });
 
-// ---------- Formulari "Afegir PdC nou" ----------
+// ---------- Formulari "Afegir PdC nou" / "Editar pla" (mateix formulari, dos modes) ----------
+let editingPlanId = null; // null = mode "afegir nou"; string = ID_PLA que s'esta editant
+
 document.getElementById('btn-toggle-newplan').addEventListener('click', () => {
   const form = document.getElementById('newplan-form');
-  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  if(form.style.display === 'none'){
+    editingPlanId = null;
+    clearNewPlanForm();
+    setNewPlanFormMode('add');
+    form.style.display = 'block';
+  } else {
+    form.style.display = 'none';
+  }
+});
+
+function setNewPlanFormMode(mode){
+  const title = document.querySelector('#newplan-form .block-title');
+  const btn = document.getElementById('btn-save-newplan');
+  const idField = document.getElementById('np-id-pla');
+  if(mode === 'edit'){
+    title.textContent = `Editar pla: ${editingPlanId}`;
+    btn.textContent = 'Desa els canvis';
+    idField.disabled = true; // l'ID_PLA no es pot canviar en editar (es la clau que identifica el pla)
+  } else {
+    title.textContent = 'Nou pla de crema';
+    btn.textContent = 'Afegeix i publica';
+    idField.disabled = false;
+  }
+}
+
+function clearNewPlanForm(){
+  ['np-id-pla','np-nom','np-regio','np-lat','np-lon','np-utm-x','np-utm-y',
+   'np-temp-baix','np-temp-des','np-temp-alt','np-hr-baix','np-hr-des','np-hr-alt',
+   'np-vent-baix','np-vent-des','np-vent-alt','np-fmc-baix','np-fmc-des','np-fmc-alt',
+   'np-marc-tmax-m1','np-marc-hrmin-m1','np-marc-vent-m1',
+   'np-marc-tmax-0','np-marc-hrmin-0','np-marc-vent-0',
+   'np-marc-tmax-p1','np-marc-hrmin-p1','np-marc-vent-p1'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('newplan-status').textContent = '';
+}
+
+// Omple el formulari de "Nou pla" amb les dades d'un pla EXISTENT (per editar-lo).
+function populateNewPlanForm(p){
+  const set = (id, v) => { document.getElementById(id).value = (v === null || v === undefined) ? '' : v; };
+  set('np-id-pla', p.id_pla);
+  set('np-nom', p.nom);
+  set('np-regio', p.regio);
+  set('np-lat', p.lat);
+  set('np-lon', p.lon);
+  set('np-utm-x', p.utm_x);
+  set('np-utm-y', p.utm_y);
+  const f = p.finestra || {};
+  set('np-temp-baix', f.temp?.baix); set('np-temp-des', f.temp?.desitjat); set('np-temp-alt', f.temp?.alt);
+  set('np-hr-baix', f.hr?.baix); set('np-hr-des', f.hr?.desitjat); set('np-hr-alt', f.hr?.alt);
+  set('np-vent-baix', f.vent_kmh?.baix); set('np-vent-des', f.vent_kmh?.desitjat); set('np-vent-alt', f.vent_kmh?.alt);
+  set('np-fmc-baix', f.fmc1h?.baix); set('np-fmc-des', f.fmc1h?.desitjat); set('np-fmc-alt', f.fmc1h?.alt);
+  const m = p.marc || {};
+  set('np-marc-tmax-m1', m.dia_m1?.tmax); set('np-marc-hrmin-m1', m.dia_m1?.hrmin); set('np-marc-vent-m1', m.dia_m1?.vent_kmh_max);
+  set('np-marc-tmax-0', m.dia_0?.tmax); set('np-marc-hrmin-0', m.dia_0?.hrmin); set('np-marc-vent-0', m.dia_0?.vent_kmh_max);
+  set('np-marc-tmax-p1', m.dia_p1?.tmax); set('np-marc-hrmin-p1', m.dia_p1?.hrmin); set('np-marc-vent-p1', m.dia_p1?.vent_kmh_max);
+}
+
+document.getElementById('btn-edit-plan').addEventListener('click', () => {
+  const select = document.getElementById('plan-picker');
+  const p = plansData.find(x => x.id_pla === select.value);
+  if(!p) return;
+  editingPlanId = p.id_pla;
+  populateNewPlanForm(p);
+  setNewPlanFormMode('edit');
+  document.getElementById('newplan-form').style.display = 'block';
+  document.getElementById('newplan-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+document.getElementById('btn-delete-plan').addEventListener('click', () => {
+  const select = document.getElementById('plan-picker');
+  const p = plansData.find(x => x.id_pla === select.value);
+  if(!p) return;
+  if(!confirm(`Segur que vols esborrar el pla "${p.nom || p.id_pla}" (${p.id_pla})? Aquesta acció es publicarà automàticament al repositori.`)) return;
+
+  const statusEl = document.getElementById('plan-picker-status');
+  statusEl.style.color = 'var(--text-dim)';
+  statusEl.textContent = 'Esborrant del repositori...';
+  document.getElementById('btn-delete-plan').disabled = true;
+
+  fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'delete', password: AUTH_PASSWORD, id_pla: p.id_pla }),
+  })
+    .then(async (res) => {
+      const data = await res.json().catch(() => ({}));
+      if(res.ok && data.ok){
+        allPlansRaw = allPlansRaw.filter(x => x.id_pla !== p.id_pla);
+        plansData = plansData.filter(x => x.id_pla !== p.id_pla);
+        rebuildPlanPickerOptions();
+        select.value = '';
+        document.getElementById('plan-edit-delete-row').style.display = 'none';
+        statusEl.style.color = 'var(--green)';
+        statusEl.textContent = `✓ Pla "${p.id_pla}" esborrat i publicat correctament.`;
+      } else {
+        throw new Error(data.error || `Error ${res.status}`);
+      }
+    })
+    .catch((err) => {
+      console.error('Error esborrant al Worker:', err);
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = `No s'ha pogut esborrar automàticament (${err.message}). Esborra'l manualment a plans_llindars.json.`;
+    })
+    .finally(() => {
+      document.getElementById('btn-delete-plan').disabled = false;
+    });
 });
 
 function numOrNull(id){
@@ -2070,9 +2184,12 @@ function strOrEmpty(id){
   return document.getElementById(id).value.trim();
 }
 
+// URL del teu Cloudflare Worker (veure conversa sobre com muntar-ho)
+const WORKER_URL = 'https://crema-viewer-afegir-pla.pguarque.workers.dev';
+
 document.getElementById('btn-save-newplan').addEventListener('click', () => {
   const statusEl = document.getElementById('newplan-status');
-  const idPla = strOrEmpty('np-id-pla');
+  const idPla = editingPlanId || strOrEmpty('np-id-pla'); // en editar, l'ID_PLA ve fixat (camp deshabilitat)
   const nom = strOrEmpty('np-nom');
   const regio = strOrEmpty('np-regio');
 
@@ -2096,13 +2213,14 @@ document.getElementById('btn-save-newplan').addEventListener('click', () => {
     return;
   }
 
-  if(allPlansRaw.some(p => p.id_pla === idPla)){
+  // Nomes en mode "afegir" cal comprovar duplicats (en editar, l'ID_PLA ja es el mateix a proposit)
+  if(!editingPlanId && allPlansRaw.some(p => p.id_pla === idPla)){
     statusEl.textContent = `Ja existeix un pla amb ID_PLA "${idPla}". Tria'n un altre o edita'l directament al fitxer.`;
     statusEl.style.color = 'var(--red)';
     return;
   }
 
-  const newPlan = {
+  const planData = {
     id_pla: idPla,
     nom: nom,
     regio: regio,
@@ -2124,12 +2242,18 @@ document.getElementById('btn-save-newplan').addEventListener('click', () => {
     },
   };
 
-  allPlansRaw.push(newPlan);
-  plansData.push(newPlan);
-  rebuildPlanPickerOptions();
+  const isEdit = !!editingPlanId;
 
-  // URL del teu Cloudflare Worker (veure conversa sobre com muntar-ho)
-  const WORKER_URL = 'https://crema-viewer-afegir-pla.pguarque.workers.dev';
+  if(isEdit){
+    const idx = allPlansRaw.findIndex(p => p.id_pla === idPla);
+    if(idx !== -1) allPlansRaw[idx] = planData;
+    const idx2 = plansData.findIndex(p => p.id_pla === idPla);
+    if(idx2 !== -1) plansData[idx2] = planData;
+  } else {
+    allPlansRaw.push(planData);
+    plansData.push(planData);
+  }
+  rebuildPlanPickerOptions();
 
   const downloadFallback = () => {
     const out = { _instruccions: allPlansInstruccions, plans: allPlansRaw };
@@ -2151,13 +2275,14 @@ document.getElementById('btn-save-newplan').addEventListener('click', () => {
   fetch(WORKER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password: AUTH_PASSWORD, plan: newPlan }),
+    body: JSON.stringify({ action: isEdit ? 'edit' : 'add', password: AUTH_PASSWORD, plan: planData }),
   })
     .then(async (res) => {
       const data = await res.json().catch(() => ({}));
       if(res.ok && data.ok){
         statusEl.style.color = 'var(--green)';
         statusEl.textContent = `✓ ${data.message} Ja el tens disponible al desplegable, i publicat al repositori — no cal fer res més.`;
+        if(isEdit){ editingPlanId = null; setNewPlanFormMode('add'); }
       } else {
         throw new Error(data.error || `Error ${res.status}`);
       }
