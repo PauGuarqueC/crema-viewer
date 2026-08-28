@@ -325,7 +325,10 @@
         </div>
 
         <div id="newplan-status" class="stat-note" style="margin-top:10px;"></div>
-        <button id="btn-save-newplan" style="margin-top:8px;width:100%;background:var(--red);border:none;color:#fff;padding:9px;border-radius:5px;font-family:var(--font-ui);font-weight:500;font-size:13.5px;cursor:pointer;">Afegeix i publica</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+          <button id="btn-cancel-newplan" style="background:var(--panel);border:1px solid var(--panel-border);border-radius:5px;padding:9px;font-family:var(--font-ui);font-weight:500;font-size:13.5px;color:var(--charcoal);cursor:pointer;">Cancel·la</button>
+          <button id="btn-save-newplan" style="background:var(--red);border:none;color:#fff;padding:9px;border-radius:5px;font-family:var(--font-ui);font-weight:500;font-size:13.5px;cursor:pointer;">Afegeix i publica</button>
+        </div>
         <div class="stat-note" style="margin-top:8px;">Publica automàticament el pla al repositori (sense que hagis de fer res més). Si per algun motiu no es pot publicar sol, es descarregarà <code>plans_llindars.json</code> com a alternativa. El semàfor del mapa pot trigar fins a 3h a mostrar-lo (es recalcula periòdicament, no a l'instant).</div>
       </div>
     </div>
@@ -863,6 +866,10 @@ function selectPlanById(idPla){
 document.getElementById('plan-picker').addEventListener('change', async () => {
   const select = document.getElementById('plan-picker');
   const editDeleteRow = document.getElementById('plan-edit-delete-row');
+  // Si el formulari d'edicio estava obert (per un pla diferent, o el mateix),
+  // el tanquem: seleccionar un altre pla no hauria de deixar-te "enganxat"
+  // editant-ne un que ja no coincideix amb el desplegable.
+  if(editingPlanId !== null) closeNewPlanForm();
   const p = plansData.find(x => x.id_pla === select.value);
   if(!p){ editDeleteRow.style.display = 'none'; return; }
   editDeleteRow.style.display = 'grid';
@@ -2063,6 +2070,15 @@ document.getElementById('model-select').addEventListener('change', refreshForeca
 // ---------- Formulari "Afegir PdC nou" / "Editar pla" (mateix formulari, dos modes) ----------
 let editingPlanId = null; // null = mode "afegir nou"; string = ID_PLA que s'esta editant
 
+// Tanca el formulari i el reinicia del tot (sense desar res) -- fa servir
+// tant el boto "Cancel·la" com el toggle "+ Afegir PdC nou" en tancar-lo.
+function closeNewPlanForm(){
+  document.getElementById('newplan-form').style.display = 'none';
+  editingPlanId = null;
+  clearNewPlanForm();
+  setNewPlanFormMode('add');
+}
+
 document.getElementById('btn-toggle-newplan').addEventListener('click', () => {
   const form = document.getElementById('newplan-form');
   if(form.style.display === 'none'){
@@ -2071,9 +2087,11 @@ document.getElementById('btn-toggle-newplan').addEventListener('click', () => {
     setNewPlanFormMode('add');
     form.style.display = 'block';
   } else {
-    form.style.display = 'none';
+    closeNewPlanForm();
   }
 });
+
+document.getElementById('btn-cancel-newplan').addEventListener('click', closeNewPlanForm);
 
 function setNewPlanFormMode(mode){
   const title = document.querySelector('#newplan-form .block-title');
