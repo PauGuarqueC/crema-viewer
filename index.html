@@ -120,7 +120,7 @@
   .cell.match { background: var(--green); }
   .cell.ctx-blocked { background: var(--amber); opacity: .6; }
   .cell.no-data { background: transparent; border: 1px dashed var(--panel-border); }
-  .cell.is-night { background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.18) 0, rgba(0,0,0,0.18) 2px, transparent 2px, transparent 6px); }
+  .cell.is-night { background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.09) 0, rgba(0,0,0,0.09) 1.5px, transparent 1.5px, transparent 8px); }
   #cell-tooltip {
     position: fixed; display: none; z-index: 2000; pointer-events: none;
     background: var(--charcoal); color: #fff; font-family: var(--font-mono); font-size: 10.5px;
@@ -626,7 +626,7 @@ function planStatusIcon(status, isNight){
         <clipPath id="${clipId}"><circle cx="8" cy="8" r="6.5"/></clipPath>
       </defs>
       <g clip-path="url(#${clipId})">
-        <path d="M0,3 L16,-5 M0,9 L16,1 M0,15 L16,7 M0,21 L16,13" stroke="rgba(255,255,255,0.55)" stroke-width="1.4"/>
+        <path d="M-8,-4 L12,16 M-2,-4 L18,16 M4,-4 L24,16 M10,-4 L30,16" stroke="rgba(255,255,255,0.5)" stroke-width="1.3"/>
       </g>` : '';
   return L.divIcon({
     className: 'plan-status-icon',
