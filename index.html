@@ -64,7 +64,7 @@
 
   .station-icon { background: transparent; border: none; }
   .plan-status-icon { background: transparent; border: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
-  #btn-delete-plan:not(:disabled):hover { background: var(--red); color: #fff; border-color: var(--red); }
+  #btn-delete-plan:not(:disabled):hover { background: var(--red) !important; color: #fff !important; border-color: var(--red) !important; }
 
   .chart-block { margin-bottom: 16px; }
   .chart-title { font-size: 11.5px; font-weight: 600; color: var(--text-dim); margin-bottom: 4px; }
@@ -274,7 +274,7 @@
           <input type="range" id="radius-slider" min="5" max="20" step="1" value="15">
           <span id="radius-label">15 km</span>
         </div>
-        <div id="plan-manage-row" style="margin-top:12px;display:flex;align-items:stretch;gap:14px;">
+        <div id="plan-manage-row" style="margin-top:12px;display:flex;align-items:stretch;gap:32px;">
           <button id="btn-toggle-newplan" style="flex:1;background:var(--panel);border:1px solid var(--panel-border);border-radius:5px;padding:6px 4px;font-family:var(--font-ui);font-size:11px;color:var(--charcoal);cursor:pointer;">+ Afegir PdC</button>
           <div style="flex:2;display:flex;gap:6px;">
             <button id="btn-edit-plan" style="flex:1;background:var(--panel);border:1px solid var(--panel-border);border-radius:5px;padding:6px 4px;font-family:var(--font-ui);font-size:11px;color:var(--charcoal);cursor:not-allowed;opacity:0.45;" disabled>✎ Editar PdC</button>
