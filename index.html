@@ -2299,8 +2299,12 @@ document.getElementById('btn-save-newplan').addEventListener('click', () => {
       const data = await res.json().catch(() => ({}));
       if(res.ok && data.ok){
         statusEl.style.color = 'var(--green)';
-        statusEl.textContent = `✓ ${data.message} Ja el tens disponible al desplegable, i publicat al repositori — no cal fer res més.`;
-        if(isEdit){ editingPlanId = null; setNewPlanFormMode('add'); }
+        statusEl.textContent = `✓ ${data.message}`;
+        // Missatge persistent al costat del desplegable (el formulari es tanca tot seguit)
+        const pickerStatus = document.getElementById('plan-picker-status');
+        pickerStatus.style.color = 'var(--green)';
+        pickerStatus.textContent = `✓ ${data.message}`;
+        setTimeout(closeNewPlanForm, 900); // breu pausa perque es vegi la confirmacio abans de tancar
       } else {
         throw new Error(data.error || `Error ${res.status}`);
       }
