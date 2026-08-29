@@ -120,7 +120,7 @@
   .cell.match { background: var(--green); }
   .cell.ctx-blocked { background: var(--amber); opacity: .6; }
   .cell.no-data { background: transparent; border: 1px dashed var(--panel-border); }
-  .cell.is-night { background-image: repeating-linear-gradient(135deg, rgba(0,0,0,0.07) 0, rgba(0,0,0,0.07) 1.5px, transparent 1.5px, transparent 9px); }
+  .cell.is-night { background-image: repeating-linear-gradient(135deg, rgba(0,0,0,0.07) 0, rgba(0,0,0,0.07) 1.5px, transparent 1.5px, transparent 8px); }
   #cell-tooltip {
     position: fixed; display: none; z-index: 2000; pointer-events: none;
     background: var(--charcoal); color: #fff; font-family: var(--font-mono); font-size: 10.5px;
@@ -372,7 +372,7 @@
           <div><span class="sw" style="background:var(--green);"></span>Dins de pla</div>
           <div><span class="sw" style="background:var(--amber);opacity:.6;"></span>Hora OK, context no</div>
           <div><span class="sw" style="background:#e5e5e3;"></span>Fora de pla</div>
-          <div><span class="sw" style="background:#c8c8c4;background-image:repeating-linear-gradient(45deg, rgba(0,0,0,0.25) 0, rgba(0,0,0,0.25) 1.5px, transparent 1.5px, transparent 4px);"></span>Hora nocturna (ratllat)</div>
+          <div><span class="cell is-night" style="background-color:#c8c8c4;width:14px;height:14px;display:inline-block;border-radius:2px;margin-right:5px;"></span>Hora nocturna</div>
         </div>
         <div id="match-list" class="match-list" style="display:none;"></div>
 
