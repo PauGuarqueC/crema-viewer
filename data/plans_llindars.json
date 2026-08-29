@@ -1274,6 +1274,55 @@
           "vent_kmh_max": 20
         }
       }
+    },
+    {
+      "id_pla": "REMS_2021_01",
+      "nom": "Eix Òdena - Mas Rumbà - Puigbufer",
+      "regio": "REMS",
+      "lat": null,
+      "lon": null,
+      "utm_x": 385250,
+      "utm_y": 4611400,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": 24
+        },
+        "hr": {
+          "baix": 35,
+          "desitjat": null,
+          "alt": 70
+        },
+        "vent_kmh": {
+          "baix": 0,
+          "desitjat": null,
+          "alt": 15
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        },
+        "dia_p1": {
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
+        }
+      }
     }
   ]
 }
