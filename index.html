@@ -2182,15 +2182,62 @@ document.getElementById('btn-delete-plan').addEventListener('click', () => {
         throw new Error(data.error || `Error ${res.status}`);
       }
     })
-    .catch((err) => {
+    .catch(async (err) => {
       console.error('Error esborrant al Worker:', err);
-      statusEl.style.color = 'var(--red)';
-      statusEl.textContent = `No s'ha pogut esborrar automàticament (${err.message}). Esborra'l manualment a plans_llindars.json.`;
+      if(isNetworkError(err)){
+        statusEl.style.color = 'var(--text-dim)';
+        statusEl.textContent = "No s'ha rebut confirmació (error de xarxa) — comprovant si s'ha esborrat igualment...";
+        const confirmed = await verifyPlanPublished(p.id_pla, false);
+        if(confirmed){
+          allPlansRaw = allPlansRaw.filter(x => x.id_pla !== p.id_pla);
+          plansData = plansData.filter(x => x.id_pla !== p.id_pla);
+          rebuildPlanPickerOptions();
+          select.value = '';
+          document.getElementById('plan-edit-delete-row').style.display = 'none';
+          statusEl.style.color = 'var(--green)';
+          statusEl.textContent = `✓ Confirmat: el pla "${p.id_pla}" s'ha esborrat correctament (l'error inicial era només de connexió).`;
+        } else {
+          statusEl.style.color = 'var(--red)';
+          statusEl.textContent = `No s'ha pogut confirmar l'esborrat. Comprova el repositori manualment o torna-ho a provar.`;
+        }
+      } else {
+        statusEl.style.color = 'var(--red)';
+        statusEl.textContent = `No s'ha pogut esborrar (${err.message}). Esborra'l manualment a plans_llindars.json si cal.`;
+      }
     })
     .finally(() => {
       document.getElementById('btn-delete-plan').disabled = false;
     });
 });
+
+// Distingeix un error de xarxa (el navegador mai ha rebut resposta -- el
+// Worker pot haver acabat la feina igualment pel seu compte) d'un error
+// CONFIRMAT (el Worker ha respost explicitament dient que ha fallat).
+function isNetworkError(err){
+  return err instanceof TypeError; // fetch() llença TypeError quan no arriba a rebre cap resposta
+}
+
+// Com que el repo es public, en cas d'error de xarxa podem comprovar
+// directament a GitHub (sense token, nomes lectura) si el canvi ha arribat
+// igualment, en lloc de deixar-ho com una simple sospita. Es consulta el
+// contingut RAW del fitxer (no la pagina publicada, que triga uns segons
+// mes a desplegar-se) amb un parell de reintents, ja que el propi commit
+// pot trigar uns instants a quedar disponible.
+async function verifyPlanPublished(idPla, shouldExist, retries = 3, delayMs = 2000){
+  const url = 'https://raw.githubusercontent.com/PauGuarqueC/crema-viewer/main/data/plans_llindars.json';
+  for(let i = 0; i < retries; i++){
+    await new Promise(r => setTimeout(r, delayMs));
+    try{
+      const res = await fetch(`${url}?t=${Date.now()}`); // cache-busting
+      if(res.ok){
+        const data = await res.json();
+        const exists = (data.plans || []).some(p => p.id_pla === idPla);
+        if(exists === shouldExist) return true;
+      }
+    }catch(e){ /* torna a intentar-ho */ }
+  }
+  return false;
+}
 
 function numOrNull(id){
   const v = document.getElementById(id).value;
@@ -2309,11 +2356,26 @@ document.getElementById('btn-save-newplan').addEventListener('click', () => {
         throw new Error(data.error || `Error ${res.status}`);
       }
     })
-    .catch((err) => {
+    .catch(async (err) => {
       console.error('Error publicant al Worker:', err);
-      downloadFallback();
-      statusEl.style.color = 'var(--red)';
-      statusEl.textContent = `No s'ha pogut publicar automàticament (${err.message}). S'ha descarregat plans_llindars.json com a alternativa: substitueix-lo al repo manualment.`;
+      if(isNetworkError(err)){
+        statusEl.style.color = 'var(--text-dim)';
+        statusEl.textContent = "No s'ha rebut confirmació (error de xarxa) — comprovant si s'ha publicat igualment...";
+        const confirmed = await verifyPlanPublished(idPla, true);
+        if(confirmed){
+          statusEl.style.color = 'var(--green)';
+          statusEl.textContent = `✓ Confirmat: el pla "${idPla}" s'ha publicat correctament (l'error inicial era només de connexió).`;
+          setTimeout(closeNewPlanForm, 900);
+        } else {
+          downloadFallback();
+          statusEl.style.color = 'var(--red)';
+          statusEl.textContent = `No s'ha pogut confirmar la publicació. S'ha descarregat plans_llindars.json com a alternativa: substitueix-lo al repo manualment.`;
+        }
+      } else {
+        downloadFallback();
+        statusEl.style.color = 'var(--red)';
+        statusEl.textContent = `No s'ha pogut publicar (${err.message}). S'ha descarregat plans_llindars.json com a alternativa: substitueix-lo al repo manualment.`;
+      }
     })
     .finally(() => {
       document.getElementById('btn-save-newplan').disabled = false;
