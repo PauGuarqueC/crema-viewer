@@ -1900,16 +1900,26 @@ function renderStrip(results, dayContexts){
     for(let h=0; h<24; h++){
       const r = hours.find(x => parseInt(x.time.slice(11,13)) === h);
       const cell = document.createElement('div');
-      if(!r){
+      // Sense resultat, o amb totes les variables buides (p.ex. AROME France,
+      // que nomes preveu ~2,5 dies -- mes enlla d'aixo tot son null): es
+      // tracta com "sense dades del model", MAI com "hora nocturna" (abans
+      // una radiacio null es confonia amb radiacio zero i sortia ratllat com
+      // si fos de nit, encara que en realitat no hi hagues cap dada).
+      const hasData = r && (r.temp !== null || r.hr !== null || r.wind !== null);
+      if(!hasData){
         cell.className = 'cell no-data';
+        if(r){
+          cell.addEventListener('mouseenter', () => showCellTooltip(cell, `${h}h · sense dades d'aquest model`));
+          cell.addEventListener('mouseleave', hideCellTooltip);
+        }
       } else {
         let cls = 'cell';
         if(r.match) cls += ' match';
         else if(r.hourOk && !r.ctxOk) cls += ' ctx-blocked';
-        // Radiacio observada nul·la/quasi nul·la -> hora nocturna. S'adapta
-        // sol a l'epoca de l'any (dies mes llargs a l'estiu), sense haver
-        // de calcular sortida/posta de sol.
-        const isNight = r.rad === null || r.rad === undefined || r.rad <= 5;
+        // Radiacio observada quasi nul·la (i confirmada, no absent) -> hora
+        // nocturna. S'adapta sol a l'epoca de l'any (dies mes llargs a
+        // l'estiu), sense haver de calcular sortida/posta de sol.
+        const isNight = r.rad !== null && r.rad !== undefined && r.rad <= 5;
         if(isNight) cls += ' is-night';
         cell.className = cls;
         const tip = `${h}h · ${fmt(r.temp,0)}°C · ${fmt(r.hr,0)}% · ${fmt(r.wind,1)}m/s · FMC1h ${fmt(r.fmc,1)}%${isNight ? ' · nocturna' : ''}${(r.hourOk && !r.ctxOk) ? ' · context no compleix' : ''}`;
@@ -1920,7 +1930,18 @@ function renderStrip(results, dayContexts){
     }
     wrap.appendChild(strip);
 
-    if(dayContexts && dayContexts[day]){
+    // Si CAP hora del dia te dades reals del model (p.ex. AROME France, que
+    // nomes preveu ~2,5 dies), no te sentit dir "context OK" -- no es que
+    // es compleixi, es que no hi ha res a comprovar.
+    const dayHasAnyData = hours.some(r => r.temp !== null || r.hr !== null || r.wind !== null);
+
+    if(!dayHasAnyData){
+      const note = document.createElement('div');
+      note.className = 'day-context-note';
+      note.style.color = 'var(--text-dim)';
+      note.textContent = "— sense dades d'aquest model per aquest dia";
+      wrap.appendChild(note);
+    } else if(dayContexts && dayContexts[day]){
       const c = dayContexts[day];
       const note = document.createElement('div');
       note.className = 'day-context-note';
