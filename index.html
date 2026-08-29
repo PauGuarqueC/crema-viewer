@@ -1193,6 +1193,19 @@ function showCellTooltip(cellEl, text){
 }
 function hideCellTooltip(){ cellTooltipEl.style.display = 'none'; }
 
+// Alguns models (p.ex. AROME France, nomes ~2,5 dies d'horitzo) tornen un
+// array MES CURT per certes variables en lloc d'omplir-lo amb null fins al
+// final -- accedir-hi mes enlla de la seva longitud dona 'undefined', no
+// 'null'. Com que tot el codi comprova "!== null" (mai "=== undefined"),
+// aixo es confonia amb "hi ha dades" quan en realitat no n'hi havia cap.
+// Aquest ajudant normalitza qualsevol array curt omplint-lo de null
+// explicits fins a la longitud esperada, perque 'undefined' no torni a
+// aparèixer mai mes circulant pel codi.
+function padToLength(arr, targetLength){
+  if(!arr || arr.length >= targetLength) return arr || new Array(targetLength).fill(null);
+  return [...arr, ...new Array(targetLength - arr.length).fill(null)];
+}
+
 async function loadForecast(latlon, model){
   const [lat, lon] = latlon;
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}` +
@@ -1201,14 +1214,16 @@ async function loadForecast(latlon, model){
   const res = await fetch(url);
   if(!res.ok) throw new Error("Error consultant Open-Meteo");
   const data = await res.json();
+  const n = data.hourly.time.length;
+  const windRaw = padToLength(data.hourly.wind_speed_10m, n);
   return {
     time: data.hourly.time,
-    temp: data.hourly.temperature_2m,
-    hr: data.hourly.relative_humidity_2m,
-    wind: data.hourly.wind_speed_10m.map(v => v / 3.6),
-    windDir: data.hourly.wind_direction_10m,
-    rad: data.hourly.shortwave_radiation,
-    precip: data.hourly.precipitation,
+    temp: padToLength(data.hourly.temperature_2m, n),
+    hr: padToLength(data.hourly.relative_humidity_2m, n),
+    wind: windRaw.map(v => v === null ? null : v / 3.6),
+    windDir: padToLength(data.hourly.wind_direction_10m, n),
+    rad: padToLength(data.hourly.shortwave_radiation, n),
+    precip: padToLength(data.hourly.precipitation, n),
   };
 }
 
@@ -1234,19 +1249,21 @@ async function loadModelsForecast(latlon){
   const findKey = (prefix, id) => Object.keys(hourly).find(k => k.startsWith(prefix) && k.endsWith('_' + id));
 
   const models = {};
+  const n = hourly.time.length;
   for(const m of COMPARISON_MODELS){
     const tempKey = findKey('temperature_2m', m.id);
     const hrKey = findKey('relative_humidity_2m', m.id);
     const windKey = findKey('wind_speed_10m', m.id);
     const radKey = findKey('shortwave_radiation', m.id);
     const precipKey = findKey('precipitation', m.id);
+    const windRaw = windKey ? padToLength(hourly[windKey], n) : new Array(n).fill(null);
     models[m.id] = {
       time: hourly.time,
-      temp: tempKey ? hourly[tempKey] : hourly.time.map(() => null),
-      hr: hrKey ? hourly[hrKey] : hourly.time.map(() => null),
-      wind: windKey ? hourly[windKey].map(v => v / 3.6) : hourly.time.map(() => null),
-      rad: radKey ? hourly[radKey] : hourly.time.map(() => null),
-      precip: precipKey ? hourly[precipKey] : hourly.time.map(() => null),
+      temp: tempKey ? padToLength(hourly[tempKey], n) : new Array(n).fill(null),
+      hr: hrKey ? padToLength(hourly[hrKey], n) : new Array(n).fill(null),
+      wind: windRaw.map(v => v === null ? null : v / 3.6),
+      rad: radKey ? padToLength(hourly[radKey], n) : new Array(n).fill(null),
+      precip: precipKey ? padToLength(hourly[precipKey], n) : new Array(n).fill(null),
     };
   }
   return { time: hourly.time, models };
@@ -1905,7 +1922,7 @@ function renderStrip(results, dayContexts){
       // tracta com "sense dades del model", MAI com "hora nocturna" (abans
       // una radiacio null es confonia amb radiacio zero i sortia ratllat com
       // si fos de nit, encara que en realitat no hi hagues cap dada).
-      const hasData = r && (r.temp !== null || r.hr !== null || r.wind !== null);
+      const hasData = r && r.temp !== null && r.hr !== null && r.wind !== null;
       if(!hasData){
         cell.className = 'cell no-data';
         if(r){
@@ -1933,7 +1950,7 @@ function renderStrip(results, dayContexts){
     // Si CAP hora del dia te dades reals del model (p.ex. AROME France, que
     // nomes preveu ~2,5 dies), no te sentit dir "context OK" -- no es que
     // es compleixi, es que no hi ha res a comprovar.
-    const dayHasAnyData = hours.some(r => r.temp !== null || r.hr !== null || r.wind !== null);
+    const dayHasAnyData = hours.some(r => r.temp !== null && r.hr !== null && r.wind !== null);
 
     if(!dayHasAnyData){
       const note = document.createElement('div');
