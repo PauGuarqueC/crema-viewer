@@ -268,16 +268,16 @@
           </select>
         </div>
         <div id="plan-picker-status" class="stat-note" style="margin-top:6px;"></div>
-        <div id="plan-edit-delete-row" style="display:none;margin-top:8px;gap:8px;grid-template-columns:1fr 1fr;">
-          <button id="btn-edit-plan" style="background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;padding:7px;font-family:var(--font-ui);font-size:12px;color:var(--charcoal);cursor:pointer;">✎ Editar aquest pla</button>
-          <button id="btn-delete-plan" style="background:var(--panel);border:1px solid var(--red);border-radius:6px;padding:7px;font-family:var(--font-ui);font-size:12px;color:var(--red);cursor:pointer;">🗑 Esborra aquest pla</button>
-        </div>
         <div class="stat-row" style="margin-top:10px;"><span class="label">Estacions properes</span><span class="value" id="n-stations">—</span></div>
         <div id="radius-row" style="margin-top:8px;">
           <input type="range" id="radius-slider" min="5" max="20" step="1" value="20">
           <span id="radius-label">20 km</span>
         </div>
-        <button id="btn-toggle-newplan" style="margin-top:12px;width:100%;background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;padding:8px;font-family:var(--font-ui);font-size:12.5px;color:var(--charcoal);cursor:pointer;">+ Afegir PdC nou</button>
+        <div id="plan-manage-row" style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+          <button id="btn-toggle-newplan" style="background:var(--panel);border:1px solid var(--panel-border);border-radius:5px;padding:6px 4px;font-family:var(--font-ui);font-size:11px;color:var(--charcoal);cursor:pointer;">+ Nou</button>
+          <button id="btn-edit-plan" style="background:var(--panel);border:1px solid var(--panel-border);border-radius:5px;padding:6px 4px;font-family:var(--font-ui);font-size:11px;color:var(--charcoal);cursor:pointer;" disabled>✎ Editar</button>
+          <button id="btn-delete-plan" style="background:var(--panel);border:1px solid var(--panel-border);border-radius:5px;padding:6px 4px;font-family:var(--font-ui);font-size:11px;color:var(--text-dim);cursor:pointer;" disabled>🗑 Esborra</button>
+        </div>
       </div>
 
       <div class="block" id="newplan-form" style="display:none;">
@@ -863,16 +863,29 @@ function selectPlanById(idPla){
   select.dispatchEvent(new Event('change'));
 }
 
+// Activa/desactiva els botons "Editar"/"Esborra" segons si hi ha un pla
+// seleccionat (en lloc d'amagar-los del tot, es queden sempre a la mateixa
+// fila que "+ Nou" pero atenuats quan no toca fer-los servir).
+function setPlanManageButtonsEnabled(enabled){
+  const editBtn = document.getElementById('btn-edit-plan');
+  const delBtn = document.getElementById('btn-delete-plan');
+  editBtn.disabled = !enabled;
+  delBtn.disabled = !enabled;
+  editBtn.style.opacity = enabled ? '1' : '0.45';
+  delBtn.style.opacity = enabled ? '1' : '0.45';
+  editBtn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+  delBtn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+}
+
 document.getElementById('plan-picker').addEventListener('change', async () => {
   const select = document.getElementById('plan-picker');
-  const editDeleteRow = document.getElementById('plan-edit-delete-row');
   // Si el formulari d'edicio estava obert (per un pla diferent, o el mateix),
   // el tanquem: seleccionar un altre pla no hauria de deixar-te "enganxat"
   // editant-ne un que ja no coincideix amb el desplegable.
   if(editingPlanId !== null) closeNewPlanForm();
   const p = plansData.find(x => x.id_pla === select.value);
-  if(!p){ editDeleteRow.style.display = 'none'; return; }
-  editDeleteRow.style.display = 'grid';
+  if(!p){ setPlanManageButtonsEnabled(false); return; }
+  setPlanManageButtonsEnabled(true);
   applyPlanToForm(p);
 
   // Ubicacio del pla, per ordre de prioritat:
@@ -2175,7 +2188,7 @@ document.getElementById('btn-delete-plan').addEventListener('click', () => {
         plansData = plansData.filter(x => x.id_pla !== p.id_pla);
         rebuildPlanPickerOptions();
         select.value = '';
-        document.getElementById('plan-edit-delete-row').style.display = 'none';
+        setPlanManageButtonsEnabled(false);
         statusEl.style.color = 'var(--green)';
         statusEl.textContent = `✓ Pla "${p.id_pla}" esborrat i publicat correctament.`;
       } else {
@@ -2193,7 +2206,7 @@ document.getElementById('btn-delete-plan').addEventListener('click', () => {
           plansData = plansData.filter(x => x.id_pla !== p.id_pla);
           rebuildPlanPickerOptions();
           select.value = '';
-          document.getElementById('plan-edit-delete-row').style.display = 'none';
+          setPlanManageButtonsEnabled(false);
           statusEl.style.color = 'var(--green)';
           statusEl.textContent = `✓ Confirmat: el pla "${p.id_pla}" s'ha esborrat correctament.`;
         } else {
