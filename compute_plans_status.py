@@ -281,6 +281,9 @@ def hour_step_iso(iso, delta_hours):
     return d.strftime("%Y-%m-%dT%H:%M")
 
 
+NIGHT_RAD_THRESHOLD = 5  # W/m2 -- per sota d'aixo es considera hora nocturna (mateix criteri que compute_historic_stats.py)
+
+
 def evaluate_plan(forecast_slice, thresholds, day_contexts):
     results = []
     for h in forecast_slice:
@@ -294,7 +297,7 @@ def evaluate_plan(forecast_slice, thresholds, day_contexts):
             w <= thresholds["wind_max"] and
             (fmc is None or thresholds["fmc_min"] <= fmc <= thresholds["fmc_max"])
         )
-        results.append({"time": h["time"], "hour_ok": hour_ok, "ctx_ok": ctx_ok, "match": hour_ok and ctx_ok})
+        results.append({"time": h["time"], "rad": h.get("rad"), "hour_ok": hour_ok, "ctx_ok": ctx_ok, "match": hour_ok and ctx_ok})
     return results
 
 
@@ -312,6 +315,34 @@ def max_consecutive_run(results, predicate):
         max_run = max(max_run, cur)
         prev_time = r["time"]
     return max_run
+
+
+def max_consecutive_run_with_daynight(results, predicate):
+    """Igual que max_consecutive_run, pero a mes indica si la ratxa maxima
+    trobada es majoritariament NOCTURNA (radiacio quasi nul·la). Nomes canvia
+    la INFORMACIO retornada, mai el calcul del verd/groc/vermell en si."""
+    max_run, cur, cur_night = 0, 0, 0
+    best_night = 0
+    prev_time = None
+    for r in results:
+        ok = predicate(r)
+        contiguous = prev_time is None or hour_step_iso(prev_time, 1) == r["time"]
+        is_night_hour = r.get("rad") is None or r["rad"] <= NIGHT_RAD_THRESHOLD
+        if ok and contiguous:
+            cur += 1
+            cur_night += 1 if is_night_hour else 0
+        elif ok:
+            cur = 1
+            cur_night = 1 if is_night_hour else 0
+        else:
+            cur = 0
+            cur_night = 0
+        if cur > max_run:
+            max_run = cur
+            best_night = cur_night
+        prev_time = r["time"]
+    is_night = max_run > 0 and (best_night / max_run) >= 0.5
+    return max_run, is_night
 
 
 # ---------------------------------------------------------------------------
@@ -432,19 +463,25 @@ def compute_plan_status(plan, obs_data):
         day_contexts = {d: evaluate_day_context(d, by_day_agg, marc, DEFAULT_CONTEXT) for d in forecast_days}
 
         results = evaluate_plan(forecast_slice, thresholds, day_contexts)
-        match_streak = max_consecutive_run(results, lambda r: r["match"])
-        hour_ok_streak = max_consecutive_run(results, lambda r: r["hour_ok"])
-        streaks_by_model[model_id] = {"match_streak": match_streak, "hour_ok_streak": hour_ok_streak}
+        match_streak, match_is_night = max_consecutive_run_with_daynight(results, lambda r: r["match"])
+        hour_ok_streak, hour_ok_is_night = max_consecutive_run_with_daynight(results, lambda r: r["hour_ok"])
+        streaks_by_model[model_id] = {
+            "match_streak": match_streak, "hour_ok_streak": hour_ok_streak,
+            "match_streak_is_night": match_is_night, "hour_ok_streak_is_night": hour_ok_is_night,
+        }
 
     green_count, yellow_or_green_count = 0, 0
+    qualifying_is_night = []  # nomes dels models que realment compten pel verd/groc
     for s in streaks_by_model.values():
         is_green = s["match_streak"] >= MIN_CONSECUTIVE_HOURS
         is_yellow = (not is_green) and s["hour_ok_streak"] >= MIN_CONSECUTIVE_HOURS
         if is_green:
             green_count += 1
             yellow_or_green_count += 1
+            qualifying_is_night.append(s["match_streak_is_night"])
         elif is_yellow:
             yellow_or_green_count += 1
+            qualifying_is_night.append(s["hour_ok_streak_is_night"])
 
     if green_count >= 2:
         status = "green"
@@ -453,7 +490,14 @@ def compute_plan_status(plan, obs_data):
     else:
         status = "red"
 
-    return {"status": status, "streaksByModel": streaks_by_model}
+    # El calcul de verd/groc/vermell NO canvia gens; nomes s'hi afegeix
+    # informacio de si la ratxa que ho ha fet possible es majoritariament
+    # nocturna (per marcar-ho ratllat al mapa) -- nomes es "nocturn" si TOTS
+    # els models que compten pel resultat ho son (si n'hi ha algun de diürn,
+    # ja hi ha una oportunitat real de dia, no es marca).
+    is_night = len(qualifying_is_night) > 0 and all(qualifying_is_night)
+
+    return {"status": status, "isNight": is_night, "streaksByModel": streaks_by_model}
 
 
 # ---------------------------------------------------------------------------
