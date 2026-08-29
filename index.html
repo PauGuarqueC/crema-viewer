@@ -270,13 +270,13 @@
         <div id="plan-picker-status" class="stat-note" style="margin-top:6px;"></div>
         <div class="stat-row" style="margin-top:10px;"><span class="label">Estacions properes</span><span class="value" id="n-stations">—</span></div>
         <div id="radius-row" style="margin-top:8px;">
-          <input type="range" id="radius-slider" min="5" max="20" step="1" value="20">
-          <span id="radius-label">20 km</span>
+          <input type="range" id="radius-slider" min="5" max="20" step="1" value="15">
+          <span id="radius-label">15 km</span>
         </div>
         <div id="plan-manage-row" style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
-          <button id="btn-toggle-newplan" style="background:var(--panel);border:1px solid var(--panel-border);border-radius:5px;padding:6px 4px;font-family:var(--font-ui);font-size:11px;color:var(--charcoal);cursor:pointer;">+ Nou</button>
-          <button id="btn-edit-plan" style="background:var(--panel);border:1px solid var(--panel-border);border-radius:5px;padding:6px 4px;font-family:var(--font-ui);font-size:11px;color:var(--charcoal);cursor:pointer;" disabled>✎ Editar</button>
-          <button id="btn-delete-plan" style="background:var(--panel);border:1px solid var(--panel-border);border-radius:5px;padding:6px 4px;font-family:var(--font-ui);font-size:11px;color:var(--text-dim);cursor:pointer;" disabled>🗑 Esborra</button>
+          <button id="btn-toggle-newplan" style="background:var(--panel);border:1px solid var(--panel-border);border-radius:5px;padding:6px 4px;font-family:var(--font-ui);font-size:11px;color:var(--charcoal);cursor:pointer;">+ Afegir PdC</button>
+          <button id="btn-edit-plan" style="background:var(--panel);border:1px solid var(--panel-border);border-radius:5px;padding:6px 4px;font-family:var(--font-ui);font-size:11px;color:var(--charcoal);cursor:pointer;" disabled>✎ Editar PdC</button>
+          <button id="btn-delete-plan" style="background:var(--panel);border:1px solid var(--panel-border);border-radius:5px;padding:6px 4px;font-family:var(--font-ui);font-size:11px;color:var(--text-dim);cursor:pointer;" disabled>🗑 Esborrar PdC</button>
         </div>
       </div>
 
@@ -342,8 +342,8 @@
         <div class="stat-row"><span class="label">Coordenades</span><span class="value" id="coord-val-manual">—</span></div>
         <div class="stat-row"><span class="label">Estacions properes</span><span class="value" id="n-stations-manual">—</span></div>
         <div class="radius-row" style="margin-top:10px;">
-          <input type="range" id="radius-slider-manual" min="5" max="20" step="1" value="20">
-          <span id="radius-label-manual">20 km</span>
+          <input type="range" id="radius-slider-manual" min="5" max="20" step="1" value="15">
+          <span id="radius-label-manual">15 km</span>
         </div>
       </div>
     </div>
@@ -490,7 +490,7 @@ if(alreadyAuthed){
 
 function runApp(){
 const OBS_JSON_URL = "data/observacions_10d.json";
-let RADIUS_KM = 20;
+let RADIUS_KM = 15;
 
 let obsData = null;
 const obsLoadPromise = loadObs().catch(err => {
