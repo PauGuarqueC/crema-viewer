@@ -267,7 +267,7 @@
             <option value="">— cap seleccionat —</option>
           </select>
         </div>
-        <div id="plan-picker-status" class="stat-note" style="margin-top:6px;">Selecciona un pla per carregar-ne la ubicació i els llindars automàticament.</div>
+        <div id="plan-picker-status" class="stat-note" style="margin-top:6px;"></div>
         <div id="plan-edit-delete-row" style="display:none;margin-top:8px;gap:8px;grid-template-columns:1fr 1fr;">
           <button id="btn-edit-plan" style="background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;padding:7px;font-family:var(--font-ui);font-size:12px;color:var(--charcoal);cursor:pointer;">✎ Editar aquest pla</button>
           <button id="btn-delete-plan" style="background:var(--panel);border:1px solid var(--red);border-radius:6px;padding:7px;font-family:var(--font-ui);font-size:12px;color:var(--red);cursor:pointer;">🗑 Esborra aquest pla</button>
@@ -897,7 +897,7 @@ document.getElementById('plan-picker').addEventListener('change', async () => {
     applyPlanToForm(p); // torna a aplicar els llindars (onPointSelected no els toca, pero per seguretat)
   } else {
     document.getElementById('plan-picker-status').textContent =
-      `Carregat: ${p.nom || p.id_pla} (sense ubicació — afegeix lat/lon al pla o comprova l'ID_PLA)`;
+      `⚠ Sense ubicació — afegeix lat/lon o UTM al pla, o comprova que l'ID_PLA coincideixi amb el geojson.`;
   }
 });
 
@@ -1024,7 +1024,7 @@ function applyPlanToForm(p){
     document.getElementById(id).removeAttribute('open');
   });
 
-  document.getElementById('plan-picker-status').textContent = `Carregat: ${p.nom || p.id_pla}`;
+  document.getElementById('plan-picker-status').textContent = '';
   if(combinedSeries) recomputeAndRender();
 }
 
@@ -2195,7 +2195,7 @@ document.getElementById('btn-delete-plan').addEventListener('click', () => {
           select.value = '';
           document.getElementById('plan-edit-delete-row').style.display = 'none';
           statusEl.style.color = 'var(--green)';
-          statusEl.textContent = `✓ Confirmat: el pla "${p.id_pla}" s'ha esborrat correctament (l'error inicial era només de connexió).`;
+          statusEl.textContent = `✓ Confirmat: el pla "${p.id_pla}" s'ha esborrat correctament.`;
         } else {
           statusEl.style.color = 'var(--red)';
           statusEl.textContent = `No s'ha pogut confirmar l'esborrat. Comprova el repositori manualment o torna-ho a provar.`;
@@ -2364,7 +2364,7 @@ document.getElementById('btn-save-newplan').addEventListener('click', () => {
         const confirmed = await verifyPlanPublished(idPla, true);
         if(confirmed){
           statusEl.style.color = 'var(--green)';
-          statusEl.textContent = `✓ Confirmat: el pla "${idPla}" s'ha publicat correctament (l'error inicial era només de connexió).`;
+          statusEl.textContent = `✓ Confirmat: el pla "${idPla}" s'ha publicat correctament.`;
           setTimeout(closeNewPlanForm, 900);
         } else {
           downloadFallback();
