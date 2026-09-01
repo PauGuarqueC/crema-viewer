@@ -1156,10 +1156,13 @@ function dailyAggregates(hourlySeries){
   for(const h of hourlySeries){
     const day = h.time.slice(0,10);
     const hour = parseInt(h.time.slice(11,13));
-    const b = byDay[day] || { tmax:null, hrmin:null, windmax:null, precipsum:0, precipN:0, dawnHrSum:0, dawnHrN:0 };
+    const b = byDay[day] || { tmax:null, hrmin:null, windmax:null, windSum:0, windN:0, precipsum:0, precipN:0, dawnHrSum:0, dawnHrN:0 };
     if(h.temp !== null) b.tmax = b.tmax===null ? h.temp : Math.max(b.tmax, h.temp);
     if(h.hr !== null) b.hrmin = b.hrmin===null ? h.hr : Math.min(b.hrmin, h.hr);
-    if(h.wind !== null) b.windmax = b.windmax===null ? h.wind : Math.max(b.windmax, h.wind);
+    if(h.wind !== null){
+      b.windmax = b.windmax===null ? h.wind : Math.max(b.windmax, h.wind);
+      b.windSum += h.wind; b.windN++;
+    }
     if(h.precip !== null){ b.precipsum += h.precip; b.precipN++; }
     // Recuperacio d'humitat nocturna: mitjana (no maxim) entre les 2:00 i les
     // 6:00 locals (5 lectures: 2h,3h,4h,5h,6h), la franja mes freda/humida de
@@ -1172,6 +1175,7 @@ function dailyAggregates(hourlySeries){
   for(const day of Object.keys(byDay)){
     const b = byDay[day];
     b.dawnHrMax = b.dawnHrN ? b.dawnHrSum / b.dawnHrN : null; // nom mantingut per compatibilitat, ara es la mitjana
+    b.windmean = b.windN ? b.windSum / b.windN : null;
   }
   return byDay;
 }
@@ -1247,7 +1251,7 @@ async function loadModelsForecast(latlon){
   const [lat, lon] = latlon;
   const modelsParam = COMPARISON_MODELS.map(m => m.id).join(',');
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}` +
-    `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,shortwave_radiation,precipitation` +
+    `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,shortwave_radiation,precipitation` +
     `&models=${modelsParam}&forecast_days=5&timezone=Europe%2FMadrid`;
   const res = await fetch(url);
   if(!res.ok) throw new Error("Error consultant Open-Meteo (comparativa)");
@@ -1261,6 +1265,7 @@ async function loadModelsForecast(latlon){
     const tempKey = findKey('temperature_2m', m.id);
     const hrKey = findKey('relative_humidity_2m', m.id);
     const windKey = findKey('wind_speed_10m', m.id);
+    const windDirKey = findKey('wind_direction_10m', m.id);
     const radKey = findKey('shortwave_radiation', m.id);
     const precipKey = findKey('precipitation', m.id);
     const windRaw = windKey ? padToLength(hourly[windKey], n) : new Array(n).fill(null);
@@ -1269,6 +1274,7 @@ async function loadModelsForecast(latlon){
       temp: tempKey ? padToLength(hourly[tempKey], n) : new Array(n).fill(null),
       hr: hrKey ? padToLength(hourly[hrKey], n) : new Array(n).fill(null),
       wind: windRaw.map(v => v === null ? null : v / 3.6),
+      windDir: windDirKey ? padToLength(hourly[windDirKey], n) : new Array(n).fill(null),
       rad: radKey ? padToLength(hourly[radKey], n) : new Array(n).fill(null),
       precip: precipKey ? padToLength(hourly[precipKey], n) : new Array(n).fill(null),
     };
@@ -2398,7 +2404,8 @@ document.getElementById('btn-mark-burn').addEventListener('click', async () => {
       const t = raw.time[i];
       if(t < `${today}T00:00` || t > `${tomorrow}T23:59`) continue;
       rows.push({
-        time: t, temp: raw.temp[i], hr: raw.hr[i], wind: raw.wind[i], rad: raw.rad[i], precip: raw.precip[i],
+        time: t, temp: raw.temp[i], hr: raw.hr[i], wind: raw.wind[i], windDir: raw.windDir ? raw.windDir[i] : null,
+        rad: raw.rad[i], precip: raw.precip[i],
         fmc: fmcByTime[t] !== undefined ? fmcByTime[t] : null,
       });
     }
@@ -2412,6 +2419,41 @@ document.getElementById('btn-mark-burn').addEventListener('click', async () => {
   const observatSnapshot = regionalObs.filter(h =>
     h.time >= `${yesterday}T00:00` && h.time <= `${today}T23:59`);
 
+  // 3. Context dia a dia dels dies previs (valors bruts, no ja resumits amb
+  // un llindar concret -- aixi es pot aplicar qualsevol criteri d'analisi
+  // mes endavant, sense dependre de com estiguessin configurats els
+  // llindars de context en el moment de marcar la crema). Com que la
+  // crema es AVUI, aquest historic ja esta disponible ara mateix.
+  const byDayAgg = dailyAggregates(regionalObs);
+  const precipitacio10d = [];
+  const hrNocturna5d = [];
+  for(let i=1; i<=10; i++){
+    const d = isoDaysBefore(today, i);
+    const agg = byDayAgg[d];
+    precipitacio10d.push({ dies_abans: i, data: d, precip_mm: agg ? agg.precipsum : null });
+  }
+  for(let i=1; i<=5; i++){
+    const d = isoDaysBefore(today, i);
+    const agg = byDayAgg[d];
+    // dawnHrMax mante aquest nom historic al codi, pero es la MITJANA (no
+    // el maxim) de la HR entre les 2:00 i les 6:00 locals.
+    hrNocturna5d.push({ dies_abans: i, data: d, hr_mitjana_2_6h: agg ? agg.dawnHrMax : null });
+  }
+  // Vent: maxim I mitjana de cada dia (no nomes el maxim) -- si el maxim es
+  // alt pero la mitjana es baixa, era una ratxa puntual; si tots dos son
+  // alts, era vent sostingut de veritat. Sense necessitat de fixar cap
+  // llindar arbitrari avui mateix.
+  const ventResum5d = [];
+  for(let i=1; i<=5; i++){
+    const d = isoDaysBefore(today, i);
+    const agg = byDayAgg[d];
+    ventResum5d.push({
+      dies_abans: i, data: d,
+      vent_max_ms: agg ? agg.windmax : null,
+      vent_mitjana_ms: agg ? agg.windmean : null,
+    });
+  }
+
   const record = {
     id_pla: plan.id_pla,
     nom: plan.nom || '',
@@ -2419,9 +2461,12 @@ document.getElementById('btn-mark-burn').addEventListener('click', async () => {
     marcat_el: new Date().toISOString(),
     lat: selectedLatLon ? selectedLatLon[0] : null,
     lon: selectedLatLon ? selectedLatLon[1] : null,
-    models: modelsSnapshot,       // dia 0 + dia +1 (previsio neta, per validar models)
-    observat: observatSnapshot,   // dia -1 + dia 0 (real, es completa sol)
-    observat_complet: false,      // false fins que el backfill confirmi que dia 0 ja es complet
+    models: modelsSnapshot,             // dia 0 + dia +1 (previsio neta, per validar models)
+    observat: observatSnapshot,         // dia -1 + dia 0 (real, es completa sol)
+    observat_complet: false,            // false fins que el backfill confirmi que dia 0 ja es complet
+    precipitacio_10d: precipitacio10d,  // precip diaria, ultims 10 dies, amb "dies_abans" (1=ahir...10)
+    vent_5d: ventResum5d,               // max i mitjana diaris, ultims 5 dies
+    hr_nocturna_5d: hrNocturna5d,       // HR mitjana 2-6h local, ultims 5 dies
   };
 
   fetch(WORKER_URL, {
