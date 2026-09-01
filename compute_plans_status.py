@@ -443,6 +443,41 @@ def fetch_multimodel_forecast(lat, lon):
 # Estat de consens d'un pla (equivalent a computePlanStatus al JS)
 # ---------------------------------------------------------------------------
 
+def consensus_run_with_daynight(all_model_results, forecast_times, predicate, min_votes=2):
+    """A cada hora, compta quants models compleixen 'predicate' SIMULTANIAMENT
+    (mateixa hora exacta, no una ratxa qualsevol de cada model per separat).
+    Retorna la ratxa maxima d'hores consecutives on almenys 'min_votes' models
+    hi coincideixen alhora, i si aquesta ratxa concreta es majoritariament
+    nocturna."""
+    model_ids = list(all_model_results.keys())
+    max_run, cur, cur_night, best_night = 0, 0, 0, 0
+    prev_time = None
+    for i, t in enumerate(forecast_times):
+        votes = sum(1 for mid in model_ids if predicate(all_model_results[mid][i]))
+        ok = votes >= min_votes
+        contiguous = prev_time is None or hour_step_iso(prev_time, 1) == t
+        # Direccio/radiacio es la mateixa realitat astronomica independentment
+        # del model -- agafem la primera disponible entre els 4 per aquella hora.
+        rad = next((all_model_results[mid][i].get("rad") for mid in model_ids
+                    if all_model_results[mid][i].get("rad") is not None), None)
+        is_night_hour = rad is None or rad <= NIGHT_RAD_THRESHOLD
+        if ok and contiguous:
+            cur += 1
+            cur_night += 1 if is_night_hour else 0
+        elif ok:
+            cur = 1
+            cur_night = 1 if is_night_hour else 0
+        else:
+            cur = 0
+            cur_night = 0
+        if cur > max_run:
+            max_run = cur
+            best_night = cur_night
+        prev_time = t
+    is_night = max_run > 0 and (best_night / max_run) >= 0.5
+    return max_run, is_night
+
+
 def compute_plan_status(plan, obs_data):
     lat, lon = plan.get("_lat"), plan.get("_lon")  # ja resolts abans de cridar
 
@@ -453,16 +488,27 @@ def compute_plan_status(plan, obs_data):
     thresholds = plan_to_thresholds(plan)
     marc = plan_to_marc(plan)
 
+    # Resultats hora-a-hora de cada model (mateixa linia de temps per a tots,
+    # ja que provenen de la mateixa crida multi-model). Es fan servir per a
+    # dues coses: (1) el consens REAL (mateixa hora, no ratxes soltes de cada
+    # model), i (2) el detall informatiu per model (per triar quin seleccionar
+    # en clicar un pla al mapa).
+    all_results = {}
+    forecast_times = None
     streaks_by_model = {}
     for model_id in COMPARISON_MODELS:
         combined = build_combined_series(regional_obs, models_forecast[model_id])
         forecast_slice = [h for h in combined if h["is_forecast"]]
+        if forecast_times is None:
+            forecast_times = [h["time"] for h in forecast_slice]
 
         by_day_agg = daily_aggregates(combined)
         forecast_days = sorted(set(h["time"][:10] for h in forecast_slice))
         day_contexts = {d: evaluate_day_context(d, by_day_agg, marc, DEFAULT_CONTEXT) for d in forecast_days}
 
         results = evaluate_plan(forecast_slice, thresholds, day_contexts)
+        all_results[model_id] = results
+
         match_streak, match_is_night = max_consecutive_run_with_daynight(results, lambda r: r["match"])
         hour_ok_streak, hour_ok_is_night = max_consecutive_run_with_daynight(results, lambda r: r["hour_ok"])
         streaks_by_model[model_id] = {
@@ -470,32 +516,24 @@ def compute_plan_status(plan, obs_data):
             "match_streak_is_night": match_is_night, "hour_ok_streak_is_night": hour_ok_is_night,
         }
 
-    green_count, yellow_or_green_count = 0, 0
-    qualifying_is_night = []  # nomes dels models que realment compten pel verd/groc
-    for s in streaks_by_model.values():
-        is_green = s["match_streak"] >= MIN_CONSECUTIVE_HOURS
-        is_yellow = (not is_green) and s["hour_ok_streak"] >= MIN_CONSECUTIVE_HOURS
-        if is_green:
-            green_count += 1
-            yellow_or_green_count += 1
-            qualifying_is_night.append(s["match_streak_is_night"])
-        elif is_yellow:
-            yellow_or_green_count += 1
-            qualifying_is_night.append(s["hour_ok_streak_is_night"])
+    # CONSENS REAL: almenys 2 models han de coincidir en el MATEIX bloc
+    # d'hores, no simplement trobar cadascun una ratxa qualsevol pel seu
+    # compte (aixo abans permetia que ICON digues "demà" i ECMWF "demà
+    # passat" i sortis igualment verd, sense cap solapament real).
+    consensus_match_streak, consensus_match_is_night = consensus_run_with_daynight(
+        all_results, forecast_times, lambda r: r["match"], min_votes=2)
+    consensus_hour_ok_streak, consensus_hour_ok_is_night = consensus_run_with_daynight(
+        all_results, forecast_times, lambda r: r["hour_ok"], min_votes=2)
 
-    if green_count >= 2:
+    if consensus_match_streak >= MIN_CONSECUTIVE_HOURS:
         status = "green"
-    elif yellow_or_green_count >= 2:
+        is_night = consensus_match_is_night
+    elif consensus_hour_ok_streak >= MIN_CONSECUTIVE_HOURS:
         status = "yellow"
+        is_night = consensus_hour_ok_is_night
     else:
         status = "red"
-
-    # El calcul de verd/groc/vermell NO canvia gens; nomes s'hi afegeix
-    # informacio de si la ratxa que ho ha fet possible es majoritariament
-    # nocturna (per marcar-ho ratllat al mapa) -- nomes es "nocturn" si TOTS
-    # els models que compten pel resultat ho son (si n'hi ha algun de diürn,
-    # ja hi ha una oportunitat real de dia, no es marca).
-    is_night = len(qualifying_is_night) > 0 and all(qualifying_is_night)
+        is_night = False
 
     return {"status": status, "isNight": is_night, "streaksByModel": streaks_by_model}
 
