@@ -1718,12 +1718,21 @@ function updateComparisonCharts(results){
     renderComparisonChart('chart-wind', labels, todayIndex, alignObs('wind'), alignModels('wind'),
       { min: 0, max: plan.windMax }, undefined, undefined, matchStatuses, windDirs);
 
-    // FMC1h per model: reaprofita buildCombinedSeries (obs + previsio d'un sol model) per calcular-lo igual que el model actiu
+    // FMC1h per model: reaprofita buildCombinedSeries (obs + previsio d'un sol
+    // model) NOMES per calcular be l'FMC1h amb continuitat real -- pero es
+    // busca el valor per hora exacta sobre TOT l'horitzo del model cru
+    // (raw.time, que sempre comença a les 00:00 d'avui), NO filtrant per
+    // isForecast (aixo descartava incorrectament les primeres hores d'avui,
+    // que ja tenien observacio real i quedaven marcades com "no previsio" a
+    // la serie combinada -- exactament com passava al marcatge de cremes).
     const fmcByModel = {};
     for(const m of COMPARISON_MODELS){
-      const combined = buildCombinedSeries(regionalObs, modelsForecastData.models[m.id]);
-      const forecastPart = combined.filter(h => h.isForecast);
-      fmcByModel[m.id] = alignToLabels(forecastPart.map(h => h.time), forecastPart.map(h => h.fmc), labels);
+      const raw = modelsForecastData.models[m.id];
+      const combined = buildCombinedSeries(regionalObs, raw);
+      const fmcByTime = {};
+      combined.forEach(h => { fmcByTime[h.time] = h.fmc; });
+      const fmcValues = raw.time.map(t => fmcByTime[t] !== undefined ? fmcByTime[t] : null);
+      fmcByModel[m.id] = alignToLabels(raw.time, fmcValues, labels);
     }
     const obsFmc = calcFMC1h(last5); // aproximacio: FMC dels ultims 5 dies observats en aillament
     const obsFmcAligned = alignToLabels(obsTimes, obsFmc, labels);
@@ -2369,19 +2378,31 @@ document.getElementById('btn-mark-burn').addEventListener('click', async () => {
 
   // 1. PREVISIO neta (mai barrejada amb observat): dia 0 + dia +1, per
   // DATA DE CALENDARI (des de les 00:00 de dia 0 fins a les 23:00 de dia
-  // +1) -- no depen de a quina hora es clica el boto. Es reaprofita
-  // buildCombinedSeries nomes per calcular be l'FMC1h amb continuitat
-  // real (necessita hores previes), pero NOMES es queden les hores
-  // marcades com a previsio -- dia 0 surt aqui amb el valor que el model
-  // preveia, no amb el valor real observat (aixo va a l'altre bloc).
+  // +1) -- no depen de a quina hora es clica el boto. temp/HR/vent/rad
+  // venen SEMPRE del model cru (mai sobreescrits per observacio real,
+  // encara que ja n'hi hagi per aquelles hores d'avui) -- nomes l'FMC1h
+  // es calcula sobre la serie combinada (necessita continuitat amb
+  // l'historic real per fer-se be), buscat per hora exacta, no per la
+  // marca isForecast (que abans descartava incorrectament les primeres
+  // hores d'avui, ja que aquestes ja tenien observacio real i quedaven
+  // marcades com "no previsio").
   const modelsSnapshot = {};
   for(const m of COMPARISON_MODELS){
-    const combined = buildCombinedSeries(regionalObs, modelsForecastData.models[m.id]);
-    const forecastPart = combined.filter(h =>
-      h.isForecast && h.time >= `${today}T00:00` && h.time <= `${tomorrow}T23:59`);
-    modelsSnapshot[m.id] = forecastPart.map(h => ({
-      time: h.time, temp: h.temp, hr: h.hr, wind: h.wind, rad: h.rad, precip: h.precip, fmc: h.fmc,
-    }));
+    const raw = modelsForecastData.models[m.id]; // {time:[...], temp:[...], hr:[...], wind:[...], rad:[...], precip:[...]}
+    const combined = buildCombinedSeries(regionalObs, raw);
+    const fmcByTime = {};
+    combined.forEach(h => { fmcByTime[h.time] = h.fmc; });
+
+    const rows = [];
+    for(let i=0; i<raw.time.length; i++){
+      const t = raw.time[i];
+      if(t < `${today}T00:00` || t > `${tomorrow}T23:59`) continue;
+      rows.push({
+        time: t, temp: raw.temp[i], hr: raw.hr[i], wind: raw.wind[i], rad: raw.rad[i], precip: raw.precip[i],
+        fmc: fmcByTime[t] !== undefined ? fmcByTime[t] : null,
+      });
+    }
+    modelsSnapshot[m.id] = rows;
   }
 
   // 2. OBSERVACIONS reals: dia -1 + dia 0. Dia -1 ja esta complet ara
