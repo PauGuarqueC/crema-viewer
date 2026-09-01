@@ -2362,28 +2362,34 @@ document.getElementById('btn-mark-burn').addEventListener('click', async () => {
   statusEl.style.color = 'var(--text-dim)';
   statusEl.textContent = 'Guardant...';
 
-  const today = localDateStr(0);
   const yesterday = localDateStr(-1);
+  const today = localDateStr(0);
+  const tomorrow = localDateStr(1);
   const regionalObs = buildRegionalHourlyObs(nearbyStationsCache);
 
-  // 1. Previsio dels 4 models, nomes les primeres 48h (avui + dema).
+  // 1. PREVISIO neta (mai barrejada amb observat): dia 0 + dia +1, per
+  // DATA DE CALENDARI (des de les 00:00 de dia 0 fins a les 23:00 de dia
+  // +1) -- no depen de a quina hora es clica el boto. Es reaprofita
+  // buildCombinedSeries nomes per calcular be l'FMC1h amb continuitat
+  // real (necessita hores previes), pero NOMES es queden les hores
+  // marcades com a previsio -- dia 0 surt aqui amb el valor que el model
+  // preveia, no amb el valor real observat (aixo va a l'altre bloc).
   const modelsSnapshot = {};
   for(const m of COMPARISON_MODELS){
     const combined = buildCombinedSeries(regionalObs, modelsForecastData.models[m.id]);
-    const forecastPart = combined.filter(h => h.isForecast).slice(0, 48);
-    modelsSnapshot[m.id] = {
-      time: forecastPart.map(h => h.time),
-      temp: forecastPart.map(h => h.temp),
-      hr: forecastPart.map(h => h.hr),
-      wind: forecastPart.map(h => h.wind),
-      rad: forecastPart.map(h => h.rad),
-      precip: forecastPart.map(h => h.precip),
-      fmc: forecastPart.map(h => h.fmc),
-    };
+    const forecastPart = combined.filter(h =>
+      h.isForecast && h.time >= `${today}T00:00` && h.time <= `${tomorrow}T23:59`);
+    modelsSnapshot[m.id] = forecastPart.map(h => ({
+      time: h.time, temp: h.temp, hr: h.hr, wind: h.wind, rad: h.rad, precip: h.precip, fmc: h.fmc,
+    }));
   }
 
-  // 2. Observacions reals d'ahir (dia -1), ja disponibles ara mateix.
-  const observatDiaM1 = regionalObs.filter(h => h.time.startsWith(yesterday));
+  // 2. OBSERVACIONS reals: dia -1 + dia 0. Dia -1 ja esta complet ara
+  // mateix; dia 0 nomes tindra les hores publicades fins aquest instant
+  // (incomplet per definicio) -- el backfill automatic uns dies despres
+  // recalcula aquest mateix bloc sencer un cop dia 0 ja estigui complet.
+  const observatSnapshot = regionalObs.filter(h =>
+    h.time >= `${yesterday}T00:00` && h.time <= `${today}T23:59`);
 
   const record = {
     id_pla: plan.id_pla,
@@ -2392,9 +2398,9 @@ document.getElementById('btn-mark-burn').addEventListener('click', async () => {
     marcat_el: new Date().toISOString(),
     lat: selectedLatLon ? selectedLatLon[0] : null,
     lon: selectedLatLon ? selectedLatLon[1] : null,
-    models: modelsSnapshot,
-    observat_dia_m1: observatDiaM1,
-    observat_dia_0: null, // pendent -- s'omple automaticament uns dies despres
+    models: modelsSnapshot,       // dia 0 + dia +1 (previsio neta, per validar models)
+    observat: observatSnapshot,   // dia -1 + dia 0 (real, es completa sol)
+    observat_complet: false,      // false fins que el backfill confirmi que dia 0 ja es complet
   };
 
   fetch(WORKER_URL, {
