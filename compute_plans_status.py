@@ -400,6 +400,19 @@ def plan_to_marc(plan):
 # Open-Meteo (4 models alhora, mateixa crida que fa el visor)
 # ---------------------------------------------------------------------------
 
+def pad_to_length(arr, target_length):
+    """Alguns models (p.ex. AROME France, nomes ~2,5 dies d'horitzo) tornen un
+    array MES CURT per certes variables en lloc d'omplir-lo amb None fins al
+    final. hourly.get(key, default) NOMES aplica el default si la clau no
+    existeix -- si la clau existeix pero l'array es curt, es queda tal qual,
+    provocant desajustos d'index (o directament un IndexError) mes endavant."""
+    if arr is None:
+        return [None] * target_length
+    if len(arr) >= target_length:
+        return arr
+    return list(arr) + [None] * (target_length - len(arr))
+
+
 def fetch_multimodel_forecast(lat, lon):
     params = {
         "latitude": round(lat, 4),
@@ -422,19 +435,21 @@ def fetch_multimodel_forecast(lat, lon):
         return None
 
     models_out = {}
+    n = len(time_arr)
     for model_id in COMPARISON_MODELS:
         temp_k = find_key("temperature_2m", model_id)
         hr_k = find_key("relative_humidity_2m", model_id)
         wind_k = find_key("wind_speed_10m", model_id)
         rad_k = find_key("shortwave_radiation", model_id)
         precip_k = find_key("precipitation", model_id)
+        wind_raw = pad_to_length(hourly.get(wind_k), n) if wind_k else [None] * n
         models_out[model_id] = {
             "time": time_arr,
-            "temp": hourly.get(temp_k, [None] * len(time_arr)) if temp_k else [None] * len(time_arr),
-            "hr": hourly.get(hr_k, [None] * len(time_arr)) if hr_k else [None] * len(time_arr),
-            "wind": [v / 3.6 if v is not None else None for v in hourly[wind_k]] if wind_k else [None] * len(time_arr),
-            "rad": hourly.get(rad_k, [None] * len(time_arr)) if rad_k else [None] * len(time_arr),
-            "precip": hourly.get(precip_k, [None] * len(time_arr)) if precip_k else [None] * len(time_arr),
+            "temp": pad_to_length(hourly.get(temp_k), n) if temp_k else [None] * n,
+            "hr": pad_to_length(hourly.get(hr_k), n) if hr_k else [None] * n,
+            "wind": [v / 3.6 if v is not None else None for v in wind_raw],
+            "rad": pad_to_length(hourly.get(rad_k), n) if rad_k else [None] * n,
+            "precip": pad_to_length(hourly.get(precip_k), n) if precip_k else [None] * n,
         }
     return models_out
 
