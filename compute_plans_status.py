@@ -34,7 +34,7 @@ PLANS_LLINDARS_PATH = REPO_DIR / "data" / "plans_llindars.json"
 OBSERVACIONS_PATH = REPO_DIR / "data" / "observacions_10d.json"
 OUTPUT_PATH = REPO_DIR / "data" / "plans_status.json"
 
-RADIUS_KM = 20  # mateix per defecte que el visor
+RADIUS_KM = 15  # mateix per defecte que el visor
 COMPARISON_MODELS = ["icon_eu", "ecmwf_ifs", "gfs_seamless", "arome_france"]
 MIN_CONSECUTIVE_HOURS = 6
 

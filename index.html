@@ -376,6 +376,9 @@
         </div>
         <div id="match-list" class="match-list" style="display:none;"></div>
 
+        <button id="btn-mark-burn" style="display:none;margin-top:10px;width:100%;background:var(--red);border:none;color:#fff;padding:9px;border-radius:5px;font-family:var(--font-ui);font-weight:500;font-size:13px;cursor:pointer;">🔥 Avui s'ha cremat aquí</button>
+        <div id="mark-burn-status" class="stat-note" style="margin-top:6px;"></div>
+
         <div id="charts-status" class="stat-note" style="margin-top:14px;"></div>
         <div id="charts-wrap" style="display:none;margin-top:10px;">
           <div class="chart-block">
@@ -895,6 +898,7 @@ function setPlanManageButtonsEnabled(enabled){
   delBtn.style.opacity = enabled ? '1' : '0.45';
   editBtn.style.cursor = enabled ? 'pointer' : 'not-allowed';
   delBtn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+  document.getElementById('btn-mark-burn').style.display = enabled ? 'block' : 'none';
 }
 
 document.getElementById('plan-picker').addEventListener('change', async () => {
@@ -2327,6 +2331,96 @@ function strOrEmpty(id){
 
 // URL del teu Cloudflare Worker (veure conversa sobre com muntar-ho)
 const WORKER_URL = 'https://crema-viewer-afegir-pla.pguarque.workers.dev';
+
+function localDateStr(offsetDays){
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+
+// ---------- "Avui s'ha cremat aquí" ----------
+// Guarda, per al pla seleccionat: la previsio dels 4 models de les primeres
+// 48h (avui + dema -- es l'unica part que la previsio pot dir-te, ja que no
+// hi ha arxiu historic de previsions passades) i les observacions REALS
+// d'ahir (dia -1, ja disponibles). Les observacions d'avui (dia 0) queden
+// pendents i s'omplen automaticament un parell de dies despres via cron,
+// un cop les dades d'estacions d'avui ja estiguin completes.
+document.getElementById('btn-mark-burn').addEventListener('click', async () => {
+  const select = document.getElementById('plan-picker');
+  const plan = plansData.find(x => x.id_pla === select.value);
+  const statusEl = document.getElementById('mark-burn-status');
+
+  if(!plan || !modelsForecastData || !nearbyStationsCache.length){
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = "Selecciona un pla amb previsió ja carregada abans de marcar-ho.";
+    return;
+  }
+  if(!confirm(`Confirmes que avui s'ha fet una crema al pla "${plan.nom || plan.id_pla}"?`)) return;
+
+  const btn = document.getElementById('btn-mark-burn');
+  btn.disabled = true;
+  statusEl.style.color = 'var(--text-dim)';
+  statusEl.textContent = 'Guardant...';
+
+  const today = localDateStr(0);
+  const yesterday = localDateStr(-1);
+  const regionalObs = buildRegionalHourlyObs(nearbyStationsCache);
+
+  // 1. Previsio dels 4 models, nomes les primeres 48h (avui + dema).
+  const modelsSnapshot = {};
+  for(const m of COMPARISON_MODELS){
+    const combined = buildCombinedSeries(regionalObs, modelsForecastData.models[m.id]);
+    const forecastPart = combined.filter(h => h.isForecast).slice(0, 48);
+    modelsSnapshot[m.id] = {
+      time: forecastPart.map(h => h.time),
+      temp: forecastPart.map(h => h.temp),
+      hr: forecastPart.map(h => h.hr),
+      wind: forecastPart.map(h => h.wind),
+      rad: forecastPart.map(h => h.rad),
+      precip: forecastPart.map(h => h.precip),
+      fmc: forecastPart.map(h => h.fmc),
+    };
+  }
+
+  // 2. Observacions reals d'ahir (dia -1), ja disponibles ara mateix.
+  const observatDiaM1 = regionalObs.filter(h => h.time.startsWith(yesterday));
+
+  const record = {
+    id_pla: plan.id_pla,
+    nom: plan.nom || '',
+    data_crema: today,
+    marcat_el: new Date().toISOString(),
+    lat: selectedLatLon ? selectedLatLon[0] : null,
+    lon: selectedLatLon ? selectedLatLon[1] : null,
+    models: modelsSnapshot,
+    observat_dia_m1: observatDiaM1,
+    observat_dia_0: null, // pendent -- s'omple automaticament uns dies despres
+  };
+
+  fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'markBurn', password: AUTH_PASSWORD, record }),
+  })
+    .then(async (res) => {
+      const data = await res.json().catch(() => ({}));
+      if(res.ok && data.ok){
+        statusEl.style.color = 'var(--green)';
+        statusEl.textContent = `✓ Crema registrada per a "${plan.nom || plan.id_pla}" (${today}). Les observacions d'avui s'ompliran soles d'aquí uns dies.`;
+      } else {
+        throw new Error(data.error || `Error ${res.status}`);
+      }
+    })
+    .catch((err) => {
+      console.error('Error marcant crema:', err);
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = `No s'ha pogut registrar (${err.message}).`;
+    })
+    .finally(() => {
+      btn.disabled = false;
+    });
+});
 
 document.getElementById('btn-save-newplan').addEventListener('click', () => {
   const statusEl = document.getElementById('newplan-status');
