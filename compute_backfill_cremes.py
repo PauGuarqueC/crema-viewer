@@ -71,10 +71,14 @@ def main():
             continue
 
         regional_obs = cps.build_regional_hourly_obs(nearby, obs_data)
-        hores = [
-            {"time": t, **v} for t, v in sorted(regional_obs.items())
-            if dia_m1 <= t[:10] <= c["data_crema"]
-        ]
+        # FMC1h calculat sobre TOT l'historic disponible (bona continuitat
+        # de la cadena de decaïment), despres es retalla nomes al tram
+        # dia_m1..data_crema -- mateix criteri que el JS al moment de marcar.
+        serie_completa = [{"time": t, **v} for t, v in sorted(regional_obs.items())]
+        fmc_vals = cps.calc_fmc1h(serie_completa)
+        for h, fmc in zip(serie_completa, fmc_vals):
+            h["fmc"] = fmc
+        hores = [h for h in serie_completa if dia_m1 <= h["time"][:10] <= c["data_crema"]]
         hores_dia_0 = [h for h in hores if h["time"].startswith(c["data_crema"])]
 
         if len(hores_dia_0) < 18:

@@ -1151,12 +1151,23 @@ function calcFMC1h(hourlySeries){
   return out;
 }
 
+// Temperatura de rosada (formula de Magnus-Tetens). Nomes es fa servir per
+// resumir els 5 dies previs al context d'una crema marcada -- per a hores
+// concretes (models/observat) no cal guardar-la, es pot recalcular sempre
+// a partir de temp+HR.
+function calcDewPoint(tempC, rh){
+  if(tempC === null || rh === null || rh <= 0) return null;
+  const a = 17.27, b = 237.7;
+  const alpha = (a * tempC) / (b + tempC) + Math.log(rh / 100);
+  return (b * alpha) / (a - alpha);
+}
+
 function dailyAggregates(hourlySeries){
   const byDay = {};
   for(const h of hourlySeries){
     const day = h.time.slice(0,10);
     const hour = parseInt(h.time.slice(11,13));
-    const b = byDay[day] || { tmax:null, hrmin:null, windmax:null, windSum:0, windN:0, precipsum:0, precipN:0, dawnHrSum:0, dawnHrN:0 };
+    const b = byDay[day] || { tmax:null, hrmin:null, windmax:null, windSum:0, windN:0, precipsum:0, precipN:0, dawnHrSum:0, dawnHrN:0, dewSum:0, dewN:0 };
     if(h.temp !== null) b.tmax = b.tmax===null ? h.temp : Math.max(b.tmax, h.temp);
     if(h.hr !== null) b.hrmin = b.hrmin===null ? h.hr : Math.min(b.hrmin, h.hr);
     if(h.wind !== null){
@@ -1170,12 +1181,18 @@ function dailyAggregates(hourlySeries){
     if(hour >= 2 && hour <= 6 && h.hr !== null){
       b.dawnHrSum += h.hr; b.dawnHrN++;
     }
+    // Temperatura de rosada mitjana del dia: mitjana dels valors HORARIS
+    // (no calculada a partir de la temp/HR mitjanes del dia, mes correcte
+    // fisicament).
+    const dew = calcDewPoint(h.temp, h.hr);
+    if(dew !== null){ b.dewSum += dew; b.dewN++; }
     byDay[day] = b;
   }
   for(const day of Object.keys(byDay)){
     const b = byDay[day];
     b.dawnHrMax = b.dawnHrN ? b.dawnHrSum / b.dawnHrN : null; // nom mantingut per compatibilitat, ara es la mitjana
     b.windmean = b.windN ? b.windSum / b.windN : null;
+    b.dewmean = b.dewN ? b.dewSum / b.dewN : null;
   }
   return byDay;
 }
@@ -2381,6 +2398,11 @@ document.getElementById('btn-mark-burn').addEventListener('click', async () => {
   const today = localDateStr(0);
   const tomorrow = localDateStr(1);
   const regionalObs = buildRegionalHourlyObs(nearbyStationsCache);
+  // FMC1h de la serie observada, amb continuitat real (calculat un sol cop
+  // sobre tot l'historic disponible, es reaprofita tant per a 'observat' com
+  // com a llavor de continuitat per a l'FMC de 'models' mes avall).
+  const regionalObsFmc = calcFMC1h(regionalObs);
+  regionalObs.forEach((h, i) => { h.fmc = regionalObsFmc[i]; });
 
   // 1. PREVISIO neta (mai barrejada amb observat): dia 0 + dia +1, per
   // DATA DE CALENDARI (des de les 00:00 de dia 0 fins a les 23:00 de dia
@@ -2426,7 +2448,7 @@ document.getElementById('btn-mark-burn').addEventListener('click', async () => {
   // crema es AVUI, aquest historic ja esta disponible ara mateix.
   const byDayAgg = dailyAggregates(regionalObs);
   const precipitacio10d = [];
-  const hrNocturna5d = [];
+  const humitatResum5d = [];
   for(let i=1; i<=10; i++){
     const d = isoDaysBefore(today, i);
     const agg = byDayAgg[d];
@@ -2437,7 +2459,12 @@ document.getElementById('btn-mark-burn').addEventListener('click', async () => {
     const agg = byDayAgg[d];
     // dawnHrMax mante aquest nom historic al codi, pero es la MITJANA (no
     // el maxim) de la HR entre les 2:00 i les 6:00 locals.
-    hrNocturna5d.push({ dies_abans: i, data: d, hr_mitjana_2_6h: agg ? agg.dawnHrMax : null });
+    humitatResum5d.push({
+      dies_abans: i, data: d,
+      hr_mitjana_2_6h: agg ? agg.dawnHrMax : null,
+      hr_minima: agg ? agg.hrmin : null,
+      punt_rosada_mitja: agg ? agg.dewmean : null,
+    });
   }
   // Vent: maxim I mitjana de cada dia (no nomes el maxim) -- si el maxim es
   // alt pero la mitjana es baixa, era una ratxa puntual; si tots dos son
@@ -2466,7 +2493,7 @@ document.getElementById('btn-mark-burn').addEventListener('click', async () => {
     observat_complet: false,            // false fins que el backfill confirmi que dia 0 ja es complet
     precipitacio_10d: precipitacio10d,  // precip diaria, ultims 10 dies, amb "dies_abans" (1=ahir...10)
     vent_5d: ventResum5d,               // max i mitjana diaris, ultims 5 dies
-    hr_nocturna_5d: hrNocturna5d,       // HR mitjana 2-6h local, ultims 5 dies
+    humitat_5d: humitatResum5d,          // HR nocturna 2-6h, HR minima, i punt de rosada mitja -- ultims 5 dies
   };
 
   fetch(WORKER_URL, {
