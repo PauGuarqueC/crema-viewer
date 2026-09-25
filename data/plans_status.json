@@ -1,12 +1,12 @@
 {
-  "generat": "2026-09-25T07:00:55Z",
+  "generat": "2026-09-25T10:00:39Z",
   "plans": {
     "REC_2019_10_La Traveria - Obertes - Garriga": {
       "status": "yellow",
       "isNight": true,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 2,
+          "match_streak": 1,
           "hour_ok_streak": 14,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
@@ -32,12 +32,12 @@
       }
     },
     "REC_2022_01_El Muntaner": {
-      "status": "green",
-      "isNight": false,
+      "status": "yellow",
+      "isNight": true,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 8,
-          "hour_ok_streak": 8,
+          "match_streak": 4,
+          "hour_ok_streak": 5,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -66,8 +66,8 @@
       "isNight": false,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 14,
-          "hour_ok_streak": 14,
+          "match_streak": 17,
+          "hour_ok_streak": 17,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -96,8 +96,8 @@
       "isNight": false,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 14,
-          "hour_ok_streak": 14,
+          "match_streak": 17,
+          "hour_ok_streak": 17,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -126,8 +126,8 @@
       "isNight": false,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 14,
-          "hour_ok_streak": 14,
+          "match_streak": 17,
+          "hour_ok_streak": 17,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -156,7 +156,7 @@
       "isNight": false,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 2,
+          "match_streak": 0,
           "hour_ok_streak": 4,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
@@ -186,7 +186,7 @@
       "isNight": true,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 7,
+          "match_streak": 4,
           "hour_ok_streak": 11,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
@@ -216,7 +216,7 @@
       "isNight": true,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 7,
+          "match_streak": 3,
           "hour_ok_streak": 11,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
@@ -276,7 +276,7 @@
       "isNight": true,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 2,
+          "match_streak": 4,
           "hour_ok_streak": 10,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
@@ -302,11 +302,11 @@
       }
     },
     "REC_2024_03_Vilarassau": {
-      "status": "yellow",
-      "isNight": true,
+      "status": "green",
+      "isNight": false,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 3,
+          "match_streak": 6,
           "hour_ok_streak": 18,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
@@ -336,7 +336,7 @@
       "isNight": true,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 3,
+          "match_streak": 2,
           "hour_ok_streak": 4,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
@@ -366,7 +366,7 @@
       "isNight": true,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 2,
+          "match_streak": 0,
           "hour_ok_streak": 5,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
@@ -392,12 +392,12 @@
       }
     },
     "REG_2008_02_Mas Fumats": {
-      "status": "yellow",
-      "isNight": true,
+      "status": "red",
+      "isNight": false,
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 7,
+          "hour_ok_streak": 4,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         },
@@ -456,7 +456,7 @@
       "isNight": true,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 7,
+          "match_streak": 3,
           "hour_ok_streak": 11,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
@@ -547,7 +547,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 2,
+          "hour_ok_streak": 3,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -607,7 +607,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 9,
+          "hour_ok_streak": 14,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         },
@@ -666,8 +666,8 @@
       "isNight": false,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 9,
-          "hour_ok_streak": 13,
+          "match_streak": 10,
+          "hour_ok_streak": 16,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -697,7 +697,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 15,
+          "hour_ok_streak": 17,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         },
@@ -786,8 +786,8 @@
       "isNight": true,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 2,
-          "hour_ok_streak": 4,
+          "match_streak": 3,
+          "hour_ok_streak": 3,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
