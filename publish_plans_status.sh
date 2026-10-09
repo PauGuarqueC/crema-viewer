@@ -13,7 +13,9 @@ cd "$REPO_DIR"
 
 # Per si algu altre ha fet push mentrestant (p.ex. publish.sh de bon mati,
 # o edicions manuals de plans_llindars.json)
-git pull --no-rebase origin main --quiet || true
+# Si el pull falla (divergencia, fitxer modificat...) l'script s'atura i es veu
+# al log; abans el '|| true' ho amagava i el push fallava en silenci.
+git pull --no-rebase origin main --quiet || { echo "ERROR: git pull ha fallat, no es publica res" >&2; exit 1; }
 
 "$PYTHON_BIN" compute_plans_status.py
 

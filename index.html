@@ -745,6 +745,14 @@ async function toggleLayer(kind, show){
       }
       plansStatusLayer = L.layerGroup(markers).addTo(map);
       statusEl.textContent = plansStatusData.generat ? `Calculat: ${plansStatusData.generat}` : '';
+      statusEl.style.color = '';
+      if(plansStatusData.generat){
+        const ageH = (Date.now() - new Date(plansStatusData.generat).getTime()) / 3600000;
+        if(ageH > 12){
+          statusEl.textContent += ` ⚠ Dades de fa ${Math.round(ageH)} h (el càlcul automàtic potser ha fallat)`;
+          statusEl.style.color = '#c0392b';
+        }
+      }
     } else if(plansStatusLayer){
       map.removeLayer(plansStatusLayer);
       plansStatusLayer = null;

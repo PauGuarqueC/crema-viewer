@@ -15,7 +15,9 @@ cd "$REPO_DIR"
 # directament a GitHub sense passar per aquest clonatge local -- cal
 # sincronitzar abans de fer push, o el push seguent quedaria rebutjat
 # (branques divergents) i tot l'script fallaria per el 'set -euo pipefail'.
-git pull --no-rebase origin main --quiet || true
+# Si el pull falla (divergencia, fitxer modificat...) l'script s'atura i es veu
+# al log; abans el '|| true' ho amagava i el push fallava en silenci.
+git pull --no-rebase origin main --quiet || { echo "ERROR: git pull ha fallat, no es publica res" >&2; exit 1; }
 
 "$PYTHON_BIN" publish_xema_10d.py
 
