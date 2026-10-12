@@ -1,5 +1,5 @@
 {
-  "generat": "2026-10-12T07:00:51Z",
+  "generat": "2026-10-12T10:00:52Z",
   "plans": {
     "REC_2019_10_La Traveria - Obertes - Garriga": {
       "status": "yellow",
@@ -7,7 +7,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 7,
+          "hour_ok_streak": 6,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -31,43 +31,13 @@
         }
       }
     },
-    "REC_2022_01_El Muntaner": {
-      "status": "yellow",
-      "isNight": false,
-      "streaksByModel": {
-        "icon_eu": {
-          "match_streak": 0,
-          "hour_ok_streak": 9,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        },
-        "ecmwf_ifs": {
-          "match_streak": 0,
-          "hour_ok_streak": 9,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        },
-        "gfs_seamless": {
-          "match_streak": 0,
-          "hour_ok_streak": 15,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        },
-        "arome_france": {
-          "match_streak": 0,
-          "hour_ok_streak": 8,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        }
-      }
-    },
     "REC_2023_02_Pi negre Coll de Port": {
       "status": "yellow",
       "isNight": false,
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 13,
+          "hour_ok_streak": 12,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -97,7 +67,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 13,
+          "hour_ok_streak": 12,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -127,7 +97,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 13,
+          "hour_ok_streak": 12,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -176,6 +146,36 @@
         "arome_france": {
           "match_streak": 0,
           "hour_ok_streak": 7,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": false
+        }
+      }
+    },
+    "REC_2023_09_Pujol Melós": {
+      "status": "yellow",
+      "isNight": false,
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 9,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": false
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 7,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": false
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 14,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": false
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 8,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
@@ -247,7 +247,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 11,
+          "hour_ok_streak": 10,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -337,7 +337,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 7,
+          "hour_ok_streak": 8,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -367,7 +367,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 1,
+          "hour_ok_streak": 0,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -397,7 +397,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 5,
+          "hour_ok_streak": 4,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         },
@@ -427,7 +427,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 6,
+          "hour_ok_streak": 7,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -487,7 +487,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 6,
+          "hour_ok_streak": 4,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -517,7 +517,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 11,
+          "hour_ok_streak": 10,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -637,7 +637,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 14,
+          "hour_ok_streak": 13,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -669,7 +669,7 @@
           "match_streak": 0,
           "hour_ok_streak": 12,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": true
+          "hour_ok_streak_is_night": false
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -697,7 +697,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 6,
+          "hour_ok_streak": 5,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -757,7 +757,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 7,
-          "hour_ok_streak": 7,
+          "hour_ok_streak": 8,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
