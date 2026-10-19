@@ -1,6 +1,36 @@
 {
-  "generat": "2026-10-19T04:00:55Z",
+  "generat": "2026-10-19T07:01:00Z",
   "plans": {
+    "REC_2019_10_La Traveria - Obertes - Garriga": {
+      "status": "yellow",
+      "isNight": true,
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 8,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": false
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 14,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": false
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 16,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": true
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 1,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": true
+        }
+      }
+    },
     "REC_2022_01_El Muntaner": {
       "status": "yellow",
       "isNight": false,
@@ -43,7 +73,37 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 15,
+          "hour_ok_streak": 13,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": false
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 9,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": false
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 3,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": false
+        }
+      }
+    },
+    "REC_2023_03_Pi negre Estivella": {
+      "status": "yellow",
+      "isNight": false,
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 21,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": true
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 13,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -61,36 +121,6 @@
         }
       }
     },
-    "REC_2023_03_Pi negre Estivella": {
-      "status": "yellow",
-      "isNight": false,
-      "streaksByModel": {
-        "icon_eu": {
-          "match_streak": 0,
-          "hour_ok_streak": 21,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": true
-        },
-        "ecmwf_ifs": {
-          "match_streak": 0,
-          "hour_ok_streak": 15,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        },
-        "gfs_seamless": {
-          "match_streak": 0,
-          "hour_ok_streak": 9,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        },
-        "arome_france": {
-          "match_streak": 0,
-          "hour_ok_streak": 2,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": true
-        }
-      }
-    },
     "REC_2023_04 Pi negre Querol": {
       "status": "yellow",
       "isNight": false,
@@ -103,19 +133,19 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 15,
+          "hour_ok_streak": 13,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 9,
+          "hour_ok_streak": 10,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 2,
+          "hour_ok_streak": 3,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         }
@@ -133,15 +163,15 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 11,
+          "hour_ok_streak": 14,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
+          "hour_ok_streak_is_night": true
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 18,
+          "hour_ok_streak": 33,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": true
+          "hour_ok_streak_is_night": false
         },
         "arome_france": {
           "match_streak": 0,
@@ -163,13 +193,13 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 23,
+          "hour_ok_streak": 22,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 14,
+          "hour_ok_streak": 16,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -193,13 +223,13 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 23,
+          "hour_ok_streak": 22,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 14,
+          "hour_ok_streak": 16,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -223,19 +253,19 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 15,
+          "hour_ok_streak": 10,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": true
+          "hour_ok_streak_is_night": false
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 17,
+          "hour_ok_streak": 31,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 1,
+          "hour_ok_streak": 0,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
@@ -253,13 +283,13 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 11,
+          "hour_ok_streak": 9,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 15,
+          "hour_ok_streak": 11,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -273,7 +303,7 @@
     },
     "REC_2024_03_Vilarassau": {
       "status": "yellow",
-      "isNight": false,
+      "isNight": true,
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
@@ -283,9 +313,9 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 13,
+          "hour_ok_streak": 11,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": true
+          "hour_ok_streak_is_night": false
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -295,7 +325,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 2,
+          "hour_ok_streak": 1,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         }
@@ -313,19 +343,19 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 21,
+          "hour_ok_streak": 11,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 17,
+          "hour_ok_streak": 13,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 1,
+          "hour_ok_streak": 0,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
@@ -355,7 +385,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 1,
+          "hour_ok_streak": 0,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
@@ -379,7 +409,7 @@
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 6,
+          "hour_ok_streak": 7,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -403,19 +433,19 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 9,
+          "hour_ok_streak": 8,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 6,
+          "hour_ok_streak": 7,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": true
+          "hour_ok_streak_is_night": false
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 4,
+          "hour_ok_streak": 3,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         }
@@ -439,13 +469,13 @@
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 15,
+          "hour_ok_streak": 11,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
+          "hour_ok_streak_is_night": true
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 3,
+          "hour_ok_streak": 2,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         }
@@ -475,7 +505,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 54,
+          "hour_ok_streak": 57,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         }
@@ -499,7 +529,7 @@
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 8,
+          "hour_ok_streak": 7,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -513,7 +543,7 @@
     },
     "RETITE_2003_02_Colladetes Perelló": {
       "status": "yellow",
-      "isNight": false,
+      "isNight": true,
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
@@ -523,13 +553,13 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 15,
+          "hour_ok_streak": 17,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 19,
+          "hour_ok_streak": 12,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -553,13 +583,13 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 16,
+          "hour_ok_streak": 9,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 5,
+          "hour_ok_streak": 8,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -583,13 +613,13 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 11,
+          "hour_ok_streak": 10,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 6,
+          "hour_ok_streak": 8,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -613,19 +643,19 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 10,
+          "hour_ok_streak": 15,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
+          "hour_ok_streak_is_night": true
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 15,
+          "hour_ok_streak": 17,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 12,
+          "hour_ok_streak": 19,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         }
@@ -649,13 +679,13 @@
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 10,
+          "hour_ok_streak": 12,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 4,
+          "hour_ok_streak": 7,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         }
@@ -673,13 +703,13 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 9,
+          "hour_ok_streak": 11,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 7,
+          "hour_ok_streak": 8,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -709,7 +739,7 @@
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 7,
+          "hour_ok_streak": 3,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -722,7 +752,7 @@
       }
     },
     "REMN_2020_01_Agora_Parc": {
-      "status": "red",
+      "status": "yellow",
       "isNight": false,
       "streaksByModel": {
         "icon_eu": {
@@ -733,13 +763,13 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 4,
+          "hour_ok_streak": 6,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 6,
+          "hour_ok_streak": 7,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -769,15 +799,15 @@
         },
         "gfs_seamless": {
           "match_streak": 0,
-          "hour_ok_streak": 19,
+          "hour_ok_streak": 15,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 1,
+          "hour_ok_streak": 0,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": true
+          "hour_ok_streak_is_night": false
         }
       }
     }
