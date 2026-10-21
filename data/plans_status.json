@@ -1,5 +1,5 @@
 {
-  "generat": "2026-10-21T13:00:21Z",
+  "generat": "2026-10-21T16:00:22Z",
   "plans": {
     "REC_2019_10_La Traveria - Obertes - Garriga": {
       "status": "yellow",
@@ -37,7 +37,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 13,
+          "hour_ok_streak": 12,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         },
@@ -61,45 +61,15 @@
         }
       }
     },
-    "REC_2023_02_Pi negre Coll de Port": {
-      "status": "yellow",
-      "isNight": false,
-      "streaksByModel": {
-        "icon_eu": {
-          "match_streak": 0,
-          "hour_ok_streak": 33,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        },
-        "ecmwf_ifs": {
-          "match_streak": 0,
-          "hour_ok_streak": 14,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        },
-        "gfs_seamless": {
-          "match_streak": 0,
-          "hour_ok_streak": 9,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        },
-        "arome_france": {
-          "match_streak": 0,
-          "hour_ok_streak": 22,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": true
-        }
-      }
-    },
     "REC_2023_03_Pi negre Estivella": {
       "status": "yellow",
       "isNight": false,
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 33,
+          "hour_ok_streak": 26,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
+          "hour_ok_streak_is_night": true
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -127,9 +97,9 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 33,
+          "hour_ok_streak": 26,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
+          "hour_ok_streak_is_night": true
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -157,7 +127,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 10,
+          "hour_ok_streak": 11,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -187,7 +157,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 7,
+          "hour_ok_streak": 20,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -217,7 +187,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 7,
+          "hour_ok_streak": 20,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -247,7 +217,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 9,
+          "hour_ok_streak": 11,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -307,7 +277,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 7,
+          "hour_ok_streak": 8,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -337,7 +307,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 7,
+          "hour_ok_streak": 17,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -367,7 +337,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 11,
+          "hour_ok_streak": 14,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -392,12 +362,12 @@
       }
     },
     "REG_2008_02_Mas Fumats": {
-      "status": "red",
+      "status": "yellow",
       "isNight": false,
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 3,
+          "hour_ok_streak": 5,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -423,13 +393,13 @@
     },
     "REG_2016_01_Coll de Banyuls_II": {
       "status": "yellow",
-      "isNight": true,
+      "isNight": false,
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 17,
+          "hour_ok_streak": 8,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": true
+          "hour_ok_streak_is_night": false
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -457,7 +427,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 9,
+          "hour_ok_streak": 16,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -517,7 +487,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 9,
+          "hour_ok_streak": 19,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         },
@@ -577,7 +547,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 5,
+          "hour_ok_streak": 4,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -607,7 +577,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 6,
+          "hour_ok_streak": 8,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -637,9 +607,9 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 11,
+          "hour_ok_streak": 14,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": true
+          "hour_ok_streak_is_night": false
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -667,7 +637,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 14,
+          "hour_ok_streak": 16,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -757,7 +727,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 1,
+          "hour_ok_streak": 2,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -787,7 +757,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 9,
+          "hour_ok_streak": 11,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
