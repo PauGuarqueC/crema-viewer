@@ -405,6 +405,7 @@
           </div>
           <div class="legend" style="margin-top:6px;">
             <div><span class="sw" style="background:rgba(120,120,120,0.25);"></span>Llindar de la finestra</div>
+            <div><span style="display:inline-block;width:16px;border-top:2px dashed rgba(70,70,68,0.85);margin-right:5px;vertical-align:middle;"></span>Valor desitjat</div>
             <div><span class="sw" style="background:rgba(46,125,70,0.35);"></span>Dins de finestra</div>
             <div><span class="sw" style="background:rgba(184,134,11,0.35);"></span>Hora OK, context no</div>
           </div>
@@ -1016,8 +1017,20 @@ async function findPlanCentroid(idPla){
   return [sumLat / n, sumLon / n];
 }
 
+// Valors "desitjats" del pla (nomes informatius: linia discontínua als grafics).
+// Vent en m/s. null si el pla no els defineix, o si estem a "Consulta oberta".
+let planDesired = null;
+
 function applyPlanToForm(p){
   const f = p.finestra || {};
+  const numOrNull_ = v => (v === null || v === undefined || v === '' || isNaN(Number(v))) ? null : Number(v);
+  const ventDes = numOrNull_(f.vent_kmh && f.vent_kmh.desitjat);
+  planDesired = {
+    temp: numOrNull_(f.temp && f.temp.desitjat),
+    hr:   numOrNull_(f.hr && f.hr.desitjat),
+    wind: ventDes === null ? null : ventDes / 3.6,
+    fmc:  numOrNull_(f.fmc1h && f.fmc1h.desitjat),
+  };
   // 'baix' i 'alt' no sempre estan en ordre numeric ascendent (p.ex. a la HR,
   // menys humitat = mes risc, aixi que "Alt" pot tenir un valor mes petit que "Baix").
   // Sempre agafem el minim/maxim REAL dels dos valors, no assumim quin es quin.
@@ -1587,6 +1600,16 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
     });
   }
 
+  // Linia del valor desitjat (nomes si el pla el defineix). El nom comença per
+  // 'Llindar' perque el tooltip propi ja ignora aquests datasets.
+  if(threshold && isFinite_(threshold.des)){
+    datasets.push({
+      label: 'Llindar desitjat', data: labels.map(() => threshold.des),
+      borderColor: 'rgba(70,70,68,0.85)', borderWidth: 1.5, borderDash: [6, 4],
+      pointRadius: 0, fill: false, spanGaps: true, order: 5,
+    });
+  }
+
   datasets.push({
     label: 'Observat', data: obsValues,
     borderColor: '#2b2b2b', borderWidth: 2, pointRadius: 0, tension: 0.15, spanGaps: false, order: 1,
@@ -1715,6 +1738,7 @@ function updateComparisonCharts(results){
   let todayIndex = labels.indexOf(fcTimes[0]);
   if(todayIndex === -1) todayIndex = obsTimes.length; // fallback poc probable (desajust d'arrodoniment)
   const plan = readPlan();
+  const des = (activeTab === 'plans' && planDesired) ? planDesired : {};
 
   // Estat de cada hora (verd=dins de pla, groc=hora OK pero context no) segons
   // la mateixa avaluacio que ja es fa servir per la franja horaria de dalt.
@@ -1732,10 +1756,10 @@ function updateComparisonCharts(results){
       [m.id, alignToLabels(fcTimes, modelsForecastData.models[m.id][field], labels)]));
 
     renderComparisonChart('chart-temp', labels, todayIndex, alignObs('temp'), alignModels('temp'),
-      { min: plan.tempMin, max: plan.tempMax }, undefined, undefined, matchStatuses);
+      { min: plan.tempMin, max: plan.tempMax, des: des.temp }, undefined, undefined, matchStatuses);
 
     renderComparisonChart('chart-hr', labels, todayIndex, alignObs('hr'), alignModels('hr'),
-      { min: plan.hrMin, max: plan.hrMax }, { min: 0, max: 100 }, undefined, matchStatuses);
+      { min: plan.hrMin, max: plan.hrMax, des: des.hr }, { min: 0, max: 100 }, undefined, matchStatuses);
 
     // Direccio del vent: nomes UNA serie (no els 4 models), per no saturar de
     // fletxes -- observat (mitjana regional vectorial) + previsio del model
@@ -1747,7 +1771,7 @@ function updateComparisonCharts(results){
     const windDirs = labels.map((_, i) => obsDirAligned[i] !== null ? obsDirAligned[i] : fcDirAligned[i]);
 
     renderComparisonChart('chart-wind', labels, todayIndex, alignObs('wind'), alignModels('wind'),
-      { min: 0, max: plan.windMax }, undefined, undefined, matchStatuses, windDirs);
+      { min: 0, max: plan.windMax, des: des.wind }, undefined, undefined, matchStatuses, windDirs);
 
     // FMC1h per model: reaprofita buildCombinedSeries (obs + previsio d'un sol
     // model) NOMES per calcular be l'FMC1h amb continuitat real -- pero es
@@ -1778,7 +1802,7 @@ function updateComparisonCharts(results){
 
     renderComparisonChart('chart-fmc', labels, todayIndex, obsFmcAligned,
       fmcByModel,
-      { min: plan.fmcMin, max: plan.fmcMax }, undefined, precipValues, matchStatuses);
+      { min: plan.fmcMin, max: plan.fmcMax, des: des.fmc }, undefined, precipValues, matchStatuses);
 
     statusEl.textContent = '';
     wrap.style.display = 'block';
