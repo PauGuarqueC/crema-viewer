@@ -1605,7 +1605,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
   if(threshold && isFinite_(threshold.des)){
     datasets.push({
       label: 'Llindar desitjat', data: labels.map(() => threshold.des),
-      borderColor: 'rgba(70,70,68,0.85)', borderWidth: 1.5, borderDash: [6, 4],
+      borderColor: 'rgba(70,70,68,0.85)', borderWidth: 1, borderDash: [6, 4],
       pointRadius: 0, fill: false, spanGaps: true, order: 5,
     });
   }
