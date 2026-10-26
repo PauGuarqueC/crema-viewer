@@ -796,19 +796,19 @@
       "utm_zone": 31,
       "finestra": {
         "temp": {
-          "baix": null,
-          "desitjat": null,
-          "alt": null
+          "baix": 0,
+          "desitjat": 20,
+          "alt": 35
         },
         "hr": {
-          "baix": null,
-          "desitjat": null,
-          "alt": null
+          "baix": 30,
+          "desitjat": 50,
+          "alt": 80
         },
         "vent_kmh": {
-          "baix": null,
-          "desitjat": null,
-          "alt": null
+          "baix": 0,
+          "desitjat": 5,
+          "alt": 25
         },
         "fmc1h": {
           "baix": null,
@@ -830,7 +830,7 @@
         "dia_p1": {
           "tmax": null,
           "hrmin": null,
-          "vent_kmh_max": null
+          "vent_kmh_max": 50
         }
       }
     },
