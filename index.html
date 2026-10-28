@@ -114,6 +114,9 @@
     color: var(--charcoal); font-family: var(--font-mono); font-size: 13px; padding: 6px 8px; width: 100%;
   }
   .field input:focus { outline: none; border-color: var(--red); }
+  .field input:disabled { background: #efefed; color: #8a8a86; cursor: not-allowed; }
+  .lock-note { display: none; font-size: 11px; color: var(--text-dim); margin-top: 8px; }
+  .locked-panel .lock-note { display: block; }
   .field.full { grid-column: 1 / -1; }
 
   select {
@@ -442,6 +445,7 @@
 
       <details class="block" id="details-llindars">
         <summary class="block-title">Pla de crema — llindars</summary>
+        <div class="lock-note">🔒 Bloquejat: per canviar-ho, usa el botó "Editar PdC".</div>
         <div class="plan-form" style="margin-top:10px;">
           <div class="field"><label>Temp. mín (°C)</label><input type="number" id="plan-temp-min" value="10" step="1"></div>
           <div class="field"><label>Temp. màx (°C)</label><input type="number" id="plan-temp-max" value="22" step="1"></div>
@@ -455,6 +459,7 @@
 
       <details class="block" id="details-marc">
         <summary class="block-title">Finestra marc (dia -1 / 0 / +1)</summary>
+        <div class="lock-note">🔒 Bloquejat: per canviar-ho, usa el botó "Editar PdC".</div>
         <div class="plan-form cols-3" style="margin-top:10px;">
           <div class="field"><label>T màx dia -1 (°C)</label><input type="number" id="marc-tmax-m1" placeholder="sense límit"></div>
           <div class="field"><label>HR mín dia -1 (%)</label><input type="number" id="marc-hrmin-m1" value="40"></div>
@@ -2242,6 +2247,19 @@ function reorderContentPanels(tab){
   order.forEach(el => content.appendChild(el));
 }
 
+// A la pestanya de plans els llindars i la finestra marc venen del pla guardat:
+// queden bloquejats i nomes es poden canviar amb el boto "Editar PdC". A
+// "Consulta oberta" son editables (no hi ha cap pla al darrere).
+// (El bloc "Context dies previs" no forma part del pla: continua editable.)
+function updateThresholdLock(){
+  const locked = activeTab === 'plans';
+  ['details-llindars', 'details-marc'].forEach(id => {
+    const panel = document.getElementById(id);
+    panel.classList.toggle('locked-panel', locked);
+    panel.querySelectorAll('input').forEach(i => { i.disabled = locked; });
+  });
+}
+
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -2252,6 +2270,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
     activeTab = btn.dataset.tab;
     document.getElementById('map').classList.toggle('locked', activeTab !== 'manual');
+    updateThresholdLock();
 
     // "Cremes registrades" no usa els panells de previsio (#content): s'amaguen
     // i es recorda si eren visibles per restaurar-los en tornar.
@@ -2264,6 +2283,12 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     }
     if(contentEl.dataset.wasVisible === '1'){ contentEl.style.display = 'block'; delete contentEl.dataset.wasVisible; }
     reorderContentPanels(activeTab);
+    // En tornar a "Plans" els llindars estan bloquejats: cal que mostrin els
+    // del pla seleccionat, no els valors editats a mà a "Consulta oberta".
+    if(activeTab === 'plans'){
+      const p = plansData.find(x => x.id_pla === document.getElementById('plan-picker').value);
+      if(p){ applyPlanToForm(p); recomputeAndRender(); }
+    }
 
     // A "Consulta oberta" els llindars cal editar-los -> els desplega automaticament
     if(btn.dataset.tab === 'manual'){
@@ -2353,6 +2378,7 @@ document.getElementById('registre-filter').addEventListener('input', () => { if(
 document.getElementById('registre-refresh').addEventListener('click', () => loadRegistre(true));
 
 document.getElementById('map').classList.add('locked'); // pestanya "Plans" activa per defecte en carregar
+updateThresholdLock();
 
 // ---------- Radi configurable ----------
 function onRadiusChange(newRadius){
