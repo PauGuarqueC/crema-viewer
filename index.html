@@ -60,6 +60,16 @@
     font-family: var(--font-ui); font-size: 12.5px; font-weight: 500; color: var(--text-dim); cursor: pointer;
   }
   .tab-btn.active { background: var(--panel); color: var(--charcoal); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .registre-btn { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 5px; padding: 6px 10px; font-family: var(--font-ui); font-size: 12px; color: var(--charcoal); cursor: pointer; }
+  .registre-btn:hover { background: #f1f1ef; }
+  .registre-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .registre-table th { text-align: left; font-weight: 600; color: var(--text-dim); font-size: 11px; padding: 5px 6px; border-bottom: 1px solid var(--panel-border); }
+  .registre-table td { padding: 6px; border-bottom: 1px solid #eee; vertical-align: top; }
+  .registre-table tr.clickable { cursor: pointer; }
+  .registre-table tr.clickable:hover td { background: #f6f5f2; }
+  .registre-table .sub { color: var(--text-dim); font-size: 10.5px; }
+  .registre-ok { color: var(--green); font-weight: 600; }
+  .registre-pend { color: #b8860b; font-weight: 600; }
   .tab-pane { margin-bottom: 4px; }
 
   .station-icon { background: transparent; border: none; }
@@ -256,6 +266,7 @@
     <div class="tab-bar">
       <button class="tab-btn active" id="tab-btn-plans" data-tab="plans">Plans de crema actius</button>
       <button class="tab-btn" id="tab-btn-manual" data-tab="manual">Consulta oberta</button>
+      <button class="tab-btn" id="tab-btn-registre" data-tab="registre">Cremes registrades</button>
     </div>
 
     <div id="global-error" class="block" style="display:none;border-color:var(--red);"></div>
@@ -337,6 +348,20 @@
       </div>
     </div>
 
+    <div id="tab-registre-pane" class="tab-pane" style="display:none;">
+      <div class="block">
+        <div class="block-title">Cremes registrades</div>
+        <div class="stat-note" style="margin-bottom:10px;">Cremes marcades amb el botó "Avui s'ha cremat aquí". Clica una fila per anar al pla.</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input type="text" id="registre-filter" placeholder="Filtra per pla o nom…" style="flex:1;min-width:0;padding:7px 9px;border:1px solid var(--panel-border);border-radius:5px;font-family:var(--font-ui);font-size:12.5px;">
+          <button id="registre-refresh" class="registre-btn" title="Torna a carregar el registre">Actualitza</button>
+          <button id="registre-csv" class="registre-btn" title="Descarrega la llista en CSV">CSV</button>
+        </div>
+        <div id="registre-summary" class="stat-note" style="margin-bottom:8px;"></div>
+        <div id="registre-table-wrap"></div>
+      </div>
+    </div>
+
     <div id="tab-manual-pane" class="tab-pane" style="display:none;">
       <div class="block">
         Clica un punt qualsevol al mapa per consultar-lo manualment. Podràs editar tu mateix tots els llindars i la finestra marc més avall.
@@ -395,6 +420,10 @@
           <div class="chart-block">
             <div class="chart-title">FMC 1h (%) + Precipitació (mm)</div>
             <div class="chart-canvas-wrap"><canvas id="chart-fmc"></canvas></div>
+          </div>
+          <div class="chart-block" id="chart-ros-block" style="display:none;">
+            <div class="chart-title" id="chart-ros-title">ROS (km/h)</div>
+            <div class="chart-canvas-wrap"><canvas id="chart-ros"></canvas></div>
           </div>
           <div class="legend" style="margin-top:2px;">
             <div><span class="sw" style="background:#2b2b2b;"></span>Observat</div>
@@ -1323,7 +1352,7 @@ async function loadModelsForecast(latlon){
 let chartInstances = {};
 
 // ---------- Linia vertical sincronitzada entre els 4 grafics comparatius ----------
-const CHART_IDS = ['chart-temp', 'chart-hr', 'chart-wind', 'chart-fmc'];
+const CHART_IDS = ['chart-temp', 'chart-hr', 'chart-wind', 'chart-fmc', 'chart-ros'];
 let syncIndex = null;
 
 const crosshairPlugin = {
@@ -1605,7 +1634,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
   if(threshold && isFinite_(threshold.des)){
     datasets.push({
       label: 'Llindar desitjat', data: labels.map(() => threshold.des),
-      borderColor: 'rgba(70,70,68,0.85)', borderWidth: 1, borderDash: [6, 4],
+      borderColor: 'rgba(70,70,68,0.85)', borderWidth: 1.5, borderDash: [6, 4],
       pointRadius: 0, fill: false, spanGaps: true, order: 5,
     });
   }
@@ -1713,6 +1742,60 @@ function alignToLabels(sourceTimes, sourceValues, labels){
   return labels.map(t => (t in map) ? map[t] : null);
 }
 
+// ---------- ROS (Rothermel), precalculat per pla a labfire (data/plans_ros.json) ----------
+// Nomes per a plans (a "Consulta oberta" no hi ha ROS: el calcul usa llibreries
+// Python -- nfdrs4 i pyrothermel -- que no corren al navegador).
+const PLANS_ROS_URL = "data/plans_ros.json";
+let plansRosData = null, plansRosFetchedAt = 0, plansRosPromise = null;
+function loadPlansRos(){
+  const stale = Date.now() - plansRosFetchedAt > 30 * 60 * 1000;
+  if(!plansRosPromise || stale){
+    plansRosFetchedAt = Date.now();
+    plansRosPromise = fetch(PLANS_ROS_URL, { cache: 'no-cache' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { plansRosData = d; return d; })
+      .catch(() => null);
+  }
+  return plansRosPromise;
+}
+function hideRosChart(){
+  const block = document.getElementById('chart-ros-block');
+  if(block) block.style.display = 'none';
+  if(chartInstances['chart-ros']){ chartInstances['chart-ros'].destroy(); delete chartInstances['chart-ros']; }
+}
+async function updateRosChart(labels, todayIndex, matchStatuses){
+  const picker = document.getElementById('plan-picker');
+  const planId = picker ? picker.value : '';
+  if(activeTab !== 'plans' || !planId){ hideRosChart(); return; }
+  const data = await loadPlansRos();
+  // Pot haver canviat de pla o de pestanya mentre es descarregava el fitxer
+  if(activeTab !== 'plans' || picker.value !== planId) return;
+  const entry = data && data.plans && data.plans[planId];
+  if(!entry){ hideRosChart(); return; }
+
+  const comb = entry.combustible || {};
+  let titol = 'ROS (km/h)';
+  if(comb.nom){
+    const detall = comb.origen === 'manual'
+      ? 'manual'
+      : 'auto' + (typeof comb.fraccio === 'number' ? ', ' + Math.round(comb.fraccio * 100) + ' %' : '');
+    titol += ` — ${comb.nom} (${detall})`;
+  }
+  if(data.generat){
+    const ageH = (Date.now() - new Date(data.generat).getTime()) / 3600000;
+    if(ageH > 12) titol += ` ⚠ dades de fa ${Math.round(ageH)} h`;
+  }
+  document.getElementById('chart-ros-title').textContent = titol;
+
+  // El bloc ha de ser visible ABANS de crear el grafic (si no, Chart.js mesura 0 px)
+  document.getElementById('chart-ros-block').style.display = 'block';
+  const obs = alignToLabels(entry.time, entry.obs, labels);
+  const models = Object.fromEntries(COMPARISON_MODELS.map(m =>
+    [m.id, alignToLabels(entry.time, (entry.models && entry.models[m.id]) || [], labels)]));
+  renderComparisonChart('chart-ros', labels, todayIndex, obs, models,
+    null, { min: 0, max: undefined }, undefined, matchStatuses);
+}
+
 function updateComparisonCharts(results){
   if(!modelsForecastData || !nearbyStationsCache) return;
   const wrap = document.getElementById('charts-wrap');
@@ -1806,6 +1889,7 @@ function updateComparisonCharts(results){
 
     statusEl.textContent = '';
     wrap.style.display = 'block';
+    updateRosChart(labels, todayIndex, matchStatuses).catch(err => { console.error('ROS:', err); hideRosChart(); });
   }catch(err){
     console.error('Error construint els grafics:', err);
     statusEl.textContent = 'Error construint els gràfics: ' + err.message;
@@ -2165,9 +2249,21 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('tab-plans-pane').style.display = btn.dataset.tab === 'plans' ? 'block' : 'none';
     document.getElementById('tab-manual-pane').style.display = btn.dataset.tab === 'manual' ? 'block' : 'none';
+    document.getElementById('tab-registre-pane').style.display = btn.dataset.tab === 'registre' ? 'block' : 'none';
 
     activeTab = btn.dataset.tab;
     document.getElementById('map').classList.toggle('locked', activeTab !== 'manual');
+
+    // "Cremes registrades" no usa els panells de previsio (#content): s'amaguen
+    // i es recorda si eren visibles per restaurar-los en tornar.
+    const contentEl = document.getElementById('content');
+    if(activeTab === 'registre'){
+      if(contentEl.style.display !== 'none') contentEl.dataset.wasVisible = '1';
+      contentEl.style.display = 'none';
+      loadRegistre(false);
+      return;
+    }
+    if(contentEl.dataset.wasVisible === '1'){ contentEl.style.display = 'block'; delete contentEl.dataset.wasVisible; }
     reorderContentPanels(activeTab);
 
     // A "Consulta oberta" els llindars cal editar-los -> els desplega automaticament
@@ -2178,6 +2274,98 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     }
   });
 });
+// ---------- Pestanya "Cremes registrades" ----------
+// Llista de control de les cremes marcades (data/cremes_realitzades.json).
+let registreData = null;       // array de cremes, o null si encara no s'ha carregat
+let registreLoadedAt = 0;
+function escHtml(t){
+  return String(t === null || t === undefined ? '' : t).replace(/[&<>"']/g,
+    c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtDataCrema(iso){ // 'YYYY-MM-DD' -> 'DD/MM/YYYY'
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : (iso || '');
+}
+function fmtMarcatEl(iso){ // ISO UTC -> 'DD/MM HH:MM' en hora local
+  const d = new Date(iso);
+  if(isNaN(d)) return '';
+  const p = n => String(n).padStart(2, '0');
+  return `${p(d.getDate())}/${p(d.getMonth()+1)} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+async function loadRegistre(force){
+  const wrap = document.getElementById('registre-table-wrap');
+  const summary = document.getElementById('registre-summary');
+  if(!force && registreData && Date.now() - registreLoadedAt < 60 * 1000){ renderRegistre(); return; }
+  summary.textContent = 'Carregant…';
+  try{
+    // El paràmetre únic evita que el navegador (o la CDN) serveixi una còpia antiga
+    const res = await fetch(`data/cremes_realitzades.json?t=${Date.now()}`, { cache: 'no-store' });
+    if(res.status === 404){ registreData = []; }
+    else{
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const d = await res.json();
+      registreData = Array.isArray(d.cremes) ? d.cremes : [];
+    }
+    registreLoadedAt = Date.now();
+    renderRegistre();
+  }catch(err){
+    summary.textContent = '';
+    wrap.innerHTML = `<div class="stat-note" style="color:var(--red);">No s'ha pogut carregar el registre (${escHtml(err.message)}).</div>`;
+  }
+}
+function registreRowsFiltered(){
+  const q = (document.getElementById('registre-filter').value || '').trim().toLowerCase();
+  const rows = (registreData || []).slice().sort((a, b) =>
+    String(b.data_crema).localeCompare(String(a.data_crema)) || String(b.marcat_el).localeCompare(String(a.marcat_el)));
+  return q ? rows.filter(c => `${c.id_pla} ${c.nom}`.toLowerCase().includes(q)) : rows;
+}
+function renderRegistre(){
+  const wrap = document.getElementById('registre-table-wrap');
+  const summary = document.getElementById('registre-summary');
+  const all = registreData || [];
+  const rows = registreRowsFiltered();
+  const nPend = all.filter(c => !c.observat_complet).length;
+  const nPlans = new Set(all.map(c => c.id_pla)).size;
+  summary.textContent = all.length === 0
+    ? 'Encara no hi ha cap crema registrada.'
+    : `${all.length} ${all.length === 1 ? 'crema registrada' : 'cremes registrades'} en ${nPlans} ${nPlans === 1 ? 'pla' : 'plans'}` +
+      (nPend ? ` · ${nPend} amb dades observades pendents de completar` : '') +
+      (rows.length !== all.length ? ` · mostrant ${rows.length}` : '');
+  if(rows.length === 0){ wrap.innerHTML = ''; return; }
+  const known = new Set((plansData || []).map(p => p.id_pla));
+  const body = rows.map(c => {
+    const clickable = known.has(c.id_pla);
+    const estat = c.observat_complet
+      ? '<span class="registre-ok">✓ Completa</span>'
+      : '<span class="registre-pend" title="El dia 0 es completa automàticament passats 2 dies">⏳ Pendent</span>';
+    return `<tr class="${clickable ? 'clickable' : ''}" data-id="${escHtml(c.id_pla)}">` +
+      `<td>${escHtml(fmtDataCrema(c.data_crema))}</td>` +
+      `<td>${escHtml(c.nom || c.id_pla)}<div class="sub">${escHtml(c.id_pla)}${clickable ? '' : ' · pla ja no existeix'}</div></td>` +
+      `<td>${escHtml(fmtMarcatEl(c.marcat_el))}</td>` +
+      `<td>${estat}</td></tr>`;
+  }).join('');
+  wrap.innerHTML = `<table class="registre-table"><thead><tr><th>Data</th><th>Pla</th><th>Marcada</th><th>Observat</th></tr></thead><tbody>${body}</tbody></table>`;
+  wrap.querySelectorAll('tr.clickable').forEach(tr => tr.addEventListener('click', () => {
+    document.getElementById('tab-btn-plans').click();
+    selectPlanById(tr.dataset.id);
+  }));
+}
+function downloadRegistreCsv(){
+  const rows = registreRowsFiltered();
+  const q = v => { const t = String(v === null || v === undefined ? '' : v); return /[",;\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const head = ['id_pla', 'nom', 'data_crema', 'marcat_el', 'observat_complet', 'lat', 'lon'];
+  const lines = [head.join(',')].concat(rows.map(c => head.map(h => q(c[h])).join(',')));
+  const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'cremes_registrades.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+document.getElementById('registre-filter').addEventListener('input', () => { if(registreData) renderRegistre(); });
+document.getElementById('registre-refresh').addEventListener('click', () => loadRegistre(true));
+document.getElementById('registre-csv').addEventListener('click', downloadRegistreCsv);
+
 document.getElementById('map').classList.add('locked'); // pestanya "Plans" activa per defecte en carregar
 
 // ---------- Radi configurable ----------
