@@ -781,7 +781,7 @@
         "dia_p1": {
           "tmax": 25,
           "hrmin": 60,
-          "vent_kmh_max": 30
+          "vent_kmh_max": 25
         }
       }
     },
