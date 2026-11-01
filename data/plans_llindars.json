@@ -757,9 +757,9 @@
           "alt": 35
         },
         "vent_kmh": {
-          "baix": 10,
+          "baix": 18,
           "desitjat": null,
-          "alt": 25
+          "alt": 30
         },
         "fmc1h": {
           "baix": null,
@@ -775,12 +775,12 @@
         },
         "dia_0": {
           "tmax": 30,
-          "hrmin": 55,
+          "hrmin": 70,
           "vent_kmh_max": 30
         },
         "dia_p1": {
           "tmax": 25,
-          "hrmin": 50,
+          "hrmin": 45,
           "vent_kmh_max": 30
         }
       }
