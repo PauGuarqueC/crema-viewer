@@ -752,12 +752,12 @@
           "alt": 30
         },
         "hr": {
-          "baix": 35,
+          "baix": 70,
           "desitjat": null,
-          "alt": 70
+          "alt": 35
         },
         "vent_kmh": {
-          "baix": 0,
+          "baix": 10,
           "desitjat": null,
           "alt": 25
         },
