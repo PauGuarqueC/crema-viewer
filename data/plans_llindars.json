@@ -759,7 +759,7 @@
         "vent_kmh": {
           "baix": 18,
           "desitjat": null,
-          "alt": 30
+          "alt": 25
         },
         "fmc1h": {
           "baix": null,
@@ -775,8 +775,8 @@
         },
         "dia_0": {
           "tmax": 30,
-          "hrmin": 70,
-          "vent_kmh_max": 30
+          "hrmin": 55,
+          "vent_kmh_max": 25
         },
         "dia_p1": {
           "tmax": 25,
