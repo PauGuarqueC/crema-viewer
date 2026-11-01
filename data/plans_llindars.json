@@ -769,12 +769,12 @@
       },
       "marc": {
         "dia_m1": {
-          "tmax": 0,
-          "hrmin": null,
-          "vent_kmh_max": null
+          "tmax": 30,
+          "hrmin": 45,
+          "vent_kmh_max": 66
         },
         "dia_0": {
-          "tmax": 25,
+          "tmax": 30,
           "hrmin": 55,
           "vent_kmh_max": 30
         },
