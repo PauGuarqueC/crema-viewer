@@ -754,7 +754,7 @@
         "hr": {
           "baix": 70,
           "desitjat": null,
-          "alt": 35
+          "alt": 30
         },
         "vent_kmh": {
           "baix": 18,
@@ -775,12 +775,12 @@
         },
         "dia_0": {
           "tmax": 30,
-          "hrmin": 55,
+          "hrmin": 70,
           "vent_kmh_max": 30
         },
         "dia_p1": {
           "tmax": 25,
-          "hrmin": 50,
+          "hrmin": 60,
           "vent_kmh_max": 30
         }
       }
