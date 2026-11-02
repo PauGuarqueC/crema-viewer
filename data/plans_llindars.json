@@ -1379,8 +1379,8 @@
       "regio": "REMS",
       "lat": null,
       "lon": null,
-      "utm_x": 391.45,
-      "utm_y": 4.6038,
+      "utm_x": 39145,
+      "utm_y": 46038,
       "utm_zone": 31,
       "finestra": {
         "temp": {
