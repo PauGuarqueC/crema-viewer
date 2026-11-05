@@ -1,5 +1,5 @@
 {
-  "generat": "2026-11-05T19:00:15Z",
+  "generat": "2026-11-05T22:00:14Z",
   "plans": {
     "REC_2019_10_La Traveria - Obertes - Garriga": {
       "status": "yellow",
@@ -176,36 +176,6 @@
         "arome_france": {
           "match_streak": 0,
           "hour_ok_streak": 5,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        }
-      }
-    },
-    "REC_2023_09_Pujol Melós": {
-      "status": "yellow",
-      "isNight": false,
-      "streaksByModel": {
-        "icon_eu": {
-          "match_streak": 0,
-          "hour_ok_streak": 7,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        },
-        "ecmwf_ifs": {
-          "match_streak": 0,
-          "hour_ok_streak": 14,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        },
-        "gfs_seamless": {
-          "match_streak": 0,
-          "hour_ok_streak": 24,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": true
-        },
-        "arome_france": {
-          "match_streak": 0,
-          "hour_ok_streak": 7,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
