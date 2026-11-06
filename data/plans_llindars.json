@@ -1421,6 +1421,55 @@
           "vent_kmh_max": null
         }
       }
+    },
+    {
+      "id_pla": "REMS_2025_04_Bruguers",
+      "nom": "Bruguers",
+      "regio": "REMS",
+      "lat": null,
+      "lon": null,
+      "utm_x": 392024,
+      "utm_y": 4605075,
+      "utm_zone": 31,
+      "finestra": {
+        "temp": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "hr": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "vent_kmh": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        },
+        "fmc1h": {
+          "baix": null,
+          "desitjat": null,
+          "alt": null
+        }
+      },
+      "marc": {
+        "dia_m1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_0": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        },
+        "dia_p1": {
+          "tmax": null,
+          "hrmin": null,
+          "vent_kmh_max": null
+        }
+      }
     }
   ]
 }
