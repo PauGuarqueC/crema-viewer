@@ -1434,18 +1434,18 @@
       "finestra": {
         "temp": {
           "baix": null,
-          "desitjat": null,
-          "alt": null
+          "desitjat": 20,
+          "alt": 22
         },
         "hr": {
-          "baix": null,
-          "desitjat": null,
-          "alt": null
+          "baix": 70,
+          "desitjat": 50,
+          "alt": 38
         },
         "vent_kmh": {
-          "baix": null,
-          "desitjat": null,
-          "alt": null
+          "baix": 0,
+          "desitjat": 5,
+          "alt": 15
         },
         "fmc1h": {
           "baix": null,
@@ -1455,19 +1455,19 @@
       },
       "marc": {
         "dia_m1": {
-          "tmax": null,
-          "hrmin": null,
-          "vent_kmh_max": null
+          "tmax": 26,
+          "hrmin": 30,
+          "vent_kmh_max": 20
         },
         "dia_0": {
-          "tmax": null,
-          "hrmin": null,
-          "vent_kmh_max": null
+          "tmax": 20,
+          "hrmin": 50,
+          "vent_kmh_max": 5
         },
         "dia_p1": {
-          "tmax": null,
-          "hrmin": null,
-          "vent_kmh_max": null
+          "tmax": 18,
+          "hrmin": 80,
+          "vent_kmh_max": 0
         }
       }
     }
