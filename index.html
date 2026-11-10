@@ -71,6 +71,8 @@
   .stations-detail { font-size: 11px; color: var(--charcoal); margin: 2px 0 4px; }
   .stations-detail .st-dim { color: var(--text-dim); }
   .stations-detail .st-warn { color: #9a6700; margin-top: 3px; }
+  .stations-detail .st-alert { color: var(--red); font-weight: 600; margin-top: 3px; }
+  .registre-bad { color: var(--red); font-weight: 600; }
   .registre-ok { color: var(--green); font-weight: 600; }
   .registre-pend { color: #b8860b; font-weight: 600; }
   .tab-pane { margin-bottom: 4px; }
@@ -557,7 +559,7 @@ const MAX_STATIONS = 3;
 const SPREAD_KM = 5;
 const ALT_KM_PER_100M = 3;     // 0 = nomes distancia
 const DISP_TEMP_C = 4, DISP_HR_PCT = 20, DISP_WIND_MS = 3;
-const FAR_KM = 10;             // avis si ni la millor estacio es propera (distancia efectiva)
+const FAR_KM = 10, FAR_STRONG_KM = 15; // avis moderat / alt segons la distancia efectiva de la millor estacio
 
 // ---------- Map setup (light basemap, coherent amb onofre-viewer) ----------
 const isMobileViewport = window.innerWidth <= 820; // mateix trencament que el CSS responsiu
@@ -1163,8 +1165,23 @@ function findNearbyStations(latlon){
 
 // Quant discrepen entre si les estacions usades (nomes un avis, no canvia cap valor):
 // mediana de la diferencia max-min entre estacions, hora a hora.
+// "7,1 km, −281 m" (desnivell de l'estacio respecte al punt; sense desnivell si no es coneix l'altitud)
+function stationDetailText(b){
+  let t = `${b.dist_km.toString().replace('.', ',')} km`;
+  if(b.dalt_m !== null && b.dalt_m !== undefined){
+    t += `, ${b.dalt_m >= 0 ? '+' : '−'}${Math.abs(b.dalt_m)} m`;
+  }
+  return t;
+}
+
+// null (tot be) o {nivell:'moderada'|'alta', motiu:'distancia'|'desnivell'}
 function lowRepresentativity(info){
-  return info.length > 0 && info[0].d_ef_km > FAR_KM;
+  if(!info.length) return null;
+  const b = info[0];
+  if(b.d_ef_km <= FAR_KM) return null;
+  const daltKm = ALT_KM_PER_100M / 100 * Math.abs(b.dalt_m || 0);
+  return { nivell: b.d_ef_km > FAR_STRONG_KM ? 'alta' : 'moderada',
+           motiu: daltKm > b.dist_km ? 'desnivell' : 'distancia' };
 }
 
 function stationDispersion(codes, tFrom, tTo, lastHours){
@@ -2261,10 +2278,14 @@ function renderStationsDetail(){
       return `<div class="st-line">${escHtml(c.nom)} · ${c.dist_km.toString().replace('.', ',')} km${dz}</div>`;
     }).join('');
     if(pointAlt === null) html += '<div class="st-line st-dim">Altitud del punt no disponible: només es té en compte la distància.</div>';
-    if(lowRepresentativity(nearbyStationsInfo)){
-      html += `<div class="st-warn">⚠ Estació llunyana o a altitud molt diferent (${nearbyStationsInfo[0].dist_km.toString().replace('.', ',')} km` +
-        (nearbyStationsInfo[0].dalt_m === null ? '' : `, ${nearbyStationsInfo[0].dalt_m >= 0 ? '+' : '−'}${Math.abs(nearbyStationsInfo[0].dalt_m)} m`) +
-        `): observacions poc representatives.</div>`;
+    const rep = lowRepresentativity(nearbyStationsInfo);
+    if(rep){
+      const b = nearbyStationsInfo[0];
+      const det = stationDetailText(b);
+      const motiu = rep.motiu === 'desnivell' ? 'Pesa sobretot el desnivell.' : 'Pesa sobretot la distància.';
+      html += rep.nivell === 'alta'
+        ? `<div class="st-alert">⚠ Estació de referència molt allunyada: ${det}. ${motiu} Les observacions poden diferir bastant del punt.</div>`
+        : `<div class="st-warn">⚠ Estació de referència una mica allunyada: ${det}. ${motiu} Les observacions poden diferir lleugerament del punt.</div>`;
     }
     if(disp && disp.alta){
       const parts = [];
@@ -2416,8 +2437,14 @@ function estacionsCell(c){
     if(d.variables.includes('vent')) p.push(`vent ±${d.vent} m/s`);
     warn = ` <span class="registre-pend" title="Les estacions discrepen: ${escHtml(p.join(', '))}">⚠</span>`;
   }
-  if(c.representativitat_baixa){
-    warn += ' <span class="registre-pend" title="Estació llunyana o a altitud molt diferent: observacions poc representatives">⚠ lluny</span>';
+  const rep = c.representativitat;
+  if(rep){
+    const m = rep.motiu === 'desnivell' ? 'Pesa sobretot el desnivell.' : 'Pesa sobretot la distància.';
+    const b = ests[0];
+    const det = b ? stationDetailText(b) + '. ' : '';
+    warn += rep.nivell === 'alta'
+      ? ` <span class="registre-bad" title="${escHtml('Estació de referència molt allunyada: ' + det + m + ' Les observacions poden diferir bastant del punt.')}">⚠ molt lluny</span>`
+      : ` <span class="registre-pend" title="${escHtml('Estació de referència una mica allunyada: ' + det + m)}">⚠ lluny</span>`;
   }
   return `<span title="${escHtml(tip)}">${ests.length} est. · ${near} km</span>${warn}`;
 }
@@ -2808,7 +2835,7 @@ document.getElementById('btn-mark-burn').addEventListener('click', async () => {
     humitat_5d: humitatResum5d,          // HR nocturna 2-6h, HR minima, i punt de rosada mitja -- ultims 5 dies
     estacions_usades: nearbyStationsInfo, // estacions que han fet la mitjana (nom, distancia, desnivell)
     dispersio: stationDispersion(nearbyStationsCache, `${yesterday}T00:00`, `${today}T23:59`), // discrepancia entre estacions
-    representativitat_baixa: lowRepresentativity(nearbyStationsInfo), // millor estacio llunyana / altitud molt diferent
+    representativitat: lowRepresentativity(nearbyStationsInfo), // null | {nivell, motiu}: millor estacio llunyana / altitud molt diferent
   };
 
   fetch(WORKER_URL, {

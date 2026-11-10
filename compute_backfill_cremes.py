@@ -130,7 +130,7 @@ def main():
 
         c["observat"] = hores
         c["estacions_usades"] = sel
-        c["representativitat_baixa"] = cps.low_representativity(sel)
+        c["representativitat"] = cps.low_representativity(sel)
         c["dispersio"] = cps.station_dispersion(
             nearby, font, t_from=dia_m1, t_to=c["data_crema"] + "T23:59")
         c["observat_complet"] = True
