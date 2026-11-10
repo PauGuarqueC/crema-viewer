@@ -44,6 +44,8 @@ RADIUS_KM = 15
 MAX_STATIONS = 3          # maxim d'estacions que entren a la mitjana
 SPREAD_KM = 5.0           # entra tota estacio amb d_ef <= d_ef de la millor + aquest marge
 ALT_KM_PER_100M = 3.0     # cada 100 m de desnivell compten com 3 km de distancia (0 = nomes distancia)
+# Aviso de representativitat: la MILLOR estacio queda a mes d'aquesta distancia efectiva
+FAR_KM = 10.0
 # Aviso de dispersio: mediana (hores) de la diferencia max-min entre les estacions usades
 DISP_TEMP_C = 4.0
 DISP_HR_PCT = 20.0
@@ -161,6 +163,13 @@ def select_stations(lat, lon, obs_data, radius_km=RADIUS_KM, point_alt="auto"):
 def find_nearby_stations(lat, lon, obs_data, radius_km=RADIUS_KM, point_alt="auto"):
     """Codis de les estacions escollides (veure select_stations)."""
     return [c["code"] for c in select_stations(lat, lon, obs_data, radius_km, point_alt)]
+
+
+def low_representativity(sel):
+    """True si fins i tot la millor estacio escollida es llunyana o a una
+    altitud molt diferent (d_ef > FAR_KM). Cobreix el cas d'una sola estacio,
+    on l'aviso de dispersio no pot actuar."""
+    return bool(sel) and sel[0]["d_ef_km"] > FAR_KM
 
 
 def station_dispersion(codes, obs_data, t_from=None, t_to=None, last_hours=None):
@@ -671,7 +680,8 @@ def compute_plan_status(plan, obs_data):
         is_night = False
 
     return {"status": status, "isNight": is_night, "streaksByModel": streaks_by_model,
-            "estacions": sel, "dispersio": dispersio}
+            "estacions": sel, "dispersio": dispersio,
+            "representativitat_baixa": low_representativity(sel)}
 
 
 # ---------------------------------------------------------------------------

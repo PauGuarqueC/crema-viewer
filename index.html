@@ -561,6 +561,7 @@ const MAX_STATIONS = 3;
 const SPREAD_KM = 5;
 const ALT_KM_PER_100M = 3;     // 0 = nomes distancia
 const DISP_TEMP_C = 4, DISP_HR_PCT = 20, DISP_WIND_MS = 3;
+const FAR_KM = 10;             // avis si ni la millor estacio es propera (distancia efectiva)
 
 // ---------- Map setup (light basemap, coherent amb onofre-viewer) ----------
 const isMobileViewport = window.innerWidth <= 820; // mateix trencament que el CSS responsiu
@@ -1166,6 +1167,10 @@ function findNearbyStations(latlon){
 
 // Quant discrepen entre si les estacions usades (nomes un avis, no canvia cap valor):
 // mediana de la diferencia max-min entre estacions, hora a hora.
+function lowRepresentativity(info){
+  return info.length > 0 && info[0].d_ef_km > FAR_KM;
+}
+
 function stationDispersion(codes, tFrom, tTo, lastHours){
   if(codes.length < 2) return null;
   const byT = {};
@@ -2315,6 +2320,11 @@ function renderStationsDetail(){
       return `<div class="st-line">${escHtml(c.nom)} · ${c.dist_km.toString().replace('.', ',')} km${dz}</div>`;
     }).join('');
     if(pointAlt === null) html += '<div class="st-line st-dim">Altitud del punt no disponible: només es té en compte la distància.</div>';
+    if(lowRepresentativity(nearbyStationsInfo)){
+      html += `<div class="st-warn">⚠ Estació llunyana o a altitud molt diferent (${nearbyStationsInfo[0].dist_km.toString().replace('.', ',')} km` +
+        (nearbyStationsInfo[0].dalt_m === null ? '' : `, ${nearbyStationsInfo[0].dalt_m >= 0 ? '+' : '−'}${Math.abs(nearbyStationsInfo[0].dalt_m)} m`) +
+        `): observacions poc representatives.</div>`;
+    }
     if(disp && disp.alta){
       const parts = [];
       if(disp.variables.includes('temp')) parts.push(`T ±${disp.temp} °C`);
@@ -2464,6 +2474,9 @@ function estacionsCell(c){
     if(d.variables.includes('hr')) p.push(`HR ±${d.hr} %`);
     if(d.variables.includes('vent')) p.push(`vent ±${d.vent} m/s`);
     warn = ` <span class="registre-pend" title="Les estacions discrepen: ${escHtml(p.join(', '))}">⚠</span>`;
+  }
+  if(c.representativitat_baixa){
+    warn += ' <span class="registre-pend" title="Estació llunyana o a altitud molt diferent: observacions poc representatives">⚠ lluny</span>';
   }
   return `<span title="${escHtml(tip)}">${ests.length} est. · ${near} km</span>${warn}`;
 }
@@ -2854,6 +2867,7 @@ document.getElementById('btn-mark-burn').addEventListener('click', async () => {
     humitat_5d: humitatResum5d,          // HR nocturna 2-6h, HR minima, i punt de rosada mitja -- ultims 5 dies
     estacions_usades: nearbyStationsInfo, // estacions que han fet la mitjana (nom, distancia, desnivell)
     dispersio: stationDispersion(nearbyStationsCache, `${yesterday}T00:00`, `${today}T23:59`), // discrepancia entre estacions
+    representativitat_baixa: lowRepresentativity(nearbyStationsInfo), // millor estacio llunyana / altitud molt diferent
   };
 
   fetch(WORKER_URL, {
