@@ -439,6 +439,7 @@
           </div>
           <div class="legend" style="margin-top:6px;">
             <div><span class="sw" style="background:rgba(120,120,120,0.25);"></span>Llindar de la finestra</div>
+            <div><span class="sw" style="background:rgba(80,110,150,0.4);"></span>Rang entre estacions</div>
             <div><span style="display:inline-block;width:16px;border-top:2px dashed rgba(70,70,68,0.85);margin-right:5px;vertical-align:middle;"></span>Valor desitjat</div>
             <div><span class="sw" style="background:rgba(46,125,70,0.35);"></span>Dins de finestra</div>
             <div><span class="sw" style="background:rgba(184,134,11,0.35);"></span>Hora OK, context no</div>
@@ -1480,10 +1481,16 @@ const crosshairPlugin = {
     // de manera fiable des del gestor global de touchstart).
     const rows = [];
     for(const ds of chart.data.datasets){
-      if(!ds.label || ds.label.startsWith('Llindar')) continue;
+      if(!ds.label || ds.label.startsWith('Llindar') || ds.label.startsWith('Estacions')) continue;
       const v = ds.data[syncIndex];
       if(v === null || v === undefined || isNaN(v)) continue;
       rows.push({ label: ds.label, value: v, color: ds.borderColor || ds.backgroundColor });
+    }
+    const band = chart.$stationBand;
+    if(band && band.min[syncIndex] !== null && band.max[syncIndex] !== null &&
+       band.min[syncIndex] !== undefined && band.max[syncIndex] !== undefined){
+      rows.push({ label: 'Estacions', value: `${band.min[syncIndex].toFixed(1)} – ${band.max[syncIndex].toFixed(1)}`,
+                  color: 'rgba(80,110,150,0.7)' });
     }
     if(rows.length === 0) return;
 
@@ -1700,7 +1707,7 @@ document.addEventListener('touchstart', (e) => {
   if(!e.target.closest('.cell')) hideCellTooltip();
   if(!e.target.closest('canvas')) clearSyncIndex();
 }, { passive: true });
-function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues, matchStatuses, windDirs){
+function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues, matchStatuses, windDirs, obsBand){
   const ctx = document.getElementById(canvasId).getContext('2d');
   if(chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
@@ -1736,6 +1743,22 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
       label: 'Llindar desitjat', data: labels.map(() => threshold.des),
       borderColor: 'rgba(70,70,68,0.85)', borderWidth: 1.5, borderDash: [6, 4],
       pointRadius: 0, fill: false, spanGaps: true, order: 5,
+    });
+  }
+
+  // Ombrejat del rang entre les estacions usades (min-max, hora a hora): nomes
+  // al tram observat i nomes si n'hi ha 2 o mes. La linia 'Observat' continua
+  // sent la mitjana; l'ombra nomes serveix per veure quant discrepen.
+  // (Les dues series han d'anar seguides: 'fill: -1' omple cap a l'anterior.)
+  if(obsBand){
+    datasets.push({
+      label: 'Estacions màx', data: obsBand.max,
+      borderColor: 'transparent', borderWidth: 0, pointRadius: 0, fill: false, spanGaps: false, order: 11,
+    });
+    datasets.push({
+      label: 'Estacions mín', data: obsBand.min,
+      borderColor: 'transparent', borderWidth: 0, pointRadius: 0,
+      backgroundColor: 'rgba(80,110,150,0.28)', fill: '-1', spanGaps: false, order: 11,
     });
   }
 
@@ -1793,6 +1816,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
   if(hasPrecip) pluginList.push(precipAxisLabelPlugin);
   if(hasWindDir) pluginList.push(windDirPlugin);
 
+  const chartBand = obsBand || null;
   chartInstances[canvasId] = new Chart(ctx, {
     type: 'line',
     data: { labels, datasets },
@@ -1811,6 +1835,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
       scales,
     },
   });
+  chartInstances[canvasId].$stationBand = chartBand; // per al tooltip propi
 }
 
 // Construeix una graella horaria continua (sense salts) entre dues marques
@@ -1840,6 +1865,28 @@ function alignToLabels(sourceTimes, sourceValues, labels){
   const map = {};
   for(let i = 0; i < sourceTimes.length; i++) map[sourceTimes[i]] = sourceValues[i];
   return labels.map(t => (t in map) ? map[t] : null);
+}
+
+// Rang (min, max) entre les estacions usades, hora a hora, alineat amb 'labels'.
+// null si hi ha menys de 2 estacions, o a les hores amb menys de 2 valors.
+function stationBandSeries(codes, field, labels){
+  if(codes.length < 2) return null;
+  const mins = {}, maxs = {}, counts = {};
+  for(const code of codes){
+    const s = obsData.series[code];
+    if(!s || !s[field]) continue;
+    for(let i=0;i<s.t.length;i++){
+      const v = s[field][i];
+      if(v === null || v === undefined) continue;
+      const t = s.t[i];
+      counts[t] = (counts[t] || 0) + 1;
+      mins[t] = (t in mins) ? Math.min(mins[t], v) : v;
+      maxs[t] = (t in maxs) ? Math.max(maxs[t], v) : v;
+    }
+  }
+  const min = labels.map(t => (counts[t] >= 2 ? mins[t] : null));
+  const max = labels.map(t => (counts[t] >= 2 ? maxs[t] : null));
+  return max.some(v => v !== null) ? { min, max } : null;
 }
 
 function updateComparisonCharts(results){
@@ -1885,10 +1932,12 @@ function updateComparisonCharts(results){
       [m.id, alignToLabels(fcTimes, modelsForecastData.models[m.id][field], labels)]));
 
     renderComparisonChart('chart-temp', labels, todayIndex, alignObs('temp'), alignModels('temp'),
-      { min: plan.tempMin, max: plan.tempMax, des: des.temp }, undefined, undefined, matchStatuses);
+      { min: plan.tempMin, max: plan.tempMax, des: des.temp }, undefined, undefined, matchStatuses,
+      undefined, stationBandSeries(nearbyStationsCache, 'temp', labels));
 
     renderComparisonChart('chart-hr', labels, todayIndex, alignObs('hr'), alignModels('hr'),
-      { min: plan.hrMin, max: plan.hrMax, des: des.hr }, { min: 0, max: 100 }, undefined, matchStatuses);
+      { min: plan.hrMin, max: plan.hrMax, des: des.hr }, { min: 0, max: 100 }, undefined, matchStatuses,
+      undefined, stationBandSeries(nearbyStationsCache, 'hr', labels));
 
     // Direccio del vent: nomes UNA serie (no els 4 models), per no saturar de
     // fletxes -- observat (mitjana regional vectorial) + previsio del model
@@ -1900,7 +1949,8 @@ function updateComparisonCharts(results){
     const windDirs = labels.map((_, i) => obsDirAligned[i] !== null ? obsDirAligned[i] : fcDirAligned[i]);
 
     renderComparisonChart('chart-wind', labels, todayIndex, alignObs('wind'), alignModels('wind'),
-      { min: 0, max: plan.windMax, des: des.wind }, undefined, undefined, matchStatuses, windDirs);
+      { min: 0, max: plan.windMax, des: des.wind }, undefined, undefined, matchStatuses, windDirs,
+      stationBandSeries(nearbyStationsCache, 'vent', labels));
 
     // FMC1h per model: reaprofita buildCombinedSeries (obs + previsio d'un sol
     // model) NOMES per calcular be l'FMC1h amb continuitat real -- pero es
