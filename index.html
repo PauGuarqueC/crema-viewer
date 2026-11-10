@@ -1195,6 +1195,20 @@ function stationDetailText(b){
   return t;
 }
 
+// Text de l'avis de representativitat. Amb una sola estacio, parla d'aquesta; amb
+// diverses, com que la millor ja es lluny, totes ho son: l'avis es general.
+function repMessage(rep, info){
+  const b = info[0];
+  const det = stationDetailText(b);
+  const motiu = rep.motiu === 'desnivell' ? 'Pesa sobretot el desnivell.' : 'Pesa sobretot la distància.';
+  const alta = rep.nivell === 'alta';
+  const diff = alta ? 'poden diferir bastant del punt' : 'poden diferir lleugerament del punt';
+  if(info.length > 1){
+    return `${alta ? 'Cap de les estacions és propera ni a una altitud semblant' : 'Cap de les estacions és gaire propera'} (la més propera: ${det}). ${motiu} Les observacions ${diff}.`;
+  }
+  return `${alta ? 'Estació de referència molt allunyada' : 'Estació de referència una mica allunyada'}: ${det}. ${motiu} Les observacions ${diff}.`;
+}
+
 // null (tot be) o {nivell:'moderada'|'alta', motiu:'distancia'|'desnivell'}
 function lowRepresentativity(info){
   if(!info.length) return null;
@@ -2350,12 +2364,7 @@ function renderStationsDetail(){
     if(pointAlt === null) html += '<div class="st-line st-dim">Altitud del punt no disponible: només es té en compte la distància.</div>';
     const rep = lowRepresentativity(nearbyStationsInfo);
     if(rep){
-      const b = nearbyStationsInfo[0];
-      const det = stationDetailText(b);
-      const motiu = rep.motiu === 'desnivell' ? 'Pesa sobretot el desnivell.' : 'Pesa sobretot la distància.';
-      html += rep.nivell === 'alta'
-        ? `<div class="st-alert">⚠ Estació de referència molt allunyada: ${det}. ${motiu} Les observacions poden diferir bastant del punt.</div>`
-        : `<div class="st-warn">⚠ Estació de referència una mica allunyada: ${det}. ${motiu} Les observacions poden diferir lleugerament del punt.</div>`;
+      html += `<div class="${rep.nivell === 'alta' ? 'st-alert' : 'st-warn'}">⚠ ${repMessage(rep, nearbyStationsInfo)}</div>`;
     }
     if(disp && disp.alta){
       const parts = [];
@@ -2509,12 +2518,10 @@ function estacionsCell(c){
   }
   const rep = c.representativitat;
   if(rep){
-    const m = rep.motiu === 'desnivell' ? 'Pesa sobretot el desnivell.' : 'Pesa sobretot la distància.';
-    const b = ests[0];
-    const det = b ? stationDetailText(b) + '. ' : '';
+    const txt = escHtml(repMessage(rep, ests));
     warn += rep.nivell === 'alta'
-      ? ` <span class="registre-bad" title="${escHtml('Estació de referència molt allunyada: ' + det + m + ' Les observacions poden diferir bastant del punt.')}">⚠ molt lluny</span>`
-      : ` <span class="registre-pend" title="${escHtml('Estació de referència una mica allunyada: ' + det + m)}">⚠ lluny</span>`;
+      ? ` <span class="registre-bad" title="${txt}">⚠ molt lluny</span>`
+      : ` <span class="registre-pend" title="${txt}">⚠ lluny</span>`;
   }
   return `<span title="${escHtml(tip)}">${ests.length} est. · ${near} km</span>${warn}`;
 }
