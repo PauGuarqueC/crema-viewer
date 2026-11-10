@@ -1164,6 +1164,26 @@ function findNearbyStations(latlon){
   return nearbyStationsInfo.map(c => c.code);
 }
 
+// Valors horaris de CADA estacio usada entre tFrom i tTo (format compacte per
+// estacio: {nom, t:[], temp:[], hr:[], vent:[], ventdir:[], rad:[], precip:[]}).
+// Es desa a la crema registrada perque el registre sigui autonom.
+function stationSeriesSlice(codes, tFrom, tTo){
+  const out = {};
+  for(const code of codes){
+    const s = obsData.series[code];
+    if(!s) continue;
+    const idx = [];
+    for(let i=0;i<s.t.length;i++) if(s.t[i] >= tFrom && s.t[i] <= tTo) idx.push(i);
+    if(!idx.length) continue;
+    const entry = { nom: (obsData.estacions[code] && obsData.estacions[code].nom) || code, t: idx.map(i => s.t[i]) };
+    for(const k of ['temp','hr','vent','ventdir','rad','precip']){
+      if(s[k]) entry[k] = idx.map(i => s[k][i]);
+    }
+    out[code] = entry;
+  }
+  return out;
+}
+
 // Quant discrepen entre si les estacions usades (nomes un avis, no canvia cap valor):
 // mediana de la diferencia max-min entre estacions, hora a hora.
 // "7,1 km, −281 m" (desnivell de l'estacio respecte al punt; sense desnivell si no es coneix l'altitud)
@@ -2884,6 +2904,7 @@ document.getElementById('btn-mark-burn').addEventListener('click', async () => {
     vent_5d: ventResum5d,               // max i mitjana diaris, ultims 5 dies
     humitat_5d: humitatResum5d,          // HR nocturna 2-6h, HR minima, i punt de rosada mitja -- ultims 5 dies
     estacions_usades: nearbyStationsInfo, // estacions que han fet la mitjana (nom, distancia, desnivell)
+    observat_estacions: stationSeriesSlice(nearbyStationsCache, `${yesterday}T00:00`, `${today}T23:59`), // valors de cada estacio (dia -1 + dia 0)
     dispersio: stationDispersion(nearbyStationsCache, `${yesterday}T00:00`, `${today}T23:59`), // discrepancia entre estacions
     representativitat: lowRepresentativity(nearbyStationsInfo), // null | {nivell, motiu}: millor estacio llunyana / altitud molt diferent
   };

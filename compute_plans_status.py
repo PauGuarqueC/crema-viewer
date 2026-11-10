@@ -183,6 +183,32 @@ def low_representativity(sel):
             "motiu": "desnivell" if dalt_km > best["dist_km"] else "distancia"}
 
 
+STATION_SERIES_FIELDS = ("temp", "hr", "vent", "ventdir", "rad", "precip")
+
+
+def station_series_slice(codes, obs_data, t_from, t_to):
+    """Valors horaris de CADA estacio usada entre t_from i t_to (inclosos), en
+    format compacte: {codi: {"nom", "t": [...], "temp": [...], ...}}. Es desa a
+    la crema registrada perque el registre sigui autonom (qui el consulti no
+    cal que tingui l'arxiu SMC)."""
+    out = {}
+    for code in codes:
+        s = obs_data["series"].get(code)
+        if not s:
+            continue
+        idx = [i for i, t in enumerate(s["t"]) if t_from <= t <= t_to]
+        if not idx:
+            continue
+        entry = {"nom": obs_data["estacions"].get(code, {}).get("nom", code),
+                 "t": [s["t"][i] for i in idx]}
+        for k in STATION_SERIES_FIELDS:
+            arr = s.get(k)
+            if arr is not None:
+                entry[k] = [arr[i] for i in idx]
+        out[code] = entry
+    return out
+
+
 def station_dispersion(codes, obs_data, t_from=None, t_to=None, last_hours=None):
     """Quant discrepen entre si les estacions usades: mediana (sobre les hores
     amb >=2 estacions) de la diferencia max-min de T, HR i vent. 'alta' = algun

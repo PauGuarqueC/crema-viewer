@@ -130,6 +130,8 @@ def main():
 
         c["observat"] = hores
         c["estacions_usades"] = sel
+        c["observat_estacions"] = cps.station_series_slice(
+            nearby, font, f"{dia_m1}T00:00", c["data_crema"] + "T23:59")
         c["representativitat"] = cps.low_representativity(sel)
         c["dispersio"] = cps.station_dispersion(
             nearby, font, t_from=dia_m1, t_to=c["data_crema"] + "T23:59")
