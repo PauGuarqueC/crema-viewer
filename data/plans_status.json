@@ -1,5 +1,5 @@
 {
-  "generat": "2026-11-10T07:00:15Z",
+  "generat": "2026-11-10T10:00:15Z",
   "plans": {
     "REC_2019_10_La Traveria - Obertes - Garriga": {
       "status": "yellow",
@@ -247,7 +247,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 3,
+          "hour_ok_streak": 2,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -277,7 +277,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 0,
+          "hour_ok_streak": 1,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -337,7 +337,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 4,
+          "hour_ok_streak": 5,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -637,7 +637,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 4,
+          "hour_ok_streak": 5,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -817,7 +817,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 13,
+          "hour_ok_streak": 11,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         },
@@ -847,7 +847,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 2,
+          "hour_ok_streak": 1,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -877,7 +877,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 2,
+          "hour_ok_streak": 3,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
