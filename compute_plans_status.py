@@ -253,15 +253,15 @@ def station_dispersion(codes, obs_data, t_from=None, t_to=None, last_hours=None)
 
 
 def build_regional_hourly_obs(station_codes, obs_data):
-    buckets = {}  # time -> {temp:[...], hr:[...], wind:[...], rad:[...], precip:[...]}
+    buckets = {}  # time -> {temp:[...], hr:[...], wind:[...], rad:[...], precip:[...], dir:[...]}
     for code in station_codes:
         series = obs_data["series"].get(code)
         if not series:
             continue
         for i, t in enumerate(series["t"]):
-            b = buckets.setdefault(t, {"temp": [], "hr": [], "wind": [], "rad": [], "precip": []})
-            for key in ("temp", "hr", "vent", "rad", "precip"):
-                out_key = "wind" if key == "vent" else key
+            b = buckets.setdefault(t, {"temp": [], "hr": [], "wind": [], "rad": [], "precip": [], "dir": []})
+            for key in ("temp", "hr", "vent", "rad", "precip", "ventdir"):
+                out_key = {"vent": "wind", "ventdir": "dir"}.get(key, key)
                 arr = series.get(key)
                 if arr is None:
                     continue
@@ -271,14 +271,22 @@ def build_regional_hourly_obs(station_codes, obs_data):
 
     result = {}
     for t, b in buckets.items():
+        # Direccio: mitjana VECTORIAL (com al visor), no aritmetica, per evitar
+        # el salt 0/360 graus.
+        wind_dir = None
+        if b["dir"]:
+            sin_s = sum(math.sin(math.radians(d)) for d in b["dir"])
+            cos_s = sum(math.cos(math.radians(d)) for d in b["dir"])
+            wind_dir = (math.degrees(math.atan2(sin_s, cos_s)) + 360) % 360
         result[t] = {
             "temp": sum(b["temp"]) / len(b["temp"]) if b["temp"] else None,
             "hr": sum(b["hr"]) / len(b["hr"]) if b["hr"] else None,
             "wind": sum(b["wind"]) / len(b["wind"]) if b["wind"] else None,
+            "windDir": wind_dir,
             "rad": max(sum(b["rad"]) / len(b["rad"]), 0) if b["rad"] else None,
             "precip": sum(b["precip"]) / len(b["precip"]) if b["precip"] else None,
         }
-    return result  # dict time -> {temp,hr,wind,rad,precip}
+    return result  # dict time -> {temp,hr,wind,windDir,rad,precip}
 
 
 # ---------------------------------------------------------------------------
