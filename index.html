@@ -68,6 +68,9 @@
   .registre-table tr.clickable { cursor: pointer; }
   .registre-table tr.clickable:hover td { background: #f6f5f2; }
   .registre-table .sub { color: var(--text-dim); font-size: 10.5px; }
+  .stations-detail { font-size: 11px; color: var(--charcoal); margin: 2px 0 4px; }
+  .stations-detail .st-dim { color: var(--text-dim); }
+  .stations-detail .st-warn { color: #9a6700; margin-top: 3px; }
   .registre-ok { color: var(--green); font-weight: 600; }
   .registre-pend { color: #b8860b; font-weight: 600; }
   .tab-pane { margin-bottom: 4px; }
@@ -284,9 +287,10 @@
           </select>
         </div>
         <div id="plan-picker-status" class="stat-note" style="margin-top:6px;"></div>
-        <div class="stat-row" style="margin-top:10px;"><span class="label">Estacions properes</span><span class="value" id="n-stations">—</span></div>
+        <div class="stat-row" style="margin-top:10px;"><span class="label">Estacions usades</span><span class="value" id="n-stations">—</span></div>
+        <div id="stations-detail" class="stations-detail"></div>
         <div id="radius-row" style="margin-top:8px;">
-          <input type="range" id="radius-slider" min="5" max="20" step="1" value="15">
+          <input type="range" title="Radi màxim de cerca d'estacions" id="radius-slider" min="5" max="20" step="1" value="15">
           <span id="radius-label">15 km</span>
         </div>
         <div id="plan-manage-row" style="margin-top:12px;display:flex;align-items:stretch;gap:48px;">
@@ -371,9 +375,10 @@
       <div class="block">
         <div class="block-title">Punt seleccionat</div>
         <div class="stat-row"><span class="label">Coordenades</span><span class="value" id="coord-val-manual">—</span></div>
-        <div class="stat-row"><span class="label">Estacions properes</span><span class="value" id="n-stations-manual">—</span></div>
+        <div class="stat-row"><span class="label">Estacions usades</span><span class="value" id="n-stations-manual">—</span></div>
+        <div id="stations-detail-manual" class="stations-detail"></div>
         <div class="radius-row" style="margin-top:10px;">
-          <input type="range" id="radius-slider-manual" min="5" max="20" step="1" value="15">
+          <input type="range" title="Radi màxim de cerca d'estacions" id="radius-slider-manual" min="5" max="20" step="1" value="15">
           <span id="radius-label-manual">15 km</span>
         </div>
       </div>
@@ -546,6 +551,16 @@ let forecastHourly = null;
 let modelsForecastData = null;
 let combinedSeries = null;
 let nearbyStationsCache = [];
+let nearbyStationsInfo = [];   // detall de les estacions usades (nom, distancia, desnivell)
+let pointAlt = null;           // altitud del punt seleccionat (m), d'Open-Meteo; null = nomes distancia
+// Seleccio d'estacions (mateixos valors que compute_plans_status.py):
+// RADIUS_KM es el radi MAXIM; dins d'ell nomes entren les millors segons la
+// distancia efectiva (horitzontal + penalitzacio per desnivell). Sense
+// interpolacio ni correccio: mitjana simple de les escollides.
+const MAX_STATIONS = 3;
+const SPREAD_KM = 5;
+const ALT_KM_PER_100M = 3;     // 0 = nomes distancia
+const DISP_TEMP_C = 4, DISP_HR_PCT = 20, DISP_WIND_MS = 3;
 
 // ---------- Map setup (light basemap, coherent amb onofre-viewer) ----------
 const isMobileViewport = window.innerWidth <= 820; // mateix trencament que el CSS responsiu
@@ -1124,14 +1139,65 @@ async function loadObs(){
   obsData = await res.json();
 }
 
-function findNearbyStations(latlon){
+function selectStations(latlon, alt){
   const [lat, lon] = latlon;
-  const nearby = [];
+  const cands = [];
   for(const [code, meta] of Object.entries(obsData.estacions)){
     const d = haversineKm(lat, lon, meta.lat, meta.lon);
-    if(d <= RADIUS_KM) nearby.push(code);
+    if(d > RADIUS_KM) continue;
+    const hasAlt = (typeof meta.alt === 'number') && (typeof alt === 'number');
+    const dalt = hasAlt ? meta.alt - alt : 0;
+    const dEf = Math.sqrt(d*d + Math.pow(ALT_KM_PER_100M/100 * dalt, 2));
+    cands.push({ code, nom: meta.nom || code, dist_km: Math.round(d*10)/10,
+                 alt: meta.alt ?? null, dalt_m: hasAlt ? Math.round(dalt) : null,
+                 d_ef_km: Math.round(dEf*10)/10, _dEf: dEf });
   }
-  return nearby;
+  cands.sort((x, y) => x._dEf - y._dEf);
+  if(!cands.length) return [];
+  const best = cands[0]._dEf;
+  return cands.filter(c => c._dEf <= best + SPREAD_KM).slice(0, MAX_STATIONS)
+    .map(({_dEf, ...rest}) => rest);
+}
+
+function findNearbyStations(latlon){
+  nearbyStationsInfo = selectStations(latlon, pointAlt);
+  return nearbyStationsInfo.map(c => c.code);
+}
+
+// Quant discrepen entre si les estacions usades (nomes un avis, no canvia cap valor):
+// mediana de la diferencia max-min entre estacions, hora a hora.
+function stationDispersion(codes, tFrom, tTo, lastHours){
+  if(codes.length < 2) return null;
+  const byT = {};
+  for(const code of codes){
+    const s = obsData.series[code];
+    if(!s) continue;
+    for(let i=0;i<s.t.length;i++){
+      const t = s.t[i];
+      if(tFrom && t < tFrom) continue;
+      if(tTo && t > tTo) continue;
+      const row = byT[t] || (byT[t] = {temp:[], hr:[], vent:[]});
+      for(const k of ['temp','hr','vent']){
+        const v = s[k] ? s[k][i] : null;
+        if(v !== null && v !== undefined) row[k].push(v);
+      }
+    }
+  }
+  let times = Object.keys(byT).sort();
+  if(lastHours) times = times.slice(-lastHours);
+  const median = arr => { if(!arr.length) return null; const a = arr.slice().sort((x,y)=>x-y); const m = a.length>>1; return a.length%2 ? a[m] : (a[m-1]+a[m])/2; };
+  const out = {};
+  for(const k of ['temp','hr','vent']){
+    const r = times.filter(t => byT[t][k].length >= 2).map(t => Math.max(...byT[t][k]) - Math.min(...byT[t][k]));
+    const m = median(r);
+    out[k] = m === null ? null : Math.round(m*10)/10;
+  }
+  if(out.temp === null && out.hr === null && out.vent === null) return null;
+  const variables = [];
+  if(out.temp !== null && out.temp >= DISP_TEMP_C) variables.push('temp');
+  if(out.hr !== null && out.hr >= DISP_HR_PCT) variables.push('hr');
+  if(out.vent !== null && out.vent >= DISP_WIND_MS) variables.push('vent');
+  return { temp: out.temp, hr: out.hr, vent: out.vent, alta: variables.length > 0, variables };
 }
 
 function buildRegionalHourlyObs(nearby){
@@ -1286,6 +1352,18 @@ function hideCellTooltip(){ cellTooltipEl.style.display = 'none'; }
 function padToLength(arr, targetLength){
   if(!arr || arr.length >= targetLength) return arr || new Array(targetLength).fill(null);
   return [...arr, ...new Array(targetLength - arr.length).fill(null)];
+}
+
+// Altitud del punt (m) amb l'API d'elevacio d'Open-Meteo; null si falla
+// (llavors la seleccio d'estacions nomes fa servir la distancia horitzontal).
+async function loadPointElevation(latlon){
+  try{
+    const res = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${latlon[0].toFixed(4)}&longitude=${latlon[1].toFixed(4)}`);
+    if(!res.ok) return null;
+    const d = await res.json();
+    const v = Array.isArray(d.elevation) ? d.elevation[0] : d.elevation;
+    return typeof v === 'number' ? v : null;
+  }catch(e){ return null; }
 }
 
 async function loadForecast(latlon, model){
@@ -2199,12 +2277,15 @@ async function refreshForecastAndPlan(){
   document.getElementById('charts-status').textContent = 'Carregant comparativa de models…';
 
   try{
-    const [forecast, modelsData] = await Promise.all([
+    const [forecast, modelsData, alt] = await Promise.all([
       loadForecast(selectedLatLon, model),
       loadModelsForecast(selectedLatLon),
+      loadPointElevation(selectedLatLon),
     ]);
     forecastHourly = forecast;
     modelsForecastData = modelsData;
+    pointAlt = alt;
+    if(obsData) updateNearbyStations(); // ara amb l'altitud del punt
     const regionalObs = buildRegionalHourlyObs(nearbyStationsCache);
     combinedSeries = buildCombinedSeries(regionalObs, forecastHourly);
     document.getElementById('forecast-status').style.display = 'none';
@@ -2220,12 +2301,39 @@ function updateNearbyStations(){
   nearbyStationsCache = findNearbyStations(selectedLatLon);
   document.getElementById('n-stations').textContent = nearbyStationsCache.length;
   document.getElementById('n-stations-manual').textContent = nearbyStationsCache.length;
+  renderStationsDetail();
+}
+
+function renderStationsDetail(){
+  const disp = stationDispersion(nearbyStationsCache, null, null, 48);
+  let html = '';
+  if(!nearbyStationsInfo.length){
+    html = `<div class="st-line">Cap estació dins de ${RADIUS_KM} km.</div>`;
+  } else {
+    html = nearbyStationsInfo.map(c => {
+      const dz = c.dalt_m === null ? '' : ` · ${c.dalt_m >= 0 ? '+' : '−'}${Math.abs(c.dalt_m)} m`;
+      return `<div class="st-line">${escHtml(c.nom)} · ${c.dist_km.toString().replace('.', ',')} km${dz}</div>`;
+    }).join('');
+    if(pointAlt === null) html += '<div class="st-line st-dim">Altitud del punt no disponible: només es té en compte la distància.</div>';
+    if(disp && disp.alta){
+      const parts = [];
+      if(disp.variables.includes('temp')) parts.push(`T ±${disp.temp} °C`);
+      if(disp.variables.includes('hr')) parts.push(`HR ±${disp.hr} %`);
+      if(disp.variables.includes('vent')) parts.push(`vent ±${disp.vent} m/s`);
+      html += `<div class="st-warn">⚠ Les estacions discrepen (${parts.join(', ')}): incertesa alta en les observacions.</div>`;
+    }
+  }
+  ['stations-detail', 'stations-detail-manual'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = html;
+  });
 }
 
 async function onPointSelected(latlon){
   document.getElementById('content').style.display = 'block';
   document.getElementById('coord-val-manual').textContent = latlon[0].toFixed(4) + ', ' + latlon[1].toFixed(4);
 
+  pointAlt = null; // es refresca amb la previsio (refreshForecastAndPlan)
   if(obsData) updateNearbyStations();
   await refreshForecastAndPlan();
 }
@@ -2343,6 +2451,23 @@ function registreRowsFiltered(){
     String(b.data_crema).localeCompare(String(a.data_crema)) || String(b.marcat_el).localeCompare(String(a.marcat_el)));
   return q ? rows.filter(c => `${c.id_pla} ${c.nom}`.toLowerCase().includes(q)) : rows;
 }
+function estacionsCell(c){
+  const ests = c.estacions_usades;
+  if(!Array.isArray(ests) || !ests.length) return '<span class="sub">—</span>';
+  const tip = ests.map(e => `${e.nom} · ${e.dist_km} km` + (e.dalt_m === null || e.dalt_m === undefined ? '' : ` · ${e.dalt_m >= 0 ? '+' : '−'}${Math.abs(e.dalt_m)} m`)).join('\n');
+  const near = Math.min(...ests.map(e => e.dist_km)).toString().replace('.', ',');
+  let warn = '';
+  const d = c.dispersio;
+  if(d && d.alta){
+    const p = [];
+    if(d.variables.includes('temp')) p.push(`T ±${d.temp} °C`);
+    if(d.variables.includes('hr')) p.push(`HR ±${d.hr} %`);
+    if(d.variables.includes('vent')) p.push(`vent ±${d.vent} m/s`);
+    warn = ` <span class="registre-pend" title="Les estacions discrepen: ${escHtml(p.join(', '))}">⚠</span>`;
+  }
+  return `<span title="${escHtml(tip)}">${ests.length} est. · ${near} km</span>${warn}`;
+}
+
 function renderRegistre(){
   const wrap = document.getElementById('registre-table-wrap');
   const summary = document.getElementById('registre-summary');
@@ -2366,9 +2491,10 @@ function renderRegistre(){
       `<td>${escHtml(fmtDataCrema(c.data_crema))}</td>` +
       `<td>${escHtml(c.nom || c.id_pla)}<div class="sub">${escHtml(c.id_pla)}${clickable ? '' : ' · pla ja no existeix'}</div></td>` +
       `<td>${escHtml(fmtMarcatEl(c.marcat_el))}</td>` +
-      `<td>${estat}</td></tr>`;
+      `<td>${estat}</td>` +
+      `<td>${estacionsCell(c)}</td></tr>`;
   }).join('');
-  wrap.innerHTML = `<table class="registre-table"><thead><tr><th>Data</th><th>Pla</th><th>Marcada</th><th>Observat</th></tr></thead><tbody>${body}</tbody></table>`;
+  wrap.innerHTML = `<table class="registre-table"><thead><tr><th>Data</th><th>Pla</th><th>Marcada</th><th>Observat</th><th>Estacions</th></tr></thead><tbody>${body}</tbody></table>`;
   wrap.querySelectorAll('tr.clickable').forEach(tr => tr.addEventListener('click', () => {
     document.getElementById('tab-btn-plans').click();
     selectPlanById(tr.dataset.id);
@@ -2726,6 +2852,8 @@ document.getElementById('btn-mark-burn').addEventListener('click', async () => {
     precipitacio_10d: precipitacio10d,  // precip diaria, ultims 10 dies, amb "dies_abans" (1=ahir...10)
     vent_5d: ventResum5d,               // max i mitjana diaris, ultims 5 dies
     humitat_5d: humitatResum5d,          // HR nocturna 2-6h, HR minima, i punt de rosada mitja -- ultims 5 dies
+    estacions_usades: nearbyStationsInfo, // estacions que han fet la mitjana (nom, distancia, desnivell)
+    dispersio: stationDispersion(nearbyStationsCache, `${yesterday}T00:00`, `${today}T23:59`), // discrepancia entre estacions
   };
 
   fetch(WORKER_URL, {
