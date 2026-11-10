@@ -133,6 +133,7 @@ def main():
         c["observat_estacions"] = cps.station_series_slice(
             nearby, font, f"{dia_m1}T00:00", c["data_crema"] + "T23:59")
         c["representativitat"] = cps.low_representativity(sel)
+        c["sense_dades"] = cps.missing_variables(sel)
         c["dispersio"] = cps.station_dispersion(
             nearby, font, t_from=dia_m1, t_to=c["data_crema"] + "T23:59")
         c["observat_complet"] = True

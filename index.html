@@ -1150,13 +1150,24 @@ function selectStations(latlon, alt){
     const dEf = Math.sqrt(d*d + Math.pow(ALT_KM_PER_100M/100 * dalt, 2));
     cands.push({ code, nom: meta.nom || code, dist_km: Math.round(d*10)/10,
                  alt: meta.alt ?? null, dalt_m: hasAlt ? Math.round(dalt) : null,
-                 d_ef_km: Math.round(dEf*10)/10, _dEf: dEf });
+                 d_ef_km: Math.round(dEf*10)/10, _dEf: dEf,
+                 variables: STATION_VARS.filter(k => (obsData.series[code] && obsData.series[code][k] || []).some(v => v !== null && v !== undefined)) });
   }
   cands.sort((x, y) => x._dEf - y._dEf);
   if(!cands.length) return [];
   const best = cands[0]._dEf;
   return cands.filter(c => c._dEf <= best + SPREAD_KM).slice(0, MAX_STATIONS)
     .map(({_dEf, ...rest}) => rest);
+}
+
+const VAR_LABELS = { temp: 'T', hr: 'HR', vent: 'vent', ventdir: 'direcció', rad: 'radiació', precip: 'pluja' };
+const VAR_NAMES = { temp: 'temperatura', hr: 'humitat', vent: 'vent', ventdir: 'direcció del vent', rad: 'radiació', precip: 'precipitació' };
+const STATION_VARS = ['temp', 'hr', 'vent', 'ventdir', 'rad', 'precip'];
+
+// Variables que cap de les estacions escollides mesura (no se'n busquen d'altres
+// estacions: el vent, sobretot, es massa local; queden buides i s'avisa).
+function missingVariables(info){
+  return STATION_VARS.filter(k => !info.some(c => (c.variables || []).includes(k)));
 }
 
 function findNearbyStations(latlon){
@@ -2359,8 +2370,13 @@ function renderStationsDetail(){
   } else {
     html = nearbyStationsInfo.map(c => {
       const dz = c.dalt_m === null ? '' : ` · ${c.dalt_m >= 0 ? '+' : '−'}${Math.abs(c.dalt_m)} m`;
-      return `<div class="st-line">${escHtml(c.nom)} · ${c.dist_km.toString().replace('.', ',')} km${dz}</div>`;
+      const vars = (c.variables || []).map(k => VAR_LABELS[k]).join(', ');
+      return `<div class="st-line">${escHtml(c.nom)} · ${c.dist_km.toString().replace('.', ',')} km${dz}${vars ? ' · <span class="st-dim">' + vars + '</span>' : ''}</div>`;
     }).join('');
+    const falten = missingVariables(nearbyStationsInfo);
+    if(falten.length){
+      html += `<div class="st-warn">Sense dades observades de: ${falten.map(k => VAR_NAMES[k]).join(', ')} (cap de les estacions usades ${falten.length > 1 ? 'les' : 'la'} mesura).</div>`;
+    }
     if(pointAlt === null) html += '<div class="st-line st-dim">Altitud del punt no disponible: només es té en compte la distància.</div>';
     const rep = lowRepresentativity(nearbyStationsInfo);
     if(rep){
@@ -2502,6 +2518,15 @@ function registreRowsFiltered(){
     String(b.data_crema).localeCompare(String(a.data_crema)) || String(b.marcat_el).localeCompare(String(a.marcat_el)));
   return q ? rows.filter(c => `${c.id_pla} ${c.nom}`.toLowerCase().includes(q)) : rows;
 }
+// Variables sense dada: camp 'sense_dades' si hi es; si no (cremes antigues amb
+// observat_estacions), es dedueix dels valors guardats de cada estacio.
+function senseDadesRecord(c){
+  if(Array.isArray(c.sense_dades)) return c.sense_dades;
+  const oe = c.observat_estacions;
+  if(!oe || typeof oe !== 'object' || !Object.keys(oe).length) return [];
+  return STATION_VARS.filter(k => !Object.values(oe).some(st => (st[k] || []).some(v => v !== null && v !== undefined)));
+}
+
 function estacionsCell(c){
   const ests = c.estacions_usades;
   if(!Array.isArray(ests) || !ests.length) return '<span class="sub">—</span>';
@@ -2522,6 +2547,10 @@ function estacionsCell(c){
     warn += rep.nivell === 'alta'
       ? ` <span class="registre-bad" title="${txt}">⚠ molt lluny</span>`
       : ` <span class="registre-pend" title="${txt}">⚠ lluny</span>`;
+  }
+  const falten = senseDadesRecord(c);
+  if(falten.length){
+    warn += ` <span class="registre-pend" title="${escHtml('Sense dades observades de: ' + falten.map(k => VAR_NAMES[k]).join(', '))}">sense ${escHtml(falten.map(k => VAR_LABELS[k]).join(', '))}</span>`;
   }
   return `<span title="${escHtml(tip)}">${ests.length} est. · ${near} km</span>${warn}`;
 }
@@ -2914,6 +2943,7 @@ document.getElementById('btn-mark-burn').addEventListener('click', async () => {
     observat_estacions: stationSeriesSlice(nearbyStationsCache, `${yesterday}T00:00`, `${today}T23:59`), // valors de cada estacio (dia -1 + dia 0)
     dispersio: stationDispersion(nearbyStationsCache, `${yesterday}T00:00`, `${today}T23:59`), // discrepancia entre estacions
     representativitat: lowRepresentativity(nearbyStationsInfo), // null | {nivell, motiu}: millor estacio llunyana / altitud molt diferent
+    sense_dades: missingVariables(nearbyStationsInfo), // variables que cap estacio usada mesura
   };
 
   fetch(WORKER_URL, {

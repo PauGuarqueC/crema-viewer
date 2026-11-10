@@ -132,6 +132,22 @@ def stations_in_radius(lat, lon, estacions, radius_km=RADIUS_KM):
     return out
 
 
+STATION_VARS = ("temp", "hr", "vent", "ventdir", "rad", "precip")
+
+
+def station_variables(code, obs_data):
+    """Variables que l'estacio realment mesura (amb algun valor a la serie)."""
+    s = obs_data["series"].get(code) or {}
+    return [k for k in STATION_VARS if any(v is not None for v in (s.get(k) or []))]
+
+
+def missing_variables(sel):
+    """Variables que cap de les estacions escollides mesura. No se'n busquen
+    d'altres estacions (el vent, sobretot, es massa local): queden buides i
+    s'avisa."""
+    return [k for k in STATION_VARS if not any(k in c.get("variables", []) for c in sel)]
+
+
 def select_stations(lat, lon, obs_data, radius_km=RADIUS_KM, point_alt="auto"):
     """Radi adaptatiu: dins del radi maxim, ordena per distancia efectiva
     d_ef = sqrt(d^2 + (ALT_KM_PER_100M/100 * desnivell_m)^2) i es queda amb les
@@ -159,6 +175,7 @@ def select_stations(lat, lon, obs_data, radius_km=RADIUS_KM, point_alt="auto"):
     chosen = [c for c in cands if c["_d_ef"] <= best + SPREAD_KM][:MAX_STATIONS]
     for c in chosen:
         c.pop("_d_ef", None)
+        c["variables"] = station_variables(c["code"], obs_data)
     return chosen
 
 
@@ -726,7 +743,8 @@ def compute_plan_status(plan, obs_data):
 
     return {"status": status, "isNight": is_night, "streaksByModel": streaks_by_model,
             "estacions": sel, "dispersio": dispersio,
-            "representativitat": low_representativity(sel)}
+            "representativitat": low_representativity(sel),
+            "sense_dades": missing_variables(sel)}
 
 
 # ---------------------------------------------------------------------------
