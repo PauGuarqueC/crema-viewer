@@ -34,7 +34,20 @@ PLANS_LLINDARS_PATH = REPO_DIR / "data" / "plans_llindars.json"
 OBSERVACIONS_PATH = REPO_DIR / "data" / "observacions_10d.json"
 OUTPUT_PATH = REPO_DIR / "data" / "plans_status.json"
 
-RADIUS_KM = 15  # mateix per defecte que el visor
+# --- Seleccio d'estacions (mateixos valors i logica que el visor, index.html) ---
+# RADIUS_KM es el RADI MAXIM del que es poden triar estacions (garanteix tenir
+# dades). Dins del radi NO es fa la mitjana de totes: es ordenen per
+# "distancia efectiva" (distancia horitzontal + penalitzacio per desnivell) i
+# nomes es fan servir les millors. Els valors NO es corregeixen ni
+# s'interpolen: es la mitjana simple de les estacions escollides.
+RADIUS_KM = 15
+MAX_STATIONS = 3          # maxim d'estacions que entren a la mitjana
+SPREAD_KM = 5.0           # entra tota estacio amb d_ef <= d_ef de la millor + aquest marge
+ALT_KM_PER_100M = 3.0     # cada 100 m de desnivell compten com 3 km de distancia (0 = nomes distancia)
+# Aviso de dispersio: mediana (hores) de la diferencia max-min entre les estacions usades
+DISP_TEMP_C = 4.0
+DISP_HR_PCT = 20.0
+DISP_WIND_MS = 3.0
 COMPARISON_MODELS = ["icon_eu", "ecmwf_ifs", "gfs_seamless", "arome_france"]
 MIN_CONSECUTIVE_HOURS = 6
 
@@ -79,13 +92,118 @@ def haversine_km(lat1, lon1, lat2, lon2):
 # findNearbyStations + buildRegionalHourlyObs al JS)
 # ---------------------------------------------------------------------------
 
-def find_nearby_stations(lat, lon, obs_data, radius_km=RADIUS_KM):
-    nearby = []
-    for code, meta in obs_data["estacions"].items():
+_ELEV_CACHE = {}
+
+
+def fetch_point_elevation(lat, lon):
+    """Altitud (m) del punt segons l'API d'elevacio d'Open-Meteo. None si falla
+    (llavors la seleccio nomes fa servir la distancia horitzontal)."""
+    key = (round(lat, 3), round(lon, 3))
+    if key in _ELEV_CACHE:
+        return _ELEV_CACHE[key]
+    alt = None
+    try:
+        r = requests.get("https://api.open-meteo.com/v1/elevation",
+                         params={"latitude": round(lat, 4), "longitude": round(lon, 4)}, timeout=15)
+        r.raise_for_status()
+        v = r.json().get("elevation")
+        if isinstance(v, list) and v:
+            v = v[0]
+        if isinstance(v, (int, float)):
+            alt = float(v)
+    except Exception as e:
+        print(f"  [AVIS] no s'ha pogut obtenir l'altitud del punt ({e}); seleccio nomes per distancia")
+    _ELEV_CACHE[key] = alt
+    return alt
+
+
+def stations_in_radius(lat, lon, estacions, radius_km=RADIUS_KM):
+    """Totes les estacions dins del radi maxim (sense triar-ne). 'estacions' es
+    el dict code -> {lat, lon, ...}."""
+    out = []
+    for code, meta in estacions.items():
         d = haversine_km(lat, lon, meta["lat"], meta["lon"])
         if d <= radius_km:
-            nearby.append(code)
-    return nearby
+            out.append(code)
+    return out
+
+
+def select_stations(lat, lon, obs_data, radius_km=RADIUS_KM, point_alt="auto"):
+    """Radi adaptatiu: dins del radi maxim, ordena per distancia efectiva
+    d_ef = sqrt(d^2 + (ALT_KM_PER_100M/100 * desnivell_m)^2) i es queda amb les
+    millors (maxim MAX_STATIONS) que no estiguin a mes de SPREAD_KM de la millor.
+    Si nomes n'hi ha una de propera, nomes es fa servir aquesta; si totes son
+    lluny, hi entren les que estiguin a una distancia semblant.
+    Retorna llista de dicts {code, nom, dist_km, alt, dalt_m, d_ef_km}."""
+    if point_alt == "auto":
+        point_alt = fetch_point_elevation(lat, lon)
+    cands = []
+    for code, meta in obs_data["estacions"].items():
+        d = haversine_km(lat, lon, meta["lat"], meta["lon"])
+        if d > radius_km:
+            continue
+        alt = meta.get("alt")
+        dalt = (alt - point_alt) if (alt is not None and point_alt is not None) else 0.0
+        d_ef = math.sqrt(d * d + (ALT_KM_PER_100M / 100.0 * dalt) ** 2)
+        cands.append({"code": code, "nom": meta.get("nom", code), "dist_km": round(d, 1),
+                      "alt": alt, "dalt_m": round(dalt) if alt is not None and point_alt is not None else None,
+                      "d_ef_km": round(d_ef, 1), "_d_ef": d_ef})
+    cands.sort(key=lambda c: c["_d_ef"])
+    if not cands:
+        return []
+    best = cands[0]["_d_ef"]
+    chosen = [c for c in cands if c["_d_ef"] <= best + SPREAD_KM][:MAX_STATIONS]
+    for c in chosen:
+        c.pop("_d_ef", None)
+    return chosen
+
+
+def find_nearby_stations(lat, lon, obs_data, radius_km=RADIUS_KM, point_alt="auto"):
+    """Codis de les estacions escollides (veure select_stations)."""
+    return [c["code"] for c in select_stations(lat, lon, obs_data, radius_km, point_alt)]
+
+
+def station_dispersion(codes, obs_data, t_from=None, t_to=None, last_hours=None):
+    """Quant discrepen entre si les estacions usades: mediana (sobre les hores
+    amb >=2 estacions) de la diferencia max-min de T, HR i vent. 'alta' = algun
+    supera el seu llindar. None si hi ha menys de 2 estacions o no hi ha hores
+    amb solapament. Es nomes un avis: no canvia cap valor."""
+    import statistics
+    if len(codes) < 2:
+        return None
+    by_t = {}
+    for code in codes:
+        s = obs_data["series"].get(code)
+        if not s:
+            continue
+        for i, t in enumerate(s["t"]):
+            if t_from and t < t_from:
+                continue
+            if t_to and t > t_to:
+                continue
+            row = by_t.setdefault(t, {"temp": [], "hr": [], "vent": []})
+            for k in ("temp", "hr", "vent"):
+                arr = s.get(k)
+                if arr is not None and arr[i] is not None:
+                    row[k].append(arr[i])
+    times = sorted(by_t)
+    if last_hours:
+        times = times[-last_hours:]
+    med = {}
+    for k in ("temp", "hr", "vent"):
+        ranges = [max(by_t[t][k]) - min(by_t[t][k]) for t in times if len(by_t[t][k]) >= 2]
+        med[k] = round(statistics.median(ranges), 1) if ranges else None
+    if all(v is None for v in med.values()):
+        return None
+    vars_alta = []
+    if med["temp"] is not None and med["temp"] >= DISP_TEMP_C:
+        vars_alta.append("temp")
+    if med["hr"] is not None and med["hr"] >= DISP_HR_PCT:
+        vars_alta.append("hr")
+    if med["vent"] is not None and med["vent"] >= DISP_WIND_MS:
+        vars_alta.append("vent")
+    return {"temp": med["temp"], "hr": med["hr"], "vent": med["vent"],
+            "alta": bool(vars_alta), "variables": vars_alta}
 
 
 def build_regional_hourly_obs(station_codes, obs_data):
@@ -496,8 +614,10 @@ def consensus_run_with_daynight(all_model_results, forecast_times, predicate, mi
 def compute_plan_status(plan, obs_data):
     lat, lon = plan.get("_lat"), plan.get("_lon")  # ja resolts abans de cridar
 
-    nearby = find_nearby_stations(lat, lon, obs_data)
+    sel = select_stations(lat, lon, obs_data)
+    nearby = [c["code"] for c in sel]
     regional_obs = build_regional_hourly_obs(nearby, obs_data)
+    dispersio = station_dispersion(nearby, obs_data, last_hours=48)
 
     models_forecast = fetch_multimodel_forecast(lat, lon)
     thresholds = plan_to_thresholds(plan)
@@ -550,7 +670,8 @@ def compute_plan_status(plan, obs_data):
         status = "red"
         is_night = False
 
-    return {"status": status, "isNight": is_night, "streaksByModel": streaks_by_model}
+    return {"status": status, "isNight": is_night, "streaksByModel": streaks_by_model,
+            "estacions": sel, "dispersio": dispersio}
 
 
 # ---------------------------------------------------------------------------

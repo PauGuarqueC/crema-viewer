@@ -39,10 +39,10 @@ def build_obs_from_archive(lat, lon, first_day, last_day):
     meta = pd.read_parquet(pub.find_latest_metadata_file())
     meta = meta[meta["deactivation_date"].isna()]
     estacions = {
-        r["station_code"]: {"nom": r["station_name"], "lat": float(r["latitude"]), "lon": float(r["longitude"])}
+        r["station_code"]: {"nom": r["station_name"], "lat": float(r["latitude"]), "lon": float(r["longitude"]), "alt": int(r["altitude_m"])}
         for _, r in meta.iterrows()
     }
-    nearby = cps.find_nearby_stations(lat, lon, {"estacions": estacions})
+    nearby = cps.stations_in_radius(lat, lon, estacions)  # tot el radi; la seleccio es fa despres
     days = []
     d = first_day - timedelta(days=1)
     while d <= last_day + timedelta(days=1):
@@ -102,7 +102,8 @@ def main():
         else:
             font = obs_data
 
-        nearby = cps.find_nearby_stations(lat, lon, font)
+        sel = cps.select_stations(lat, lon, font)
+        nearby = [x["code"] for x in sel]
         if not nearby:
             print(f"  [AVIS] {c['id_pla']} ({c['data_crema']}): cap estacio propera trobada")
             c["observat_complet"] = True
@@ -128,6 +129,9 @@ def main():
             continue
 
         c["observat"] = hores
+        c["estacions_usades"] = sel
+        c["dispersio"] = cps.station_dispersion(
+            nearby, font, t_from=dia_m1, t_to=c["data_crema"] + "T23:59")
         c["observat_complet"] = True
         updated += 1
         print(f"  {c['id_pla']} ({c['data_crema']}): completat amb {len(hores)}h (dia -1 + dia 0)")
