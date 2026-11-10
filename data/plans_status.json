@@ -1,5 +1,5 @@
 {
-  "generat": "2026-11-10T13:00:18Z",
+  "generat": "2026-11-10T15:48:26Z",
   "plans": {
     "REC_2019_10_La Traveria - Obertes - Garriga": {
       "status": "yellow",
@@ -7,7 +7,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 1,
+          "hour_ok_streak": 0,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -29,7 +29,33 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "CY",
+          "nom": "Muntanyola",
+          "dist_km": 11.1,
+          "alt": 816,
+          "dalt_m": 300,
+          "d_ef_km": 14.3
+        },
+        {
+          "code": "WW",
+          "nom": "Artés",
+          "dist_km": 14.8,
+          "alt": 287,
+          "dalt_m": -229,
+          "d_ef_km": 16.3
+        }
+      ],
+      "dispersio": {
+        "temp": 1.0,
+        "hr": 4.0,
+        "vent": null,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": true
     },
     "REC_2022_01_El Muntaner": {
       "status": "red",
@@ -42,7 +68,7 @@
           "hour_ok_streak_is_night": false
         },
         "ecmwf_ifs": {
-          "match_streak": 1,
+          "match_streak": 0,
           "hour_ok_streak": 5,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
@@ -59,7 +85,33 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "V5",
+          "nom": "Perafita",
+          "dist_km": 4.2,
+          "alt": 777,
+          "dalt_m": -55,
+          "d_ef_km": 4.5
+        },
+        {
+          "code": "CC",
+          "nom": "Orís",
+          "dist_km": 6.8,
+          "alt": 627,
+          "dalt_m": -205,
+          "d_ef_km": 9.1
+        }
+      ],
+      "dispersio": {
+        "temp": 1.5,
+        "hr": 11.0,
+        "vent": 0.8,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": false
     },
     "REC_2023_02_Pi negre Coll de Port": {
       "status": "yellow",
@@ -89,7 +141,35 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "ZE",
+          "nom": "el Port del Comte (2.288 m)",
+          "dist_km": 2.5,
+          "alt": 2288,
+          "dalt_m": 603,
+          "d_ef_km": 18.3
+        },
+        {
+          "code": "Y4",
+          "nom": "Alinyà",
+          "dist_km": 10.7,
+          "alt": 1161,
+          "dalt_m": -524,
+          "d_ef_km": 19.0
+        }
+      ],
+      "dispersio": {
+        "temp": 5.8,
+        "hr": 6.5,
+        "vent": null,
+        "alta": true,
+        "variables": [
+          "temp"
+        ]
+      },
+      "representativitat_baixa": true
     },
     "REC_2023_03_Pi negre Estivella": {
       "status": "yellow",
@@ -119,7 +199,19 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "ZE",
+          "nom": "el Port del Comte (2.288 m)",
+          "dist_km": 1.4,
+          "alt": 2288,
+          "dalt_m": 263,
+          "d_ef_km": 8.0
+        }
+      ],
+      "dispersio": null,
+      "representativitat_baixa": false
     },
     "REC_2023_04 Pi negre Querol": {
       "status": "yellow",
@@ -149,7 +241,19 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "ZE",
+          "nom": "el Port del Comte (2.288 m)",
+          "dist_km": 4.4,
+          "alt": 2288,
+          "dalt_m": 435,
+          "d_ef_km": 13.8
+        }
+      ],
+      "dispersio": null,
+      "representativitat_baixa": true
     },
     "REC_2023_06_Font del Morral": {
       "status": "yellow",
@@ -157,7 +261,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 3,
+          "hour_ok_streak": 2,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -179,7 +283,33 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "U4",
+          "nom": "Castellnou de Bages",
+          "dist_km": 6.5,
+          "alt": 507,
+          "dalt_m": 143,
+          "d_ef_km": 7.8
+        },
+        {
+          "code": "WW",
+          "nom": "Artés",
+          "dist_km": 8.0,
+          "alt": 287,
+          "dalt_m": -77,
+          "d_ef_km": 8.4
+        }
+      ],
+      "dispersio": {
+        "temp": 0.8,
+        "hr": 0.0,
+        "vent": null,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": false
     },
     "REC_2023_09_Pujol Melós": {
       "status": "red",
@@ -187,13 +317,13 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 0,
+          "hour_ok_streak": 2,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 4,
+          "hour_ok_streak": 5,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -205,11 +335,45 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 1,
+          "hour_ok_streak": 0,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "XT",
+          "nom": "Solsona",
+          "dist_km": 11.1,
+          "alt": 692,
+          "dalt_m": 55,
+          "d_ef_km": 11.2
+        },
+        {
+          "code": "MQ",
+          "nom": "Cardona",
+          "dist_km": 11.5,
+          "alt": 402,
+          "dalt_m": -235,
+          "d_ef_km": 13.5
+        },
+        {
+          "code": "MV",
+          "nom": "Guixers - Valls",
+          "dist_km": 13.7,
+          "alt": 845,
+          "dalt_m": 208,
+          "d_ef_km": 15.0
+        }
+      ],
+      "dispersio": {
+        "temp": 3.8,
+        "hr": 5.8,
+        "vent": null,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": true
     },
     "REC_2023_10_Can Feliu 2": {
       "status": "red",
@@ -217,13 +381,13 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 0,
+          "hour_ok_streak": 2,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 4,
+          "hour_ok_streak": 5,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -235,11 +399,37 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 3,
+          "hour_ok_streak": 2,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "MQ",
+          "nom": "Cardona",
+          "dist_km": 10.1,
+          "alt": 402,
+          "dalt_m": -182,
+          "d_ef_km": 11.5
+        },
+        {
+          "code": "XT",
+          "nom": "Solsona",
+          "dist_km": 11.4,
+          "alt": 692,
+          "dalt_m": 108,
+          "d_ef_km": 11.8
+        }
+      ],
+      "dispersio": {
+        "temp": 1.3,
+        "hr": 5.8,
+        "vent": null,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": true
     },
     "REC_2024_01_Clapers": {
       "status": "yellow",
@@ -247,7 +437,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 2,
+          "hour_ok_streak": 0,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -269,7 +459,19 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "WW",
+          "nom": "Artés",
+          "dist_km": 7.9,
+          "alt": 287,
+          "dalt_m": -173,
+          "d_ef_km": 9.4
+        }
+      ],
+      "dispersio": null,
+      "representativitat_baixa": false
     },
     "REC_2024_02_El Corralot": {
       "status": "red",
@@ -299,40 +501,22 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "XT",
+          "nom": "Solsona",
+          "dist_km": 11.2,
+          "alt": 692,
+          "dalt_m": -36,
+          "d_ef_km": 11.2
+        }
+      ],
+      "dispersio": null,
+      "representativitat_baixa": true
     },
     "REC_2024_03_Vilarassau": {
       "status": "yellow",
-      "isNight": false,
-      "streaksByModel": {
-        "icon_eu": {
-          "match_streak": 0,
-          "hour_ok_streak": 0,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        },
-        "ecmwf_ifs": {
-          "match_streak": 0,
-          "hour_ok_streak": 7,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        },
-        "gfs_seamless": {
-          "match_streak": 0,
-          "hour_ok_streak": 8,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        },
-        "arome_france": {
-          "match_streak": 0,
-          "hour_ok_streak": 2,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
-        }
-      }
-    },
-    "REC_2026_01_El Pinel": {
-      "status": "red",
       "isNight": false,
       "streaksByModel": {
         "icon_eu": {
@@ -343,7 +527,63 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 5,
+          "hour_ok_streak": 7,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": false
+        },
+        "gfs_seamless": {
+          "match_streak": 0,
+          "hour_ok_streak": 8,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": false
+        },
+        "arome_france": {
+          "match_streak": 0,
+          "hour_ok_streak": 1,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": false
+        }
+      },
+      "estacions": [
+        {
+          "code": "CY",
+          "nom": "Muntanyola",
+          "dist_km": 12.2,
+          "alt": 816,
+          "dalt_m": 109,
+          "d_ef_km": 12.6
+        },
+        {
+          "code": "WW",
+          "nom": "Artés",
+          "dist_km": 9.9,
+          "alt": 287,
+          "dalt_m": -420,
+          "d_ef_km": 16.0
+        }
+      ],
+      "dispersio": {
+        "temp": 1.0,
+        "hr": 4.0,
+        "vent": null,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": true
+    },
+    "REC_2026_01_El Pinel": {
+      "status": "yellow",
+      "isNight": false,
+      "streaksByModel": {
+        "icon_eu": {
+          "match_streak": 0,
+          "hour_ok_streak": 3,
+          "match_streak_is_night": false,
+          "hour_ok_streak_is_night": false
+        },
+        "ecmwf_ifs": {
+          "match_streak": 0,
+          "hour_ok_streak": 6,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -359,7 +599,19 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "MQ",
+          "nom": "Cardona",
+          "dist_km": 1.2,
+          "alt": 402,
+          "dalt_m": -13,
+          "d_ef_km": 1.3
+        }
+      ],
+      "dispersio": null,
+      "representativitat_baixa": false
     },
     "REC_2026_02_Can Tomàs": {
       "status": "yellow",
@@ -367,7 +619,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 2,
+          "hour_ok_streak": 0,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -385,11 +637,37 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 4,
+          "hour_ok_streak": 2,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "WW",
+          "nom": "Artés",
+          "dist_km": 6.5,
+          "alt": 287,
+          "dalt_m": -89,
+          "d_ef_km": 7.1
+        },
+        {
+          "code": "U4",
+          "nom": "Castellnou de Bages",
+          "dist_km": 10.9,
+          "alt": 507,
+          "dalt_m": 131,
+          "d_ef_km": 11.6
+        }
+      ],
+      "dispersio": {
+        "temp": 0.8,
+        "hr": 0.0,
+        "vent": null,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": false
     },
     "REG_2008_02_Mas Fumats": {
       "status": "yellow",
@@ -397,13 +675,13 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 0,
+          "hour_ok_streak": 3,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 13,
+          "hour_ok_streak": 11,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -419,7 +697,33 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "D4",
+          "nom": "Roses",
+          "dist_km": 3.5,
+          "alt": 23,
+          "dalt_m": -333,
+          "d_ef_km": 10.6
+        },
+        {
+          "code": "W1",
+          "nom": "Castelló d'Empúries",
+          "dist_km": 10.5,
+          "alt": 5,
+          "dalt_m": -351,
+          "d_ef_km": 14.9
+        }
+      ],
+      "dispersio": {
+        "temp": 1.2,
+        "hr": 11.0,
+        "vent": null,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": true
     },
     "REG_2016_01_Coll de Banyuls_II": {
       "status": "red",
@@ -427,7 +731,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 0,
+          "hour_ok_streak": 1,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -445,20 +749,46 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 0,
+          "hour_ok_streak": 1,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "D6",
+          "nom": "Portbou - coll dels Belitres",
+          "dist_km": 9.3,
+          "alt": 198,
+          "dalt_m": -129,
+          "d_ef_km": 10.0
+        },
+        {
+          "code": "VZ",
+          "nom": "Espolla",
+          "dist_km": 8.0,
+          "alt": 84,
+          "dalt_m": -243,
+          "d_ef_km": 10.9
+        }
+      ],
+      "dispersio": {
+        "temp": 2.6,
+        "hr": 12.5,
+        "vent": null,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": false
     },
     "REG_2023_03_Montgrí III": {
       "status": "yellow",
-      "isNight": true,
+      "isNight": false,
       "streaksByModel": {
         "icon_eu": {
-          "match_streak": 4,
-          "hour_ok_streak": 7,
-          "match_streak_is_night": true,
+          "match_streak": 0,
+          "hour_ok_streak": 11,
+          "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
         "ecmwf_ifs": {
@@ -475,27 +805,61 @@
         },
         "arome_france": {
           "match_streak": 2,
-          "hour_ok_streak": 10,
+          "hour_ok_streak": 8,
           "match_streak_is_night": true,
           "hour_ok_streak_is_night": true
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "UE",
+          "nom": "Torroella de Montgrí",
+          "dist_km": 6.8,
+          "alt": 4,
+          "dalt_m": -138,
+          "d_ef_km": 7.9
+        },
+        {
+          "code": "UB",
+          "nom": "la Tallada d'Empordà",
+          "dist_km": 9.1,
+          "alt": 15,
+          "dalt_m": -127,
+          "d_ef_km": 9.9
+        },
+        {
+          "code": "U2",
+          "nom": "Sant Pere Pescador",
+          "dist_km": 11.8,
+          "alt": 3,
+          "dalt_m": -139,
+          "d_ef_km": 12.5
+        }
+      ],
+      "dispersio": {
+        "temp": 0.9,
+        "hr": 9.8,
+        "vent": 1.4,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": false
     },
     "RET_2019_03_Bonastre": {
       "status": "yellow",
-      "isNight": false,
+      "isNight": true,
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 35,
+          "hour_ok_streak": 22,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
+          "hour_ok_streak_is_night": true
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 36,
+          "hour_ok_streak": 28,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
+          "hour_ok_streak_is_night": true
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -505,11 +869,37 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 5,
+          "hour_ok_streak": 10,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "D9",
+          "nom": "el Vendrell",
+          "dist_km": 4.3,
+          "alt": 59,
+          "dalt_m": -143,
+          "d_ef_km": 6.1
+        },
+        {
+          "code": "DK",
+          "nom": "Torredembarra",
+          "dist_km": 9.1,
+          "alt": 2,
+          "dalt_m": -200,
+          "d_ef_km": 10.9
+        }
+      ],
+      "dispersio": {
+        "temp": 1.3,
+        "hr": 2.0,
+        "vent": 0.7,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": false
     },
     "RET_2019_01_Plans de Sant Joan": {
       "status": "red",
@@ -517,7 +907,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 3,
+          "hour_ok_streak": 2,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -535,11 +925,23 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 3,
+          "hour_ok_streak": 2,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "XR",
+          "nom": "Prades",
+          "dist_km": 9.7,
+          "alt": 927,
+          "dalt_m": -46,
+          "d_ef_km": 9.8
+        }
+      ],
+      "dispersio": null,
+      "representativitat_baixa": false
     },
     "RETITE_2003_02_Colladetes Perelló": {
       "status": "red",
@@ -547,13 +949,13 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 4,
+          "hour_ok_streak": 3,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 11,
+          "hour_ok_streak": 7,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         },
@@ -569,7 +971,33 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "DB",
+          "nom": "el Perelló",
+          "dist_km": 4.2,
+          "alt": 180,
+          "dalt_m": -74,
+          "d_ef_km": 4.7
+        },
+        {
+          "code": "UA",
+          "nom": "l'Ametlla de Mar",
+          "dist_km": 7.6,
+          "alt": 94,
+          "dalt_m": -160,
+          "d_ef_km": 9.0
+        }
+      ],
+      "dispersio": {
+        "temp": 0.5,
+        "hr": 0.5,
+        "vent": 0.6,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": false
     },
     "REP_2022_02_Bosc de Salas": {
       "status": "red",
@@ -599,7 +1027,33 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "YC",
+          "nom": "la Pobla de Segur",
+          "dist_km": 6.5,
+          "alt": 508,
+          "dalt_m": -385,
+          "d_ef_km": 13.3
+        },
+        {
+          "code": "XQ",
+          "nom": "Tremp",
+          "dist_km": 8.5,
+          "alt": 474,
+          "dalt_m": -419,
+          "d_ef_km": 15.2
+        }
+      ],
+      "dispersio": {
+        "temp": 0.4,
+        "hr": 2.5,
+        "vent": 0.2,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": true
     },
     "REP_2022_07_Corroncui": {
       "status": "red",
@@ -629,7 +1083,19 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "CT",
+          "nom": "el Pont de Suert",
+          "dist_km": 12.3,
+          "alt": 824,
+          "dalt_m": -367,
+          "d_ef_km": 16.5
+        }
+      ],
+      "dispersio": null,
+      "representativitat_baixa": true
     },
     "REP_2024_02_Sant Esteve de la Sarga - Alzina": {
       "status": "yellow",
@@ -637,7 +1103,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 4,
+          "hour_ok_streak": 5,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -655,11 +1121,23 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 1,
+          "hour_ok_streak": 0,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "XQ",
+          "nom": "Tremp",
+          "dist_km": 12.2,
+          "alt": 474,
+          "dalt_m": -360,
+          "d_ef_km": 16.3
+        }
+      ],
+      "dispersio": null,
+      "representativitat_baixa": true
     },
     "REP_2025_03_Adraén": {
       "status": "yellow",
@@ -689,7 +1167,19 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "ZE",
+          "nom": "el Port del Comte (2.288 m)",
+          "dist_km": 11.4,
+          "alt": 2288,
+          "dalt_m": 603,
+          "d_ef_km": 21.4
+        }
+      ],
+      "dispersio": null,
+      "representativitat_baixa": true
     },
     "REP_2026_01_Llagunes": {
       "status": "red",
@@ -697,7 +1187,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 0,
+          "hour_ok_streak": 3,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -719,7 +1209,19 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "XH",
+          "nom": "Sort",
+          "dist_km": 11.5,
+          "alt": 677,
+          "dalt_m": -701,
+          "d_ef_km": 24.0
+        }
+      ],
+      "dispersio": null,
+      "representativitat_baixa": true
     },
     "RELL_2022_06_Almatret": {
       "status": "red",
@@ -749,7 +1251,33 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "WI",
+          "nom": "Maials",
+          "dist_km": 6.9,
+          "alt": 350,
+          "dalt_m": 2,
+          "d_ef_km": 6.9
+        },
+        {
+          "code": "VC",
+          "nom": "Pantà de Riba-roja",
+          "dist_km": 8.7,
+          "alt": 77,
+          "dalt_m": -271,
+          "d_ef_km": 11.9
+        }
+      ],
+      "dispersio": {
+        "temp": 2.1,
+        "hr": 1.5,
+        "vent": 0.6,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": false
     },
     "REMN_2020_01_Agora_Parc": {
       "status": "red",
@@ -763,9 +1291,9 @@
         },
         "ecmwf_ifs": {
           "match_streak": 0,
-          "hour_ok_streak": 0,
+          "hour_ok_streak": 1,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
+          "hour_ok_streak_is_night": true
         },
         "gfs_seamless": {
           "match_streak": 0,
@@ -776,10 +1304,22 @@
         "arome_france": {
           "match_streak": 2,
           "hour_ok_streak": 2,
-          "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
+          "match_streak_is_night": true,
+          "hour_ok_streak_is_night": true
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "KP",
+          "nom": "Fogars de la Selva",
+          "dist_km": 4.8,
+          "alt": 42,
+          "dalt_m": -147,
+          "d_ef_km": 6.5
+        }
+      ],
+      "dispersio": null,
+      "representativitat_baixa": false
     },
     "REMS_2021_01_Odena-Mas Rumbà": {
       "status": "red",
@@ -787,7 +1327,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 2,
+          "hour_ok_streak": 3,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -809,7 +1349,33 @@
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "H1",
+          "nom": "Òdena",
+          "dist_km": 7.1,
+          "alt": 333,
+          "dalt_m": -281,
+          "d_ef_km": 11.0
+        },
+        {
+          "code": "CL",
+          "nom": "Sant Salvador de Guardiola",
+          "dist_km": 12.5,
+          "alt": 347,
+          "dalt_m": -267,
+          "d_ef_km": 14.9
+        }
+      ],
+      "dispersio": {
+        "temp": 0.4,
+        "hr": 0.0,
+        "vent": 0.2,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": true
     },
     "RETE_2018_04_Entrebarrancs": {
       "status": "yellow",
@@ -817,7 +1383,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 6,
+          "hour_ok_streak": 9,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         },
@@ -835,11 +1401,23 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 6,
+          "hour_ok_streak": 5,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "XP",
+          "nom": "Gandesa",
+          "dist_km": 5.0,
+          "alt": 351,
+          "dalt_m": 53,
+          "d_ef_km": 5.2
+        }
+      ],
+      "dispersio": null,
+      "representativitat_baixa": false
     },
     "REMS_2025_05_Can Mabres": {
       "status": "red",
@@ -847,7 +1425,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 1,
+          "hour_ok_streak": 2,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -865,11 +1443,37 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 4,
+          "hour_ok_streak": 3,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "H1",
+          "nom": "Òdena",
+          "dist_km": 4.0,
+          "alt": 333,
+          "dalt_m": -173,
+          "d_ef_km": 6.6
+        },
+        {
+          "code": "WP",
+          "nom": "Canaletes",
+          "dist_km": 10.2,
+          "alt": 325,
+          "dalt_m": -181,
+          "d_ef_km": 11.5
+        }
+      ],
+      "dispersio": {
+        "temp": 0.8,
+        "hr": 0.5,
+        "vent": 0.2,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": false
     },
     "REMS_2025_04_Bruguers": {
       "status": "red",
@@ -895,11 +1499,37 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 4,
+          "hour_ok_streak": 3,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
-      }
+      },
+      "estacions": [
+        {
+          "code": "H1",
+          "nom": "Òdena",
+          "dist_km": 4.3,
+          "alt": 333,
+          "dalt_m": -181,
+          "d_ef_km": 6.9
+        },
+        {
+          "code": "CL",
+          "nom": "Sant Salvador de Guardiola",
+          "dist_km": 10.7,
+          "alt": 347,
+          "dalt_m": -167,
+          "d_ef_km": 11.8
+        }
+      ],
+      "dispersio": {
+        "temp": 0.4,
+        "hr": 0.0,
+        "vent": 0.2,
+        "alta": false,
+        "variables": []
+      },
+      "representativitat_baixa": false
     }
   }
 }
