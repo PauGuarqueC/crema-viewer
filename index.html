@@ -428,10 +428,6 @@
             <div class="chart-title">FMC 1h (%) + Precipitació (mm)</div>
             <div class="chart-canvas-wrap"><canvas id="chart-fmc"></canvas></div>
           </div>
-          <div class="chart-block" id="chart-ros-block" style="display:none;">
-            <div class="chart-title" id="chart-ros-title">ROS (km/h)</div>
-            <div class="chart-canvas-wrap"><canvas id="chart-ros"></canvas></div>
-          </div>
           <div class="legend" style="margin-top:2px;">
             <div><span class="sw" style="background:#2b2b2b;"></span>Observat</div>
             <div><span class="sw" style="background:#C8102E;"></span>ICON-EU</div>
@@ -1439,7 +1435,7 @@ async function loadModelsForecast(latlon){
 let chartInstances = {};
 
 // ---------- Linia vertical sincronitzada entre els 4 grafics comparatius ----------
-const CHART_IDS = ['chart-temp', 'chart-hr', 'chart-wind', 'chart-fmc', 'chart-ros'];
+const CHART_IDS = ['chart-temp', 'chart-hr', 'chart-wind', 'chart-fmc'];
 let syncIndex = null;
 
 const crosshairPlugin = {
@@ -1829,60 +1825,6 @@ function alignToLabels(sourceTimes, sourceValues, labels){
   return labels.map(t => (t in map) ? map[t] : null);
 }
 
-// ---------- ROS (Rothermel), precalculat per pla a labfire (data/plans_ros.json) ----------
-// Nomes per a plans (a "Consulta oberta" no hi ha ROS: el calcul usa llibreries
-// Python -- nfdrs4 i pyrothermel -- que no corren al navegador).
-const PLANS_ROS_URL = "data/plans_ros.json";
-let plansRosData = null, plansRosFetchedAt = 0, plansRosPromise = null;
-function loadPlansRos(){
-  const stale = Date.now() - plansRosFetchedAt > 30 * 60 * 1000;
-  if(!plansRosPromise || stale){
-    plansRosFetchedAt = Date.now();
-    plansRosPromise = fetch(PLANS_ROS_URL, { cache: 'no-cache' })
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { plansRosData = d; return d; })
-      .catch(() => null);
-  }
-  return plansRosPromise;
-}
-function hideRosChart(){
-  const block = document.getElementById('chart-ros-block');
-  if(block) block.style.display = 'none';
-  if(chartInstances['chart-ros']){ chartInstances['chart-ros'].destroy(); delete chartInstances['chart-ros']; }
-}
-async function updateRosChart(labels, todayIndex, matchStatuses){
-  const picker = document.getElementById('plan-picker');
-  const planId = picker ? picker.value : '';
-  if(activeTab !== 'plans' || !planId){ hideRosChart(); return; }
-  const data = await loadPlansRos();
-  // Pot haver canviat de pla o de pestanya mentre es descarregava el fitxer
-  if(activeTab !== 'plans' || picker.value !== planId) return;
-  const entry = data && data.plans && data.plans[planId];
-  if(!entry){ hideRosChart(); return; }
-
-  const comb = entry.combustible || {};
-  let titol = 'ROS (km/h)';
-  if(comb.nom){
-    const detall = comb.origen === 'manual'
-      ? 'manual'
-      : 'auto' + (typeof comb.fraccio === 'number' ? ', ' + Math.round(comb.fraccio * 100) + ' %' : '');
-    titol += ` — ${comb.nom} (${detall})`;
-  }
-  if(data.generat){
-    const ageH = (Date.now() - new Date(data.generat).getTime()) / 3600000;
-    if(ageH > 12) titol += ` ⚠ dades de fa ${Math.round(ageH)} h`;
-  }
-  document.getElementById('chart-ros-title').textContent = titol;
-
-  // El bloc ha de ser visible ABANS de crear el grafic (si no, Chart.js mesura 0 px)
-  document.getElementById('chart-ros-block').style.display = 'block';
-  const obs = alignToLabels(entry.time, entry.obs, labels);
-  const models = Object.fromEntries(COMPARISON_MODELS.map(m =>
-    [m.id, alignToLabels(entry.time, (entry.models && entry.models[m.id]) || [], labels)]));
-  renderComparisonChart('chart-ros', labels, todayIndex, obs, models,
-    null, { min: 0, max: undefined }, undefined, matchStatuses);
-}
-
 function updateComparisonCharts(results){
   if(!modelsForecastData || !nearbyStationsCache) return;
   const wrap = document.getElementById('charts-wrap');
@@ -1976,7 +1918,6 @@ function updateComparisonCharts(results){
 
     statusEl.textContent = '';
     wrap.style.display = 'block';
-    updateRosChart(labels, todayIndex, matchStatuses).catch(err => { console.error('ROS:', err); hideRosChart(); });
   }catch(err){
     console.error('Error construint els grafics:', err);
     statusEl.textContent = 'Error construint els gràfics: ' + err.message;
