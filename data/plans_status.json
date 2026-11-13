@@ -1,5 +1,5 @@
 {
-  "generat": "2026-11-13T19:00:19Z",
+  "generat": "2026-11-13T22:00:18Z",
   "plans": {
     "REC_2019_10_La Traveria - Obertes - Garriga": {
       "status": "yellow",
@@ -182,8 +182,8 @@
           "nom": "el Port del Comte (2.288 m)",
           "dist_km": 2.5,
           "alt": 2288,
-          "dalt_m": null,
-          "d_ef_km": 2.5,
+          "dalt_m": 603,
+          "d_ef_km": 18.3,
           "variables": [
             "temp",
             "hr",
@@ -192,10 +192,34 @@
             "rad",
             "precip"
           ]
+        },
+        {
+          "code": "Y4",
+          "nom": "Alinyà",
+          "dist_km": 10.7,
+          "alt": 1161,
+          "dalt_m": -524,
+          "d_ef_km": 19.0,
+          "variables": [
+            "temp",
+            "hr",
+            "precip"
+          ]
         }
       ],
-      "dispersio": null,
-      "representativitat": null,
+      "dispersio": {
+        "temp": 7.4,
+        "hr": 9.2,
+        "vent": null,
+        "alta": true,
+        "variables": [
+          "temp"
+        ]
+      },
+      "representativitat": {
+        "nivell": "alta",
+        "motiu": "desnivell"
+      },
       "sense_dades": []
     },
     "REC_2023_03_Pi negre Estivella": {
@@ -379,7 +403,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 4,
+          "hour_ok_streak": 2,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -465,7 +489,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 4,
+          "hour_ok_streak": 2,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -644,7 +668,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 3,
+          "hour_ok_streak": 1,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -717,7 +741,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 5,
+          "hour_ok_streak": 3,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -982,7 +1006,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 10,
+          "hour_ok_streak": 5,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         },
@@ -1141,7 +1165,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 0,
+          "hour_ok_streak": 7,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -1192,7 +1216,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 9,
+          "hour_ok_streak": 13,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         },
@@ -1631,7 +1655,7 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 3,
+          "hour_ok_streak": 7,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         },
@@ -1683,9 +1707,9 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 5,
+          "hour_ok_streak": 4,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
+          "hour_ok_streak_is_night": true
         },
         "ecmwf_ifs": {
           "match_streak": 0,
@@ -1759,9 +1783,9 @@
       "streaksByModel": {
         "icon_eu": {
           "match_streak": 0,
-          "hour_ok_streak": 18,
+          "hour_ok_streak": 12,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": true
+          "hour_ok_streak_is_night": false
         },
         "ecmwf_ifs": {
           "match_streak": 0,
