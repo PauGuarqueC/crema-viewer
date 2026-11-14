@@ -1,5 +1,5 @@
 {
-  "generat": "2026-11-14T13:00:18Z",
+  "generat": "2026-11-14T16:00:18Z",
   "plans": {
     "REC_2019_10_La Traveria - Obertes - Garriga": {
       "status": "red",
@@ -25,7 +25,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 1,
+          "hour_ok_streak": 0,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
@@ -62,8 +62,8 @@
         }
       ],
       "dispersio": {
-        "temp": 2.5,
-        "hr": 5.0,
+        "temp": 2.0,
+        "hr": 5.5,
         "vent": null,
         "alta": false,
         "variables": []
@@ -139,7 +139,7 @@
       ],
       "dispersio": {
         "temp": 1.2,
-        "hr": 3.8,
+        "hr": 4.0,
         "vent": 0.7,
         "alta": false,
         "variables": []
@@ -171,9 +171,9 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 5,
+          "hour_ok_streak": 8,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": true
+          "hour_ok_streak_is_night": false
         }
       },
       "estacions": [
@@ -208,8 +208,8 @@
         }
       ],
       "dispersio": {
-        "temp": 7.8,
-        "hr": 15.2,
+        "temp": 8.0,
+        "hr": 16.2,
         "vent": null,
         "alta": true,
         "variables": [
@@ -246,9 +246,9 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 5,
+          "hour_ok_streak": 6,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
+          "hour_ok_streak_is_night": true
         }
       },
       "estacions": [
@@ -297,9 +297,9 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 5,
+          "hour_ok_streak": 6,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
+          "hour_ok_streak_is_night": true
         }
       },
       "estacions": [
@@ -471,7 +471,7 @@
         }
       ],
       "dispersio": {
-        "temp": 3.2,
+        "temp": 3.8,
         "hr": 7.5,
         "vent": null,
         "alta": false,
@@ -545,7 +545,7 @@
       ],
       "dispersio": {
         "temp": 1.9,
-        "hr": 3.2,
+        "hr": 4.0,
         "vent": null,
         "alta": false,
         "variables": []
@@ -580,7 +580,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 1,
+          "hour_ok_streak": 2,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
@@ -723,8 +723,8 @@
         }
       ],
       "dispersio": {
-        "temp": 2.5,
-        "hr": 5.0,
+        "temp": 2.0,
+        "hr": 5.5,
         "vent": null,
         "alta": false,
         "variables": []
@@ -919,7 +919,7 @@
       ],
       "dispersio": {
         "temp": 0.5,
-        "hr": 6.2,
+        "hr": 6.0,
         "vent": null,
         "alta": false,
         "variables": []
@@ -991,8 +991,8 @@
         }
       ],
       "dispersio": {
-        "temp": 1.2,
-        "hr": 5.0,
+        "temp": 1.1,
+        "hr": 7.5,
         "vent": null,
         "alta": false,
         "variables": []
@@ -1024,7 +1024,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 5,
+          "hour_ok_streak": 6,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         }
@@ -1077,9 +1077,9 @@
         }
       ],
       "dispersio": {
-        "temp": 0.8,
-        "hr": 4.8,
-        "vent": 1.0,
+        "temp": 0.9,
+        "hr": 7.0,
+        "vent": 1.1,
         "alta": false,
         "variables": []
       },
@@ -1110,7 +1110,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 11,
+          "hour_ok_streak": 12,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
@@ -1150,9 +1150,9 @@
         }
       ],
       "dispersio": {
-        "temp": 0.5,
-        "hr": 2.5,
-        "vent": 1.4,
+        "temp": 1.3,
+        "hr": 4.5,
+        "vent": 1.3,
         "alta": false,
         "variables": []
       },
@@ -1274,9 +1274,9 @@
         }
       ],
       "dispersio": {
-        "temp": 0.5,
-        "hr": 3.5,
-        "vent": 2.8,
+        "temp": 0.4,
+        "hr": 4.0,
+        "vent": 1.5,
         "alta": false,
         "variables": []
       },
@@ -1347,9 +1347,9 @@
         }
       ],
       "dispersio": {
-        "temp": 0.5,
-        "hr": 2.8,
-        "vent": 0.6,
+        "temp": 0.6,
+        "hr": 2.5,
+        "vent": 0.5,
         "alta": false,
         "variables": []
       },
@@ -1491,7 +1491,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 1,
+          "hour_ok_streak": 4,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
@@ -1640,9 +1640,9 @@
         }
       ],
       "dispersio": {
-        "temp": 2.5,
-        "hr": 6.8,
-        "vent": 0.8,
+        "temp": 2.4,
+        "hr": 6.5,
+        "vent": 0.6,
         "alta": false,
         "variables": []
       },
@@ -1765,9 +1765,9 @@
         }
       ],
       "dispersio": {
-        "temp": 0.4,
-        "hr": 2.0,
-        "vent": 2.0,
+        "temp": 0.6,
+        "hr": 2.2,
+        "vent": 0.7,
         "alta": false,
         "variables": []
       },
@@ -1801,7 +1801,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 5,
+          "hour_ok_streak": 4,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
@@ -1892,9 +1892,9 @@
         }
       ],
       "dispersio": {
-        "temp": 0.6,
-        "hr": 3.0,
-        "vent": 1.0,
+        "temp": 1.0,
+        "hr": 4.0,
+        "vent": 0.6,
         "alta": false,
         "variables": []
       },
@@ -1925,7 +1925,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 1,
+          "hour_ok_streak": 0,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
@@ -1965,9 +1965,9 @@
         }
       ],
       "dispersio": {
-        "temp": 0.4,
-        "hr": 2.0,
-        "vent": 2.0,
+        "temp": 0.6,
+        "hr": 2.2,
+        "vent": 0.7,
         "alta": false,
         "variables": []
       },
