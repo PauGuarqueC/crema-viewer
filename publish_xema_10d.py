@@ -149,8 +149,12 @@ def process_station(station_code: str, days) -> dict | None:
     temp = hourly_mean[VAR_TEMP] if VAR_TEMP in hourly_mean.columns else None
     hr = hourly_mean[VAR_HR] if VAR_HR in hourly_mean.columns else None
     wind_speed, speed_idx = pick_first_available_with_index(hourly_mean, VAR_WIND_SPEED_PRIORITY)
-    rad = hourly_mean[VAR_RAD] if VAR_RAD in hourly_mean.columns else None
-    precip = hourly_sum[VAR_PRECIP] if VAR_PRECIP in hourly_sum.columns else None
+    # rad i precip: Open-Meteo les etiqueta pel FINAL de l'hora (mitjana/suma
+    # de l'hora anterior), pero el resample les etiqueta per l'INICI. Les
+    # desplacem +1h perque 10:00-11:00 surti com a 11:00, com al model.
+    # (temp/hr/vent no: correlacio obs-model maxima amb lag 0)
+    rad = hourly_mean[VAR_RAD].shift(1, freq="h") if VAR_RAD in hourly_mean.columns else None
+    precip = hourly_sum[VAR_PRECIP].shift(1, freq="h") if VAR_PRECIP in hourly_sum.columns else None
 
     wind_dir = None
     if speed_idx is not None:
