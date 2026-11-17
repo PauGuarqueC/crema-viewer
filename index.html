@@ -447,7 +447,7 @@
             <div><span class="sw" style="background:rgba(46,125,70,0.35);"></span>Dins de finestra</div>
             <div><span class="sw" style="background:rgba(184,134,11,0.35);"></span>Hora OK, context no</div>
             <div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgba(80,110,150,0.05), rgba(80,110,150,0.55));"></span>Nuvolositat 0 → 100 %</div>
-            <div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(127,220,240), rgb(28,63,143));"></span>Pluja: acord dels models 0 → 100 %</div>
+            <div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(127,220,240), rgb(28,63,143));"></span>Pluja (fins al màxim dels models): més fosc = més models hi coincideixen</div>
           </div>
         </div>
       </div>
@@ -1547,20 +1547,18 @@ const crosshairPlugin = {
       if(!ds.label || ds.label.startsWith('Llindar') || ds.label.startsWith('Estacions')) continue;
       const v = ds.data[syncIndex];
       if(v === null || v === undefined || isNaN(v)) continue;
-      let lbl = ds.label;
-      let col = ds.borderColor || ds.backgroundColor;
-      if(ds.agree){
-        const ag = ds.agree[syncIndex];
-        lbl = (ag === null || ag === undefined) ? 'Precipitació (observada)' : `Precipitació (mitjana models, acord ${Math.round(ag)} %)`;
-        col = (ag === null || ag === undefined) ? PRECIP_OBS_COLOR : precipAgreeColor(ag);
-      }
-      rows.push({ label: lbl, value: v, color: col });
+      rows.push({ label: ds.label, value: v, color: ds.borderColor || ds.backgroundColor });
     }
     const band = chart.$stationBand;
     if(band && band.min[syncIndex] !== null && band.max[syncIndex] !== null &&
        band.min[syncIndex] !== undefined && band.max[syncIndex] !== undefined){
       rows.push({ label: 'Estacions', value: `${band.min[syncIndex].toFixed(1)} – ${band.max[syncIndex].toFixed(1)}`,
                   color: 'rgba(80,110,150,0.7)' });
+    }
+    if(chart.$precipStats && chart.$precipStats[syncIndex]){
+      const st = chart.$precipStats[syncIndex];
+      rows.push({ label: `Pluja (${st.n} models: mín – màx, mitjana)`,
+                  value: `${st.min.toFixed(1)} – ${st.max.toFixed(1)} mm/h, ${st.mean.toFixed(1)}`, color: precipAgreeColor(100) });
     }
     if(chart.$cloudRows){
       const vals = chart.$cloudRows.map(r => (r[syncIndex] === null || r[syncIndex] === undefined) ? '—' : Math.round(r[syncIndex]));
@@ -1840,7 +1838,7 @@ document.addEventListener('touchstart', (e) => {
   if(!e.target.closest('.cell')) hideCellTooltip();
   if(!e.target.closest('canvas')) clearSyncIndex();
 }, { passive: true });
-function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues, matchStatuses, windDirs, obsBand, cloudRows, precipAgree){
+function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues, matchStatuses, windDirs, obsBand, cloudRows){
   const ctx = document.getElementById(canvasId).getContext('2d');
   if(chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
@@ -1933,18 +1931,25 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
   let hasPrecip = false;
   if(precipValues){
     hasPrecip = true;
-    // Escala FIXA (no depenent de les dades) perque es pugui comparar d'un cop
-    // d'ull entre diferents plans/punts si ha plogut molt o poc.
+    // precipValues = { obs: [...], bands: [4 arrays d'alcades], agree: [4 arrays de % d'acord], stats: [...] }.
+    // Estil multimodel (Meteoblue): cada columna va fins al MAXIM dels models i es divideix en trams
+    // ordenats de baix a dalt (fins al minim = tots els models hi coincideixen = mes fosc; els trams de
+    // dalt, que nomes assoleixen alguns models, mes clars). Escala FIXA perque es pugui comparar d'un
+    // cop d'ull entre plans.
     datasets.push({
-      type: 'bar', label: 'Precipitació', data: precipValues,
-      backgroundColor: precipAgree
-        ? precipValues.map((_, i) => (precipAgree[i] === null || precipAgree[i] === undefined) ? PRECIP_OBS_COLOR : precipAgreeColor(precipAgree[i]))
-        : 'rgba(47,102,144,0.45)',
-      agree: precipAgree || null,
+      type: 'bar', label: 'Precipitació (observada)', data: precipValues.obs,
+      backgroundColor: PRECIP_OBS_COLOR, stack: 'precip',
       yAxisID: 'yPrecip', order: 50, barPercentage: 1, categoryPercentage: 1,
     });
+    precipValues.bands.forEach((heights, k) => {
+      datasets.push({
+        type: 'bar', label: '', data: heights, // etiqueta buida: el tooltip propi no els llista (hi ha una fila resum)
+        backgroundColor: precipValues.agree[k].map(a => (a === null || a === undefined) ? 'rgba(0,0,0,0)' : precipAgreeColor(a)),
+        stack: 'precip', yAxisID: 'yPrecip', order: 50, barPercentage: 1, categoryPercentage: 1,
+      });
+    });
     scales.yPrecip = {
-      position: 'right', min: 0, max: PRECIP_AXIS_MAX_MM / PRECIP_AXIS_HEIGHT_SHARE, display: false,
+      position: 'right', min: 0, max: PRECIP_AXIS_MAX_MM / PRECIP_AXIS_HEIGHT_SHARE, display: false, stacked: true,
     };
   }
 
@@ -1976,6 +1981,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
   });
   chartInstances[canvasId].$stationBand = chartBand; // per al tooltip propi
   chartInstances[canvasId].$cloudRows = hasCloud ? cloudRows : null;
+  chartInstances[canvasId].$precipStats = hasPrecip ? precipValues.stats : null;
 }
 
 // Construeix una graella horaria continua (sense salts) entre dues marques
@@ -2114,26 +2120,34 @@ function updateComparisonCharts(results){
     // Precipitacio (observada + previsio del model actiu seleccionat al desplegable),
     // per mostrar-la com a barres sota la linia de FMC1h.
     const obsPrecipAligned = alignToLabels(obsTimes, last5.map(h => (h.precip === null || h.precip === undefined) ? null : h.precip), labels);
-    // Previsio: mitjana dels 4 models; l'ACORD es el % de models que preveuen pluja (>= PRECIP_RAIN_MM).
+    // Previsio multimodel: per cada hora es ordenen els valors dels models i la columna es divideix en
+    // trams [0..v1], [v1..v2], ...; el tram k l'assoleixen (n-k) dels n models -> acord (n-k)/n.
     const precipByModel = COMPARISON_MODELS.map(m => alignToLabels(fcTimes, modelsForecastData.models[m.id].precip || [], labels));
-    const precipValues = [], precipAgree = [];
+    const nBands = COMPARISON_MODELS.length;
+    const precipObsBars = [], precipBands = Array.from({ length: nBands }, () => []), precipAgree = Array.from({ length: nBands }, () => []), precipStats = [];
     labels.forEach((_, i) => {
-      if(obsPrecipAligned[i] !== null && obsPrecipAligned[i] !== undefined){
-        precipValues.push(obsPrecipAligned[i]); precipAgree.push(null); // observat: sense acord
-        return;
+      const isObs = obsPrecipAligned[i] !== null && obsPrecipAligned[i] !== undefined;
+      precipObsBars.push(isObs ? obsPrecipAligned[i] : null);
+      const vals = isObs ? [] : precipByModel.map(r => r[i]).filter(v => v !== null && v !== undefined).sort((x, y) => x - y);
+      const n = vals.length;
+      for(let k = 0; k < nBands; k++){
+        if(k < n){
+          precipBands[k].push(vals[k] - (k ? vals[k - 1] : 0));
+          precipAgree[k].push(100 * (n - k) / n);
+        } else {
+          precipBands[k].push(null);
+          precipAgree[k].push(null);
+        }
       }
-      const vals = precipByModel.map(r => r[i]).filter(v => v !== null && v !== undefined);
-      if(!vals.length){ precipValues.push(null); precipAgree.push(null); return; }
-      precipValues.push(vals.reduce((a, b) => a + b, 0) / vals.length);
-      precipAgree.push(100 * vals.filter(v => v >= PRECIP_RAIN_MM).length / vals.length);
+      precipStats.push(n ? { n, min: vals[0], max: vals[n - 1], mean: vals.reduce((x, y) => x + y, 0) / n } : null);
     });
+    const precipValues = { obs: precipObsBars, bands: precipBands, agree: precipAgree, stats: precipStats };
 
     renderComparisonChart('chart-fmc', labels, todayIndex, obsFmcAligned,
       fmcByModel,
       { min: plan.fmcMin, max: plan.fmcMax, des: des.fmc }, undefined, precipValues, matchStatuses,
       undefined, undefined,
-      COMPARISON_MODELS.map(m => alignToLabels(fcTimes, modelsForecastData.models[m.id].cloud || [], labels)),
-      precipAgree);
+      COMPARISON_MODELS.map(m => alignToLabels(fcTimes, modelsForecastData.models[m.id].cloud || [], labels)));
 
     statusEl.textContent = '';
     wrap.style.display = 'block';
