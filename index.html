@@ -447,6 +447,7 @@
             <div><span class="sw" style="background:rgba(46,125,70,0.35);"></span>Dins de finestra</div>
             <div><span class="sw" style="background:rgba(184,134,11,0.35);"></span>Hora OK, context no</div>
             <div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgba(80,110,150,0.05), rgba(80,110,150,0.55));"></span>Nuvolositat 0 → 100 %</div>
+            <div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(127,220,240), rgb(28,63,143));"></span>Pluja: acord dels models 0 → 100 %</div>
           </div>
         </div>
       </div>
@@ -1462,6 +1463,16 @@ const COMPARISON_MODELS = [
   { id: 'gfs_seamless', label: 'GFS', color: '#2e7d46' },
   { id: 'arome_france', label: 'AROME France', color: '#b8860b' },
 ];
+const PRECIP_RAIN_MM = 0.1; // a partir d'aqui es compta que un model "preveu pluja" (acord entre models)
+// Color de les barres de pluja prevista segons l'acord entre models (0-100 %): de cian clar a blau fosc,
+// com al multimodel de Meteoblue. Les barres de pluja observada van en blau pla.
+function precipAgreeColor(a){
+  const t = Math.max(0, Math.min(100, a)) / 100;
+  const c0 = [127, 220, 240], c1 = [28, 63, 143];
+  const c = c0.map((v, k) => Math.round(v + (c1[k] - v) * t));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+const PRECIP_OBS_COLOR = 'rgba(47,102,144,0.7)';
 const PRECIP_AXIS_MAX_MM = 20; // escala fixa del grafic de precipitacio (mm/h)
 
 async function loadModelsForecast(latlon){
@@ -1535,7 +1546,14 @@ const crosshairPlugin = {
       if(!ds.label || ds.label.startsWith('Llindar') || ds.label.startsWith('Estacions')) continue;
       const v = ds.data[syncIndex];
       if(v === null || v === undefined || isNaN(v)) continue;
-      rows.push({ label: ds.label, value: v, color: ds.borderColor || ds.backgroundColor });
+      let lbl = ds.label;
+      let col = ds.borderColor || ds.backgroundColor;
+      if(ds.agree){
+        const ag = ds.agree[syncIndex];
+        lbl = (ag === null || ag === undefined) ? 'Precipitació (observada)' : `Precipitació (mitjana models, acord ${Math.round(ag)} %)`;
+        col = (ag === null || ag === undefined) ? PRECIP_OBS_COLOR : precipAgreeColor(ag);
+      }
+      rows.push({ label: lbl, value: v, color: col });
     }
     const band = chart.$stationBand;
     if(band && band.min[syncIndex] !== null && band.max[syncIndex] !== null &&
@@ -1821,7 +1839,7 @@ document.addEventListener('touchstart', (e) => {
   if(!e.target.closest('.cell')) hideCellTooltip();
   if(!e.target.closest('canvas')) clearSyncIndex();
 }, { passive: true });
-function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues, matchStatuses, windDirs, obsBand, cloudRows){
+function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues, matchStatuses, windDirs, obsBand, cloudRows, precipAgree){
   const ctx = document.getElementById(canvasId).getContext('2d');
   if(chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
@@ -1918,7 +1936,11 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
     // d'ull entre diferents plans/punts si ha plogut molt o poc.
     datasets.push({
       type: 'bar', label: 'Precipitació', data: precipValues,
-      backgroundColor: 'rgba(47,102,144,0.45)', yAxisID: 'yPrecip', order: 50, barPercentage: 1, categoryPercentage: 1,
+      backgroundColor: precipAgree
+        ? precipValues.map((_, i) => (precipAgree[i] === null || precipAgree[i] === undefined) ? PRECIP_OBS_COLOR : precipAgreeColor(precipAgree[i]))
+        : 'rgba(47,102,144,0.45)',
+      agree: precipAgree || null,
+      yAxisID: 'yPrecip', order: 50, barPercentage: 1, categoryPercentage: 1,
     });
     scales.yPrecip = {
       position: 'right', min: 0, max: PRECIP_AXIS_MAX_MM * 4, display: false,
@@ -2091,16 +2113,26 @@ function updateComparisonCharts(results){
     // Precipitacio (observada + previsio del model actiu seleccionat al desplegable),
     // per mostrar-la com a barres sota la linia de FMC1h.
     const obsPrecipAligned = alignToLabels(obsTimes, last5.map(h => (h.precip === null || h.precip === undefined) ? null : h.precip), labels);
-    const fcPrecipTimes = (forecastHourly && forecastHourly.time) ? forecastHourly.time : fcTimes;
-    const fcPrecipValues = (forecastHourly && forecastHourly.precip) ? forecastHourly.precip : [];
-    const fcPrecipAligned = alignToLabels(fcPrecipTimes, fcPrecipValues, labels);
-    const precipValues = labels.map((_, i) => obsPrecipAligned[i] !== null ? obsPrecipAligned[i] : fcPrecipAligned[i]);
+    // Previsio: mitjana dels 4 models; l'ACORD es el % de models que preveuen pluja (>= PRECIP_RAIN_MM).
+    const precipByModel = COMPARISON_MODELS.map(m => alignToLabels(fcTimes, modelsForecastData.models[m.id].precip || [], labels));
+    const precipValues = [], precipAgree = [];
+    labels.forEach((_, i) => {
+      if(obsPrecipAligned[i] !== null && obsPrecipAligned[i] !== undefined){
+        precipValues.push(obsPrecipAligned[i]); precipAgree.push(null); // observat: sense acord
+        return;
+      }
+      const vals = precipByModel.map(r => r[i]).filter(v => v !== null && v !== undefined);
+      if(!vals.length){ precipValues.push(null); precipAgree.push(null); return; }
+      precipValues.push(vals.reduce((a, b) => a + b, 0) / vals.length);
+      precipAgree.push(100 * vals.filter(v => v >= PRECIP_RAIN_MM).length / vals.length);
+    });
 
     renderComparisonChart('chart-fmc', labels, todayIndex, obsFmcAligned,
       fmcByModel,
       { min: plan.fmcMin, max: plan.fmcMax, des: des.fmc }, undefined, precipValues, matchStatuses,
       undefined, undefined,
-      COMPARISON_MODELS.map(m => alignToLabels(fcTimes, modelsForecastData.models[m.id].cloud || [], labels)));
+      COMPARISON_MODELS.map(m => alignToLabels(fcTimes, modelsForecastData.models[m.id].cloud || [], labels)),
+      precipAgree);
 
     statusEl.textContent = '';
     wrap.style.display = 'block';
