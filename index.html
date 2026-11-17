@@ -409,7 +409,7 @@
         <div id="strip-wrap" style="display:none;"></div>
         <div class="legend">
           <div><span class="sw" style="background:var(--green);"></span>Dins de pla</div>
-          <div><span class="sw" style="background:var(--amber);opacity:.6;"></span>Hora OK, context no</div>
+          <div><span class="sw" style="background:var(--amber);opacity:.6;"></span>Finestra OK, context no</div>
           <div><span class="sw" style="background:#e5e5e3;"></span>Fora de pla</div>
           <div><span class="cell is-night" style="background-color:#e5e5e3;background-image:repeating-linear-gradient(135deg, rgba(0,0,0,0.15) 0, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 4px);width:9px;height:9px;display:inline-block;border-radius:2px;margin-right:5px;vertical-align:middle;"></span>Hora nocturna</div>
         </div>
@@ -439,15 +439,15 @@
             <div><span class="sw" style="background:#2f6690;"></span>ECMWF IFS HRES</div>
             <div><span class="sw" style="background:#2e7d46;"></span>GFS</div>
             <div><span class="sw" style="background:#b8860b;"></span>AROME France</div>
+            <div title="Valor desitjat de la variable per a la crema"><span style="display:inline-block;width:16px;border-top:2px dashed rgba(70,70,68,0.85);margin-right:5px;vertical-align:middle;"></span>Valor desitjat</div>
           </div>
           <div class="legend" style="margin-top:6px;">
-            <div><span class="sw" style="background:rgba(120,120,120,0.25);"></span>Llindar de la finestra</div>
-            <div><span class="sw" style="background:rgba(80,110,150,0.4);"></span>Rang entre estacions</div>
-            <div><span style="display:inline-block;width:16px;border-top:2px dashed rgba(70,70,68,0.85);margin-right:5px;vertical-align:middle;"></span>Valor desitjat</div>
-            <div><span class="sw" style="background:rgba(46,125,70,0.35);"></span>Dins de finestra</div>
-            <div><span class="sw" style="background:rgba(184,134,11,0.35);"></span>Hora OK, context no</div>
-            <div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgba(95,95,92,0.06), rgba(95,95,92,0.66));"></span>Nuvolositat 0 → 100 %</div>
-            <div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(127,220,240), rgb(28,63,143));"></span>Pluja: acord entre models</div>
+            <div title="Franja de valors permesos per la finestra de crema"><span class="sw" style="background:rgba(120,120,120,0.25);"></span>Llindars</div>
+            <div title="Mínim i màxim entre les estacions usades per a l'observat"><span class="sw" style="background:rgba(80,110,150,0.4);"></span>Mín–màx estacions</div>
+            <div title="Hores en què es compleixen tots els llindars"><span class="sw" style="background:rgba(46,125,70,0.35);"></span>Dins finestra</div>
+            <div title="Hores que compleixen els llindars de la finestra, però no el context"><span class="sw" style="background:rgba(184,134,11,0.35);"></span>Finestra OK, context no</div>
+            <div title="Franges de dalt del gràfic FMC, una per model: més fosc = més cel cobert"><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgba(95,95,92,0.06), rgba(95,95,92,0.66));"></span>Nuvolositat 0→100 %</div>
+            <div title="Columnes fins al màxim dels models; més fosc = més models hi coincideixen"><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(127,220,240), rgb(28,63,143));"></span>Pluja (acord models)</div>
           </div>
         </div>
       </div>
