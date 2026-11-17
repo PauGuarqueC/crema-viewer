@@ -1515,11 +1515,19 @@ let chartInstances = {};
 // No es una variable del PdC: nomes serveix per veure si els models hi coincideixen.
 // Es dibuixa en un canvas propi alineat amb l'eix X del grafic de FMC.
 let cloudStripData = null;
-function drawCloudStrip(){
+// Es decorativa: qualsevol error aqui s'ignora perque mai pot trencar els grafics.
+// 'chart' es l'instancia que crida (onResize); sense argument, la de chartInstances.
+function drawCloudStrip(chart){
+  try{ drawCloudStripUnsafe(chart); }
+  catch(err){ console.warn('Franja de nuvolositat:', err); }
+}
+function drawCloudStripUnsafe(chart){
   const box = document.getElementById('cloud-strip');
   const cv = document.getElementById('cloud-strip-canvas');
-  const ch = chartInstances['chart-fmc'];
+  const ch = chart || chartInstances['chart-fmc'];
   if(!box || !cv) return;
+  // Instancia destruida o encara en construccio (sense canvas/escales/area): no es dibuixa
+  if(ch && (!ch.canvas || !ch.scales || !ch.scales.x || !ch.chartArea)) return;
   if(!ch || !cloudStripData || !cloudStripData.rows.some(r => r.some(v => v !== null && v !== undefined))){
     box.style.display = 'none';
     return;
@@ -1934,7 +1942,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       layout: hasWindDir ? { padding: { top: 16 } } : undefined,
-      onResize: (c) => { if(c.canvas.id === 'chart-fmc') drawCloudStrip(); },
+      onResize: (c) => { if(c.canvas && c.canvas.id === 'chart-fmc') drawCloudStrip(c); },
       plugins: {
         legend: { display: false },
         tooltip: { enabled: false }, // desactivat: fem servir el tooltip propi (crosshairPlugin), mes fiable al mobil
