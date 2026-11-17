@@ -446,8 +446,8 @@
             <div><span style="display:inline-block;width:16px;border-top:2px dashed rgba(70,70,68,0.85);margin-right:5px;vertical-align:middle;"></span>Valor desitjat</div>
             <div><span class="sw" style="background:rgba(46,125,70,0.35);"></span>Dins de finestra</div>
             <div><span class="sw" style="background:rgba(184,134,11,0.35);"></span>Hora OK, context no</div>
-            <div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgba(80,110,150,0.05), rgba(80,110,150,0.55));"></span>Nuvolositat 0 → 100 %</div>
-            <div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(127,220,240), rgb(28,63,143));"></span>Pluja (fins al màxim dels models): més fosc = més models hi coincideixen</div>
+            <div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgba(95,95,92,0.06), rgba(95,95,92,0.66));"></span>Nuvolositat 0 → 100 %</div>
+            <div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(127,220,240), rgb(28,63,143));"></span>Pluja: acord entre models</div>
           </div>
         </div>
       </div>
@@ -1563,7 +1563,7 @@ const crosshairPlugin = {
     if(chart.$cloudRows){
       const vals = chart.$cloudRows.map(r => (r[syncIndex] === null || r[syncIndex] === undefined) ? '—' : Math.round(r[syncIndex]));
       if(vals.some(v => v !== '—')){
-        rows.push({ label: 'Nuvolositat (ICON/ECMWF/GFS/AROME)', value: vals.join(' / ') + ' %', color: 'rgba(80,110,150,0.8)' });
+        rows.push({ label: 'Nuvolositat (ICON/ECMWF/GFS/AROME)', value: vals.join(' / ') + ' %', color: 'rgba(95,95,92,0.8)' });
       }
     }
     if(rows.length === 0) return;
@@ -1628,9 +1628,10 @@ const cloudStripsPlugin = {
       const n = chart.data.labels.length;
       const step = n > 1 ? Math.abs(xs.getPixelForValue(1) - xs.getPixelForValue(0)) : (a.right - a.left);
       ctx.save();
-      // Panell de fons amb to blavos (no gris, per no confondre'l amb les bandes de
-      // llindar), a tota l'amplada del grafic; sense ratlla de separacio.
-      ctx.fillStyle = 'rgba(80,110,150,0.07)';
+      // Panell de fons molt suau a tota l'amplada del grafic (a la zona de marge superior,
+      // on no hi ha bandes de llindar); sense ratlla de separacio. Nuvolositat en gris
+      // neutre per diferenciar-la de la pluja (blaus).
+      ctx.fillStyle = 'rgba(95,95,92,0.05)';
       ctx.fillRect(a.left, 0, a.right - a.left, CLOUD_TOP_PAD - 3);
       rows.forEach((r, m) => {
         const y = 3 + m * (CLOUD_ROW_H + CLOUD_ROW_GAP);
@@ -1639,7 +1640,7 @@ const cloudStripsPlugin = {
           const cx = xs.getPixelForValue(i);
           const x0 = Math.max(a.left, cx - step / 2), x1 = Math.min(a.right, cx + step / 2);
           if(x1 <= x0) return;
-          ctx.fillStyle = `rgba(80,110,150,${(0.05 + 0.50 * v / 100).toFixed(2)})`;
+          ctx.fillStyle = `rgba(95,95,92,${(0.06 + 0.60 * v / 100).toFixed(2)})`;
           ctx.fillRect(x0, y, x1 - x0 + 0.5, CLOUD_ROW_H);
         });
       });
