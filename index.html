@@ -82,13 +82,10 @@
   #btn-delete-plan:not(:disabled):hover { background: var(--red) !important; color: #fff !important; border-color: var(--red) !important; }
 
   .chart-block { margin-bottom: 16px; }
-  .cloud-strip { margin: -6px 0 10px; }
-  .cloud-strip-head { display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--text-secondary); margin-bottom:3px; }
-  .cloud-strip-scale { display:flex; align-items:center; gap:4px; white-space:nowrap; }
-  .cloud-strip-scale i { display:inline-block; width:50px; height:7px; background:linear-gradient(90deg, rgba(100,100,98,0.04), rgba(100,100,98,0.64)); }
-  #cloud-strip-canvas { display:block; cursor:default; }
+
   .chart-title { font-size: 11.5px; font-weight: 600; color: var(--text-dim); margin-bottom: 4px; }
   .chart-canvas-wrap { height: 150px; position: relative; }
+  .chart-canvas-fmc { height: 215px; }
 
   details.block summary {
     cursor: pointer;
@@ -242,6 +239,7 @@
     .plan-form.cols-3 { grid-template-columns: 1fr 1fr; }
 
     .chart-canvas-wrap { height: 130px; }
+    .chart-canvas-fmc { height: 195px; }
 
     #auth-box { width: 85vw; max-width: 320px; }
 
@@ -432,15 +430,8 @@
             <div class="chart-canvas-wrap"><canvas id="chart-wind"></canvas></div>
           </div>
           <div class="chart-block">
-            <div class="chart-title">FMC 1h (%) + Precipitació (mm)</div>
-            <div class="chart-canvas-wrap"><canvas id="chart-fmc"></canvas></div>
-          </div>
-          <div id="cloud-strip" class="cloud-strip" style="display:none;">
-            <div class="cloud-strip-head">
-              <span>Nuvolositat prevista, una fila per model (més fosc = més cobert)</span>
-              <span class="cloud-strip-scale">0 %<i></i>100 %</span>
-            </div>
-            <canvas id="cloud-strip-canvas"></canvas>
+            <div class="chart-title">FMC 1h (%) + Precipitació (mm) + Nuvolositat (%)</div>
+            <div class="chart-canvas-wrap chart-canvas-fmc"><canvas id="chart-fmc"></canvas></div>
           </div>
           <div class="legend" style="margin-top:2px;">
             <div><span class="sw" style="background:#2b2b2b;"></span>Observat</div>
@@ -452,6 +443,7 @@
           <div class="legend" style="margin-top:6px;">
             <div><span class="sw" style="background:rgba(120,120,120,0.25);"></span>Llindar de la finestra</div>
             <div><span class="sw" style="background:rgba(80,110,150,0.4);"></span>Rang entre estacions</div>
+            <div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgba(80,110,150,0.06), rgba(80,110,150,0.75));"></span>Nuvolositat 0 → 100 % (franges de dalt del FMC, una per model)</div>
             <div><span style="display:inline-block;width:16px;border-top:2px dashed rgba(70,70,68,0.85);margin-right:5px;vertical-align:middle;"></span>Valor desitjat</div>
             <div><span class="sw" style="background:rgba(46,125,70,0.35);"></span>Dins de finestra</div>
             <div><span class="sw" style="background:rgba(184,134,11,0.35);"></span>Hora OK, context no</div>
@@ -1511,64 +1503,6 @@ async function loadModelsForecast(latlon){
 
 let chartInstances = {};
 
-// ---------- Franges de nuvolositat (una fila per model), sota el grafic de FMC ----------
-// No es una variable del PdC: nomes serveix per veure si els models hi coincideixen.
-// Es dibuixa en un canvas propi alineat amb l'eix X del grafic de FMC.
-let cloudStripData = null;
-// Es decorativa: qualsevol error aqui s'ignora perque mai pot trencar els grafics.
-// 'chart' es l'instancia que crida (onResize); sense argument, la de chartInstances.
-function drawCloudStrip(chart){
-  try{ drawCloudStripUnsafe(chart); }
-  catch(err){ console.warn('Franja de nuvolositat:', err); }
-}
-function drawCloudStripUnsafe(chart){
-  const box = document.getElementById('cloud-strip');
-  const cv = document.getElementById('cloud-strip-canvas');
-  const ch = chart || chartInstances['chart-fmc'];
-  if(!box || !cv) return;
-  // Instancia destruida o encara en construccio (sense canvas/escales/area): no es dibuixa
-  if(ch && (!ch.canvas || !ch.scales || !ch.scales.x || !ch.chartArea)) return;
-  if(!ch || !cloudStripData || !cloudStripData.rows.some(r => r.some(v => v !== null && v !== undefined))){
-    box.style.display = 'none';
-    return;
-  }
-  box.style.display = 'block';
-  const { labels, rows } = cloudStripData;
-  const W = ch.canvas.clientWidth;
-  const rowH = 9, gap = 2, H = rows.length * (rowH + gap) - gap;
-  const dpr = window.devicePixelRatio || 1;
-  cv.style.width = W + 'px'; cv.style.height = H + 'px';
-  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
-  const ctx = cv.getContext('2d');
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, W, H);
-  const xs = ch.scales.x, a = ch.chartArea;
-  const step = labels.length > 1 ? Math.abs(xs.getPixelForValue(1) - xs.getPixelForValue(0)) : (a.right - a.left);
-  rows.forEach((r, m) => {
-    const y = m * (rowH + gap);
-    ctx.fillStyle = COMPARISON_MODELS[m].color;
-    ctx.fillRect(Math.max(0, a.left - 13), y + 1, 7, 7);
-    r.forEach((v, i) => {
-      if(v === null || v === undefined) return;
-      const cx = xs.getPixelForValue(i);
-      const x0 = Math.max(a.left, cx - step / 2), x1 = Math.min(a.right, cx + step / 2);
-      if(x1 <= x0) return;
-      ctx.fillStyle = `rgba(100,100,98,${(0.04 + 0.6 * v / 100).toFixed(2)})`;
-      ctx.fillRect(x0, y, x1 - x0 + 0.5, rowH);
-    });
-  });
-  cv.onmousemove = (e) => {
-    const px = e.clientX - cv.getBoundingClientRect().left;
-    const i = Math.round(xs.getValueForPixel(px));
-    if(i < 0 || i >= labels.length){ cv.title = ''; return; }
-    const parts = COMPARISON_MODELS.map((m, k) => {
-      const v = rows[k][i];
-      return `${m.label}: ${v === null || v === undefined ? '—' : Math.round(v) + ' %'}`;
-    });
-    cv.title = `${labels[i].replace('T', ' ')}\n` + parts.join('\n');
-  };
-}
-
 // ---------- Linia vertical sincronitzada entre els 4 grafics comparatius ----------
 const CHART_IDS = ['chart-temp', 'chart-hr', 'chart-wind', 'chart-fmc'];
 let syncIndex = null;
@@ -1608,6 +1542,12 @@ const crosshairPlugin = {
        band.min[syncIndex] !== undefined && band.max[syncIndex] !== undefined){
       rows.push({ label: 'Estacions', value: `${band.min[syncIndex].toFixed(1)} – ${band.max[syncIndex].toFixed(1)}`,
                   color: 'rgba(80,110,150,0.7)' });
+    }
+    if(chart.$cloudRows){
+      const vals = chart.$cloudRows.map(r => (r[syncIndex] === null || r[syncIndex] === undefined) ? '—' : Math.round(r[syncIndex]));
+      if(vals.some(v => v !== '—')){
+        rows.push({ label: 'Nuvolositat (ICON/ECMWF/GFS/AROME)', value: vals.join(' / ') + ' %', color: 'rgba(80,110,150,0.8)' });
+      }
     }
     if(rows.length === 0) return;
 
@@ -1655,6 +1595,49 @@ const crosshairPlugin = {
 };
 
 // Marca ben visible on comenca "avui" (frontera entre observat i previsio)
+// Franges de nuvolositat prevista (una fila per model; mes fosc = mes cobert), dins
+// del marge superior del grafic. Nomes un quadradet de color de cada model, just
+// a l'esquerra de la linia d'"Avui". No es una variable del PdC: serveix per veure
+// si els models coincideixen. Es decorativa: un error aqui mai ha de trencar el grafic.
+const CLOUD_ROW_H = 8, CLOUD_ROW_GAP = 1, CLOUD_PAD_EXTRA = 8;
+const CLOUD_TOP_PAD = COMPARISON_MODELS.length * (CLOUD_ROW_H + CLOUD_ROW_GAP) + CLOUD_PAD_EXTRA;
+const cloudStripsPlugin = {
+  id: 'cloudStrips',
+  afterDraw(chart){
+    try{
+      const rows = chart.$cloudRows;
+      if(!rows || !chart.scales.x || !chart.chartArea) return;
+      const xs = chart.scales.x, a = chart.chartArea, ctx = chart.ctx;
+      const n = chart.data.labels.length;
+      const step = n > 1 ? Math.abs(xs.getPixelForValue(1) - xs.getPixelForValue(0)) : (a.right - a.left);
+      ctx.save();
+      rows.forEach((r, m) => {
+        const y = 3 + m * (CLOUD_ROW_H + CLOUD_ROW_GAP);
+        r.forEach((v, i) => {
+          if(v === null || v === undefined) return;
+          const cx = xs.getPixelForValue(i);
+          const x0 = Math.max(a.left, cx - step / 2), x1 = Math.min(a.right, cx + step / 2);
+          if(x1 <= x0) return;
+          ctx.fillStyle = `rgba(80,110,150,${(0.06 + 0.69 * v / 100).toFixed(2)})`;
+          ctx.fillRect(x0, y, x1 - x0 + 0.5, CLOUD_ROW_H);
+        });
+      });
+      const t = chart.options.plugins && chart.options.plugins.todayMarker;
+      if(t && t.index !== undefined && t.index !== null){
+        const tx = xs.getPixelForValue(t.index);
+        rows.forEach((r, m) => {
+          const y = 3 + m * (CLOUD_ROW_H + CLOUD_ROW_GAP);
+          ctx.fillStyle = COMPARISON_MODELS[m].color;
+          ctx.fillRect(tx - 11, y + 0.5, 7, CLOUD_ROW_H - 1);
+        });
+        ctx.beginPath(); ctx.moveTo(tx, 2); ctx.lineTo(tx, a.top);
+        ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(43,43,43,0.55)'; ctx.stroke();
+      }
+      ctx.restore();
+    }catch(err){ console.warn('Franges de nuvolositat:', err); }
+  }
+};
+
 const todayMarkerPlugin = {
   id: 'todayMarker',
   afterDraw(chart){
@@ -1824,7 +1807,7 @@ document.addEventListener('touchstart', (e) => {
   if(!e.target.closest('.cell')) hideCellTooltip();
   if(!e.target.closest('canvas')) clearSyncIndex();
 }, { passive: true });
-function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues, matchStatuses, windDirs, obsBand){
+function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues, matchStatuses, windDirs, obsBand, cloudRows){
   const ctx = document.getElementById(canvasId).getContext('2d');
   if(chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
@@ -1929,7 +1912,9 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
   }
 
   const hasWindDir = !!windDirs;
+  const hasCloud = !!cloudRows && cloudRows.some(r => r.some(v => v !== null && v !== undefined));
   const pluginList = [matchShadingPlugin, crosshairPlugin, todayMarkerPlugin];
+  if(hasCloud) pluginList.push(cloudStripsPlugin);
   if(hasPrecip) pluginList.push(precipAxisLabelPlugin);
   if(hasWindDir) pluginList.push(windDirPlugin);
 
@@ -1941,8 +1926,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
-      layout: hasWindDir ? { padding: { top: 16 } } : undefined,
-      onResize: (c) => { if(c.canvas && c.canvas.id === 'chart-fmc') drawCloudStrip(c); },
+      layout: hasWindDir ? { padding: { top: 16 } } : (hasCloud ? { padding: { top: CLOUD_TOP_PAD } } : undefined),
       plugins: {
         legend: { display: false },
         tooltip: { enabled: false }, // desactivat: fem servir el tooltip propi (crosshairPlugin), mes fiable al mobil
@@ -1954,6 +1938,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
     },
   });
   chartInstances[canvasId].$stationBand = chartBand; // per al tooltip propi
+  chartInstances[canvasId].$cloudRows = hasCloud ? cloudRows : null;
 }
 
 // Construeix una graella horaria continua (sense salts) entre dues marques
@@ -2099,13 +2084,9 @@ function updateComparisonCharts(results){
 
     renderComparisonChart('chart-fmc', labels, todayIndex, obsFmcAligned,
       fmcByModel,
-      { min: plan.fmcMin, max: plan.fmcMax, des: des.fmc }, undefined, precipValues, matchStatuses);
-
-    cloudStripData = {
-      labels,
-      rows: COMPARISON_MODELS.map(m => alignToLabels(fcTimes, modelsForecastData.models[m.id].cloud || [], labels)),
-    };
-    drawCloudStrip();
+      { min: plan.fmcMin, max: plan.fmcMax, des: des.fmc }, undefined, precipValues, matchStatuses,
+      undefined, undefined,
+      COMPARISON_MODELS.map(m => alignToLabels(fcTimes, modelsForecastData.models[m.id].cloud || [], labels)));
 
     statusEl.textContent = '';
     wrap.style.display = 'block';
