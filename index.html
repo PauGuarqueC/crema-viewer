@@ -439,15 +439,15 @@
             <div><span class="sw" style="background:#2f6690;"></span>ECMWF IFS HRES</div>
             <div><span class="sw" style="background:#2e7d46;"></span>GFS</div>
             <div><span class="sw" style="background:#b8860b;"></span>AROME France</div>
-            <div title="Valor desitjat de la variable per a la crema"><span style="display:inline-block;width:16px;border-top:2px dashed rgba(70,70,68,0.85);margin-right:5px;vertical-align:middle;"></span>Valor desitjat</div>
+            <div class="legend-tip" data-tip="Valor desitjat de la variable per a la crema"><span style="display:inline-block;width:16px;border-top:2px dashed rgba(70,70,68,0.85);margin-right:5px;vertical-align:middle;"></span>Valor desitjat</div>
           </div>
           <div class="legend" style="margin-top:6px;">
-            <div title="Franja de valors permesos per la finestra de crema"><span class="sw" style="background:rgba(120,120,120,0.25);"></span>Llindars</div>
-            <div title="Mínim i màxim entre les estacions usades per a l'observat"><span class="sw" style="background:rgba(80,110,150,0.4);"></span>Mín–màx estacions</div>
-            <div title="Hores en què es compleixen tots els llindars"><span class="sw" style="background:rgba(46,125,70,0.35);"></span>Dins finestra</div>
-            <div title="Hores que compleixen els llindars de la finestra, però no el context"><span class="sw" style="background:rgba(184,134,11,0.35);"></span>Finestra OK, context no</div>
-            <div title="Franges de dalt del gràfic FMC, una per model: més fosc = més cel cobert"><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgba(95,95,92,0.06), rgba(95,95,92,0.66));"></span>Nuvolositat 0→100 %</div>
-            <div title="Columnes fins al màxim dels models; més fosc = més models hi coincideixen"><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(127,220,240), rgb(28,63,143));"></span>Pluja (acord models)</div>
+            <div class="legend-tip" data-tip="Franja de valors permesos per la finestra de crema"><span class="sw" style="background:rgba(120,120,120,0.25);"></span>Llindars</div>
+            <div class="legend-tip" data-tip="Mínim i màxim entre les estacions usades per a l'observat"><span class="sw" style="background:rgba(80,110,150,0.4);"></span>Mín–màx estacions</div>
+            <div class="legend-tip" data-tip="Hores en què es compleixen tots els llindars"><span class="sw" style="background:rgba(46,125,70,0.35);"></span>Dins finestra</div>
+            <div class="legend-tip" data-tip="Hores que compleixen els llindars de la finestra, però no el context"><span class="sw" style="background:rgba(184,134,11,0.35);"></span>Finestra OK, context no</div>
+            <div class="legend-tip" data-tip="Franges de dalt del gràfic FMC, una per model: més fosc = més cel cobert"><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgba(95,95,92,0.06), rgba(95,95,92,0.66));"></span>Nuvolositat 0→100 %</div>
+            <div class="legend-tip" data-tip="Columnes fins al màxim dels models; més fosc = més models hi coincideixen"><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(127,220,240), rgb(28,63,143));"></span>Pluja (acord models)</div>
           </div>
         </div>
       </div>
@@ -1392,8 +1392,10 @@ function fmt(v, d=1){ return v===null || v===undefined || isNaN(v) ? '—' : v.t
 // (evita que es talli a les hores properes als extrems del dia, on el panell
 // lateral o la vora de la pantalla el retallaven).
 const cellTooltipEl = document.getElementById('cell-tooltip');
-function showCellTooltip(cellEl, text){
+function showCellTooltip(cellEl, text, wrap){
   cellTooltipEl.textContent = text;
+  cellTooltipEl.style.whiteSpace = wrap ? 'normal' : 'nowrap';
+  cellTooltipEl.style.maxWidth = wrap ? '260px' : 'none';
   cellTooltipEl.style.display = 'block';
   const margin = 8;
   const rect = cellEl.getBoundingClientRect();
@@ -1409,6 +1411,14 @@ function showCellTooltip(cellEl, text){
   cellTooltipEl.style.top = top + 'px';
 }
 function hideCellTooltip(){ cellTooltipEl.style.display = 'none'; }
+// Explicacions de la llegenda: tooltip propi immediat (el 'title' natiu triga
+// i no funciona al mobil). Ratoli: entrar/sortir; tactil: tocar.
+document.querySelectorAll('.legend-tip').forEach(el => {
+  el.style.cursor = 'help';
+  el.addEventListener('mouseenter', () => showCellTooltip(el, el.dataset.tip, true));
+  el.addEventListener('mouseleave', hideCellTooltip);
+  el.addEventListener('click', () => showCellTooltip(el, el.dataset.tip, true));
+});
 
 // Alguns models (p.ex. AROME France, nomes ~2,5 dies d'horitzo) tornen un
 // array MES CURT per certes variables en lloc d'omplir-lo amb null fins al
