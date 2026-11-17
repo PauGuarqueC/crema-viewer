@@ -82,6 +82,11 @@
   #btn-delete-plan:not(:disabled):hover { background: var(--red) !important; color: #fff !important; border-color: var(--red) !important; }
 
   .chart-block { margin-bottom: 16px; }
+  .cloud-strip { margin: -6px 0 10px; }
+  .cloud-strip-head { display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--text-secondary); margin-bottom:3px; }
+  .cloud-strip-scale { display:flex; align-items:center; gap:4px; white-space:nowrap; }
+  .cloud-strip-scale i { display:inline-block; width:50px; height:7px; background:linear-gradient(90deg, rgba(100,100,98,0.04), rgba(100,100,98,0.64)); }
+  #cloud-strip-canvas { display:block; cursor:default; }
   .chart-title { font-size: 11.5px; font-weight: 600; color: var(--text-dim); margin-bottom: 4px; }
   .chart-canvas-wrap { height: 150px; position: relative; }
 
@@ -429,6 +434,13 @@
           <div class="chart-block">
             <div class="chart-title">FMC 1h (%) + Precipitació (mm)</div>
             <div class="chart-canvas-wrap"><canvas id="chart-fmc"></canvas></div>
+          </div>
+          <div id="cloud-strip" class="cloud-strip" style="display:none;">
+            <div class="cloud-strip-head">
+              <span>Nuvolositat prevista, una fila per model (més fosc = més cobert)</span>
+              <span class="cloud-strip-scale">0 %<i></i>100 %</span>
+            </div>
+            <canvas id="cloud-strip-canvas"></canvas>
           </div>
           <div class="legend" style="margin-top:2px;">
             <div><span class="sw" style="background:#2b2b2b;"></span>Observat</div>
@@ -1464,7 +1476,7 @@ async function loadModelsForecast(latlon){
   const [lat, lon] = latlon;
   const modelsParam = COMPARISON_MODELS.map(m => m.id).join(',');
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}` +
-    `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,shortwave_radiation,precipitation` +
+    `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,shortwave_radiation,precipitation,cloud_cover` +
     `&models=${modelsParam}&forecast_days=5&timezone=Europe%2FMadrid`;
   const res = await fetch(url);
   if(!res.ok) throw new Error("Error consultant Open-Meteo (comparativa)");
@@ -1481,6 +1493,7 @@ async function loadModelsForecast(latlon){
     const windDirKey = findKey('wind_direction_10m', m.id);
     const radKey = findKey('shortwave_radiation', m.id);
     const precipKey = findKey('precipitation', m.id);
+    const cloudKey = findKey('cloud_cover', m.id);
     const windRaw = windKey ? padToLength(hourly[windKey], n) : new Array(n).fill(null);
     models[m.id] = {
       time: hourly.time,
@@ -1490,12 +1503,63 @@ async function loadModelsForecast(latlon){
       windDir: windDirKey ? padToLength(hourly[windDirKey], n) : new Array(n).fill(null),
       rad: radKey ? padToLength(hourly[radKey], n) : new Array(n).fill(null),
       precip: precipKey ? padToLength(hourly[precipKey], n) : new Array(n).fill(null),
+      cloud: cloudKey ? padToLength(hourly[cloudKey], n) : new Array(n).fill(null),
     };
   }
   return { time: hourly.time, models };
 }
 
 let chartInstances = {};
+
+// ---------- Franges de nuvolositat (una fila per model), sota el grafic de FMC ----------
+// No es una variable del PdC: nomes serveix per veure si els models hi coincideixen.
+// Es dibuixa en un canvas propi alineat amb l'eix X del grafic de FMC.
+let cloudStripData = null;
+function drawCloudStrip(){
+  const box = document.getElementById('cloud-strip');
+  const cv = document.getElementById('cloud-strip-canvas');
+  const ch = chartInstances['chart-fmc'];
+  if(!box || !cv) return;
+  if(!ch || !cloudStripData || !cloudStripData.rows.some(r => r.some(v => v !== null && v !== undefined))){
+    box.style.display = 'none';
+    return;
+  }
+  box.style.display = 'block';
+  const { labels, rows } = cloudStripData;
+  const W = ch.canvas.clientWidth;
+  const rowH = 9, gap = 2, H = rows.length * (rowH + gap) - gap;
+  const dpr = window.devicePixelRatio || 1;
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const xs = ch.scales.x, a = ch.chartArea;
+  const step = labels.length > 1 ? Math.abs(xs.getPixelForValue(1) - xs.getPixelForValue(0)) : (a.right - a.left);
+  rows.forEach((r, m) => {
+    const y = m * (rowH + gap);
+    ctx.fillStyle = COMPARISON_MODELS[m].color;
+    ctx.fillRect(Math.max(0, a.left - 13), y + 1, 7, 7);
+    r.forEach((v, i) => {
+      if(v === null || v === undefined) return;
+      const cx = xs.getPixelForValue(i);
+      const x0 = Math.max(a.left, cx - step / 2), x1 = Math.min(a.right, cx + step / 2);
+      if(x1 <= x0) return;
+      ctx.fillStyle = `rgba(100,100,98,${(0.04 + 0.6 * v / 100).toFixed(2)})`;
+      ctx.fillRect(x0, y, x1 - x0 + 0.5, rowH);
+    });
+  });
+  cv.onmousemove = (e) => {
+    const px = e.clientX - cv.getBoundingClientRect().left;
+    const i = Math.round(xs.getValueForPixel(px));
+    if(i < 0 || i >= labels.length){ cv.title = ''; return; }
+    const parts = COMPARISON_MODELS.map((m, k) => {
+      const v = rows[k][i];
+      return `${m.label}: ${v === null || v === undefined ? '—' : Math.round(v) + ' %'}`;
+    });
+    cv.title = `${labels[i].replace('T', ' ')}\n` + parts.join('\n');
+  };
+}
 
 // ---------- Linia vertical sincronitzada entre els 4 grafics comparatius ----------
 const CHART_IDS = ['chart-temp', 'chart-hr', 'chart-wind', 'chart-fmc'];
@@ -1870,6 +1934,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       layout: hasWindDir ? { padding: { top: 16 } } : undefined,
+      onResize: (c) => { if(c.canvas.id === 'chart-fmc') drawCloudStrip(); },
       plugins: {
         legend: { display: false },
         tooltip: { enabled: false }, // desactivat: fem servir el tooltip propi (crosshairPlugin), mes fiable al mobil
@@ -2027,6 +2092,12 @@ function updateComparisonCharts(results){
     renderComparisonChart('chart-fmc', labels, todayIndex, obsFmcAligned,
       fmcByModel,
       { min: plan.fmcMin, max: plan.fmcMax, des: des.fmc }, undefined, precipValues, matchStatuses);
+
+    cloudStripData = {
+      labels,
+      rows: COMPARISON_MODELS.map(m => alignToLabels(fcTimes, modelsForecastData.models[m.id].cloud || [], labels)),
+    };
+    drawCloudStrip();
 
     statusEl.textContent = '';
     wrap.style.display = 'block';
