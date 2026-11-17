@@ -1517,7 +1517,7 @@ const crosshairPlugin = {
     const ctx = chart.ctx;
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(x, top);
+    ctx.moveTo(x, chart.$cloudRows ? 2 : top); // amb franges de nuvolositat, la creu hi arriba
     ctx.lineTo(x, bottom);
     ctx.lineWidth = 1;
     ctx.strokeStyle = 'rgba(200,16,46,0.6)';
@@ -1787,7 +1787,17 @@ CHART_IDS.forEach(id => {
     if(!chart) return;
     // Chart.js sap normalitzar tant MouseEvent com TouchEvent aqui mateix.
     const points = chart.getElementsAtEventForMode(e, 'index', { intersect: false }, true);
-    if(points.length) setSyncIndex(points[0].index);
+    if(points.length){ setSyncIndex(points[0].index); return; }
+    // Franges de nuvolositat: son al marge superior, fora de l'area del grafic
+    // (Chart.js no hi detecta res); es calcula l'hora a partir de la posicio X.
+    if(chart.$cloudRows && chart.scales.x){
+      const pos = Chart.helpers.getRelativePosition(e, chart);
+      const a = chart.chartArea;
+      if(pos.y >= 0 && pos.y < a.top && pos.x >= a.left && pos.x <= a.right){
+        const i = Math.round(chart.scales.x.getValueForPixel(pos.x));
+        if(i >= 0 && i < chart.data.labels.length) setSyncIndex(i);
+      }
+    }
   };
   canvas.addEventListener('mousemove', updateFromEvent);
   // Al mobil, tocar la pantalla no sempre dispara 'mousemove' -> calen
