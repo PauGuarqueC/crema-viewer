@@ -85,7 +85,7 @@
 
   .chart-title { font-size: 11.5px; font-weight: 600; color: var(--text-dim); margin-bottom: 4px; }
   .chart-canvas-wrap { height: 150px; position: relative; }
-  .chart-canvas-fmc { height: 215px; }
+  .chart-canvas-fmc { height: 240px; }
 
   details.block summary {
     cursor: pointer;
@@ -239,7 +239,7 @@
     .plan-form.cols-3 { grid-template-columns: 1fr 1fr; }
 
     .chart-canvas-wrap { height: 130px; }
-    .chart-canvas-fmc { height: 195px; }
+    .chart-canvas-fmc { height: 215px; }
 
     #auth-box { width: 85vw; max-width: 320px; }
 
@@ -1473,7 +1473,8 @@ function precipAgreeColor(a){
   return `rgb(${c[0]},${c[1]},${c[2]})`;
 }
 const PRECIP_OBS_COLOR = 'rgba(47,102,144,0.7)';
-const PRECIP_AXIS_MAX_MM = 20; // escala fixa del grafic de precipitacio (mm/h)
+const PRECIP_AXIS_MAX_MM = 20; // escala fixa del grafic de precipitacio (mm/h): etiquetes 0 / 10 / 20 mm
+const PRECIP_AXIS_HEIGHT_SHARE = 0.5; // fraccio de l'alcada del grafic que ocupa aquesta escala (20 mm = meitat del grafic)
 
 async function loadModelsForecast(latlon){
   const [lat, lon] = latlon;
@@ -1943,7 +1944,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
       yAxisID: 'yPrecip', order: 50, barPercentage: 1, categoryPercentage: 1,
     });
     scales.yPrecip = {
-      position: 'right', min: 0, max: PRECIP_AXIS_MAX_MM * 4, display: false,
+      position: 'right', min: 0, max: PRECIP_AXIS_MAX_MM / PRECIP_AXIS_HEIGHT_SHARE, display: false,
     };
   }
 
