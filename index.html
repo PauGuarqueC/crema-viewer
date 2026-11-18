@@ -447,7 +447,7 @@
             <div class="legend-tip" data-tip="Hores en què es compleixen tots els llindars"><span class="sw" style="background:rgba(46,125,70,0.35);"></span>Dins finestra</div>
             <div class="legend-tip" data-tip="Hores que compleixen els llindars de la finestra, però no el context"><span class="sw" style="background:rgba(184,134,11,0.35);"></span>Finestra OK, context no</div>
             <div class="legend-tip" data-tip="Franges de dalt del gràfic FMC, una per model: més fosc = més cel cobert"><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgba(95,95,92,0.06), rgba(95,95,92,0.66));"></span>Nuvolositat 0→100 %</div>
-            <div class="legend-tip" data-tip="Columnes fins al màxim dels models; més fosc = més models hi coincideixen"><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(127,220,240), rgb(28,63,143));"></span>Pluja (acord models)</div>
+            <div class="legend-tip" data-tip="Columnes fins al màxim dels models; més fosc = més models hi coincideixen"><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(170,228,246), rgb(14,38,112));"></span>Pluja: 1 → 4 models</div>
           </div>
         </div>
       </div>
@@ -1476,10 +1476,13 @@ const COMPARISON_MODELS = [
 const PRECIP_RAIN_MM = 0.1; // a partir d'aqui es compta que un model "preveu pluja" (acord entre models)
 // Color de les barres de pluja prevista segons l'acord entre models (0-100 %): de cian clar a blau fosc,
 // com al multimodel de Meteoblue. Les barres de pluja observada van en blau pla.
+const PRECIP_COLOR_LIGHT = [170, 228, 246], PRECIP_COLOR_DARK = [14, 38, 112];
 function precipAgreeColor(a){
-  const t = Math.max(0, Math.min(100, a)) / 100;
-  const c0 = [127, 220, 240], c1 = [28, 63, 143];
-  const c = c0.map((v, k) => Math.round(v + (c1[k] - v) * t));
+  // a = % de models d'acord (25, 50, 75, 100 amb 4 models). L'escala va de "un sol
+  // model" (color mes clar) a "tots els models" (color mes fosc), aprofitant tot el rang.
+  const nMin = 100 / COMPARISON_MODELS.length;
+  const t = Math.max(0, Math.min(1, (a - nMin) / (100 - nMin)));
+  const c = PRECIP_COLOR_LIGHT.map((v, k) => Math.round(v + (PRECIP_COLOR_DARK[k] - v) * t));
   return `rgb(${c[0]},${c[1]},${c[2]})`;
 }
 const PRECIP_OBS_COLOR = 'rgba(47,102,144,0.7)';
