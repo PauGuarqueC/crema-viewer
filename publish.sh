@@ -6,7 +6,7 @@
 # refrescar-la mes sovint.
 set -euo pipefail
 
-REPO_DIR="/home/pguarque/cremes_viewer"
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 PYTHON_BIN="/home/pguarque/graf_env/bin/python"
 
 cd "$REPO_DIR"
