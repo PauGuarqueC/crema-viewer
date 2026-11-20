@@ -2,7 +2,7 @@
 """
 compute_backfill_cremes.py
 
-Recalcula el bloc 'observat' (dia -1 + dia 0) per a les cremes marcades des
+Recalcula el bloc 'observat' (dia -1 + dia 0 + dia +1) per a les cremes marcades des
 del visor amb "Avui s'ha cremat aquí" -- en el moment de marcar-ho, dia 0
 encara no te totes les hores publicades (les observacions es publiquen amb
 retard, mai el mateix dia sencer). Aquest script, corregut diariament,
@@ -27,7 +27,8 @@ REPO_DIR = Path(__file__).resolve().parent
 CREMES_PATH = REPO_DIR / "data" / "cremes_realitzades.json"
 OBSERVACIONS_PATH = REPO_DIR / "data" / "observacions_10d.json"
 
-MIN_DAYS_OLD = 2  # com a compute_historic_stats.py: cal aquest marge perque les observacions siguin completes
+MIN_DAYS_OLD = 3  # dia +1 ha d'estar acabat i amb l'arxiu ja complet (dia 0 + dia +1)
+MAX_DAYS_RETRY = 10  # passat aquest temps, si dia +1 no arriba a tenir prou hores es deixa estar
 
 
 def build_obs_from_archive(lat, lon, first_day, last_day):
@@ -75,8 +76,8 @@ def main():
     updated = 0
 
     for c in cremes:
-        if c.get("observat_complet"):
-            continue  # ja completat en una execucio anterior
+        if c.get("observat_complet") and c.get("observat_dia1"):
+            continue  # ja completat (dia -1, dia 0 i dia +1) en una execucio anterior
 
         data_crema = datetime.strptime(c["data_crema"], "%Y-%m-%d").date()
         if (today - data_crema).days < MIN_DAYS_OLD:
@@ -88,6 +89,7 @@ def main():
         if lat is None or lon is None:
             print(f"  [AVIS] {c['id_pla']} ({c['data_crema']}): sense lat/lon guardats, no es pot completar")
             c["observat_complet"] = True  # marca com "intentat" per no reintentar-ho cada dia sense sentit
+            c["observat_dia1"] = True
             updated += 1
             continue
 
@@ -98,7 +100,7 @@ def main():
         finestra_inici = datetime.strptime(obs_data["dies"][0], "%Y-%m-%d").date()
         if data_crema - timedelta(days=2) < finestra_inici:
             print(f"  {c['id_pla']} ({c['data_crema']}): fora de la finestra de 10 dies, llegint l'arxiu cru...")
-            font = build_obs_from_archive(lat, lon, data_crema - timedelta(days=2), data_crema)
+            font = build_obs_from_archive(lat, lon, data_crema - timedelta(days=2), data_crema + timedelta(days=1))
         else:
             font = obs_data
 
@@ -107,6 +109,7 @@ def main():
         if not nearby:
             print(f"  [AVIS] {c['id_pla']} ({c['data_crema']}): cap estacio propera trobada")
             c["observat_complet"] = True
+            c["observat_dia1"] = True
             updated += 1
             continue
 
@@ -118,27 +121,37 @@ def main():
         fmc_vals = cps.calc_fmc1h(serie_completa)
         for h, fmc in zip(serie_completa, fmc_vals):
             h["fmc"] = fmc
-        hores = [h for h in serie_completa if dia_m1 <= h["time"][:10] <= c["data_crema"]]
+        dia_p1 = (data_crema + timedelta(days=1)).strftime("%Y-%m-%d")
+        hores = [h for h in serie_completa if dia_m1 <= h["time"][:10] <= dia_p1]
         hores_dia_0 = [h for h in hores if h["time"].startswith(c["data_crema"])]
+        hores_dia_p1 = [h for h in hores if h["time"].startswith(dia_p1)]
 
-        if len(hores_dia_0) < 18:
+        if c.get("observat_complet") and len(hores_dia_p1) < 18:
+            # Crema ja completada abans (nomes dia -1 + dia 0): intentem afegir dia +1, pero sense tocar el que hi ha
+            if (today - data_crema).days > MAX_DAYS_RETRY:
+                c["observat_dia1"] = True  # no n'hi ha i ja no n'hi haura
+                updated += 1
+            continue
+
+        if len(hores_dia_0) < 18 or len(hores_dia_p1) < 18:
             # Dia 0 encara no te prou hores dins la finestra rodant de 10
             # dies (p.ex. si el servidor ha fallat uns dies, com ja ha
             # passat) -- ho reintentarem el proper dia.
-            print(f"  {c['id_pla']} ({c['data_crema']}): dia 0 nomes te {len(hores_dia_0)}h, esperant...")
+            print(f"  {c['id_pla']} ({c['data_crema']}): dia 0 te {len(hores_dia_0)}h i dia +1 {len(hores_dia_p1)}h, esperant...")
             continue
 
         c["observat"] = hores
         c["estacions_usades"] = sel
         c["observat_estacions"] = cps.station_series_slice(
-            nearby, font, f"{dia_m1}T00:00", c["data_crema"] + "T23:59")
+            nearby, font, f"{dia_m1}T00:00", dia_p1 + "T23:59")
         c["representativitat"] = cps.low_representativity(sel)
         c["sense_dades"] = cps.missing_variables(sel)
         c["dispersio"] = cps.station_dispersion(
-            nearby, font, t_from=dia_m1, t_to=c["data_crema"] + "T23:59")
+            nearby, font, t_from=dia_m1, t_to=dia_p1 + "T23:59")
         c["observat_complet"] = True
+        c["observat_dia1"] = True
         updated += 1
-        print(f"  {c['id_pla']} ({c['data_crema']}): completat amb {len(hores)}h (dia -1 + dia 0)")
+        print(f"  {c['id_pla']} ({c['data_crema']}): completat amb {len(hores)}h (dia -1 + dia 0 + dia +1)")
 
     if updated == 0:
         print("Cap crema per actualitzar.")

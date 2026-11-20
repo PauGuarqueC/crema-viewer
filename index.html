@@ -2959,10 +2959,10 @@ function renderAnalysis(){
   }
   const nEsts = recs.length === 1 ? (recs[0].estacions_usades || []).length : 0;
   const note = multi
-    ? "Cada línia és una crema d'aquest pla (observat: mitjana de les estacions usades en cada una). Eix horitzontal: dia −1 i dia 0 de cada crema."
-    : `Observat: dia −1 i dia 0 (mitjana de les estacions usades${nEsts > 1 ? '; ombra = rang entre estacions' : ''}).${st.models ? ' Models: previsió del dia 0 guardada en marcar la crema.' : ''}`;
+    ? "Cada línia és una crema d'aquest pla (observat: mitjana de les estacions usades en cada una). Eix horitzontal: dia −1, dia 0 i dia +1 de cada crema."
+    : `Observat: dia −1, dia 0 i dia +1 (mitjana de les estacions usades${nEsts > 1 ? '; ombra = rang entre estacions' : ''}).${st.models ? ' Models: previsió dels dies 0 i +1 guardada en marcar la crema.' : ''}`;
   const noThr = plan ? ' Bandes i ratlles: llindars del pla actual.' : ' El pla ja no existeix: sense llindars.';
-  const incompl = recs.some(r => !r.observat_complet && (r.observat || []).length) ? '<div class="an-note">Les observacions del dia 0 d\'alguna crema encara no són completes: es completen soles passats uns dies.</div>' : '';
+  const incompl = recs.some(r => !r.observat_complet && (r.observat || []).length) ? '<div class="an-note">Les observacions del dia 0 i del dia +1 d\'alguna crema encara no són completes: es completen soles passats uns dies.</div>' : '';
   legendEl.innerHTML = `<div class="legend" style="margin-top:2px;">${lg.join('')}</div><div class="an-note">${note}${noThr}</div>${incompl}`;
   document.getElementById('an-fmc-title').textContent = multi ? 'FMC 1h (%)' : 'FMC 1h (%) + Precipitació (mm)';
   document.getElementById('an-rain-title').textContent = 'Pluja dels 10 dies previs (mm/dia)' + (multi ? '' : (() => {
@@ -3002,11 +3002,11 @@ function renderAnalysis(){
     }
   }catch(err){ console.error("Error construint el grafic de pluja:", err); }
 
-  // --- grafics horaris: dia -1 i dia 0 (fins al final del dia)
+  // --- grafics horaris: dia -1, dia 0 i dia +1 (fins al final del dia +1)
   try{
     const f2 = (r) => {
       const d0 = r.data_crema, dm1 = isoDaysBefore(d0, 1);
-      return { d0, labels: buildHourlyLabels(`${dm1}T00:00`, `${d0}T23:00`) };
+      return { d0, labels: buildHourlyLabels(`${dm1}T00:00`, `${isoDaysBefore(d0, -1)}T23:00`) };
     };
     if(!multi){
       const r = recs[0], { d0, labels } = f2(r);
@@ -3021,7 +3021,7 @@ function renderAnalysis(){
       };
       const modelSeries = f => Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, alignModel(m.id, f)]));
       const oe = r.observat_estacions;
-      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }], hideModels: !st.models };
+      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }, { index: 48, label: 'Dia +1' }], hideModels: !st.models };
       const dirObs = alignObs('windDir');
       let dirFc = null;
       if(st.models) for(const m of COMPARISON_MODELS){ const a = alignModel(m.id, 'windDir'); if(a.some(v => v !== null)){ dirFc = a; break; } }
@@ -3040,11 +3040,11 @@ function renderAnalysis(){
       renderComparisonChart('an-fmc', labels, todayIndex, alignObs('fmc'), modelSeries('fmc'), th.fmc,
         undefined, precipValues, [], undefined, undefined, undefined, extra);
     } else {
-      // Comparacio: una linia per crema sobre un eix comú (dia -1 + dia 0), sense models ni ombra d'estacions.
-      const labels = buildHourlyLabels('2001-01-01T00:00', '2001-01-02T23:00');
+      // Comparacio: una linia per crema sobre un eix comú (dia -1, dia 0 i dia +1), sense models ni ombra d'estacions.
+      const labels = buildHourlyLabels('2001-01-01T00:00', '2001-01-03T23:00');
       const todayIndex = 24;
-      const fmtL = (t) => (t.slice(8, 10) === '01' ? 'Dia −1 ' : 'Dia 0 ') + t.slice(11, 16);
-      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }], labelFormatter: fmtL, customSeries: null };
+      const fmtL = (t) => ({ '01': 'Dia −1 ', '02': 'Dia 0 ', '03': 'Dia +1 ' }[t.slice(8, 10)]) + t.slice(11, 16);
+      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }, { index: 48, label: 'Dia +1' }], labelFormatter: fmtL, customSeries: null };
       // alignToLabels(sourceTimes, values, labels): cal una correspondencia directa per posicio (mateixes 48 hores)
       const seriesFor = (f) => recs.map(r => {
         const l = f2(r).labels, obs = Array.isArray(r.observat) ? r.observat : [];
