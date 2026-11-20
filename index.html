@@ -1962,7 +1962,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
     // Comparacio de cremes: una linia per crema (en lloc d'observat + models)
     extra.customSeries.forEach(sr => datasets.push({
       label: sr.label, data: sr.data, borderColor: sr.color,
-      borderWidth: 2, pointRadius: 0, tension: 0.15, spanGaps: !!sr.sparse, order: 1,
+      borderWidth: sr.width || 2, pointRadius: 0, tension: 0.15, spanGaps: !!sr.sparse, order: 1,
     }));
   } else {
     datasets.push({
@@ -3103,7 +3103,9 @@ function renderAnalysis(){
         // passa a l'eix generic: posicio i de 'real' -> posicio i de 'labels' (hores) o 2*i (hores sobre graella de 30 min)
         const data = labels.map(() => null);
         vals.forEach((v, i) => { data[fine ? i : 2 * i] = v; });
-        return { label: fmtDataCrema(r.data_crema), color: colorOf(r), data, sparse: !fine };
+        // com mes cremes es comparen, mes fines les linies (efecte "ensemble": dona idea de la distribucio)
+        const width = Math.max(0.8, 2 - 0.25 * (recs.length - 1));
+        return { label: fmtDataCrema(r.data_crema), color: colorOf(r), data, sparse: !fine, width };
       });
       const draw = (id, f, thr, yFixed) => renderComparisonChart(id, labels, todayIndex, [], {}, thr, yFixed, undefined, [], undefined, null, undefined,
         { ...extra, customSeries: seriesFor(f) });
