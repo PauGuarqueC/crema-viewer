@@ -1723,6 +1723,18 @@ const todayMarkerPlugin = {
     ctx.fillStyle = 'rgba(43,43,43,0.75)';
     ctx.textAlign = 'left';
     ctx.fillText(opts.label || 'Avui', x + 4, top + 11);
+    // Marques addicionals (p.ex. "Dia -1" a l'analisi d'una crema): mateixa mena de linia i text
+    for(const mk of (opts.extra || [])){
+      const mx = chart.scales.x.getPixelForValue(mk.index);
+      if(mx === undefined || isNaN(mx)) continue;
+      ctx.beginPath();
+      ctx.moveTo(mx, top);
+      ctx.lineTo(mx, bottom);
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(43,43,43,0.55)';
+      ctx.stroke();
+      ctx.fillText(mk.label, mx + 4, top + 11);
+    }
     ctx.restore();
   }
 };
@@ -1950,7 +1962,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
     // Comparacio de cremes: una linia per crema (en lloc d'observat + models)
     extra.customSeries.forEach(sr => datasets.push({
       label: sr.label, data: sr.data, borderColor: sr.color,
-      borderWidth: 1.8, pointRadius: 0, tension: 0.15, spanGaps: false, order: 1,
+      borderWidth: 2, pointRadius: 0, tension: 0.15, spanGaps: false, order: 1,
     }));
   } else {
     datasets.push({
@@ -2036,7 +2048,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
       plugins: {
         legend: { display: false },
         tooltip: { enabled: false }, // desactivat: fem servir el tooltip propi (crosshairPlugin), mes fiable al mobil
-        todayMarker: { index: todayIndex, label: extra && extra.markerLabel },
+        todayMarker: { index: todayIndex, label: extra && extra.markerLabel, extra: extra && extra.extraMarkers },
         matchShading: { statuses: matchStatuses || [] },
         windDirArrows: { dirs: windDirs || [] },
       },
@@ -2852,7 +2864,8 @@ document.addEventListener('keydown', (e) => {
 // Estat de l'analisi: crema oberta, cremes del mateix pla i les seleccionades per comparar.
 let anState = null;
 const anKey = (r) => `${r.data_crema}|${r.marcat_el}`;
-const AN_COLORS = ['#2b2b2b', '#C8102E', '#2f6690', '#2e7d46', '#b8860b', '#7b3fa0', '#d2691e', '#008b8b'];
+// Colors ben diferenciats (sense negre, que faria pensar en una mitjana) per a la comparacio de cremes.
+const AN_COLORS = ['#0072B2', '#D55E00', '#009E73', '#CC79A7', '#E69F00', '#7B3FA0', '#56B4E9', '#8B5A2B'];
 const AN_RAIN_MAX_MM = 60; // eix fix de la pluja diaria, per poder comparar cremes a cop d'ull
 
 function openBurnAnalysis(c){
@@ -2906,7 +2919,7 @@ function renderAnalysisBar(){
     html += `<div class="an-bar"><span class="an-bar-lab">Cremes d'aquest pla:</span>` + st.all.map((r, i) => {
       const on = st.sel.has(anKey(r));
       return `<button type="button" class="an-chip${on ? ' on' : ''}" data-k="${escHtml(anKey(r))}" title="Afegeix o treu aquesta crema de la comparació">` +
-        `<span class="sw" style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;background:${on ? AN_COLORS[i % AN_COLORS.length] : '#ccc'};"></span>${escHtml(fmtDataCrema(r.data_crema))}</button>`;
+        `<span class="sw" style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;background:${on ? (multi ? AN_COLORS[i % AN_COLORS.length] : '#2b2b2b') : '#ccc'};"></span>${escHtml(fmtDataCrema(r.data_crema))}</button>`;
     }).join('') + `</div>`;
   }
   if(!multi){
@@ -3008,7 +3021,7 @@ function renderAnalysis(){
       };
       const modelSeries = f => Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, alignModel(m.id, f)]));
       const oe = r.observat_estacions;
-      const extra = { markerLabel: 'Dia 0', hideModels: !st.models };
+      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }], hideModels: !st.models };
       const dirObs = alignObs('windDir');
       let dirFc = null;
       if(st.models) for(const m of COMPARISON_MODELS){ const a = alignModel(m.id, 'windDir'); if(a.some(v => v !== null)){ dirFc = a; break; } }
@@ -3031,7 +3044,7 @@ function renderAnalysis(){
       const labels = buildHourlyLabels('2001-01-01T00:00', '2001-01-02T23:00');
       const todayIndex = 24;
       const fmtL = (t) => (t.slice(8, 10) === '01' ? 'Dia −1 ' : 'Dia 0 ') + t.slice(11, 16);
-      const extra = { markerLabel: 'Dia 0', labelFormatter: fmtL, customSeries: null };
+      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }], labelFormatter: fmtL, customSeries: null };
       // alignToLabels(sourceTimes, values, labels): cal una correspondencia directa per posicio (mateixes 48 hores)
       const seriesFor = (f) => recs.map(r => {
         const l = f2(r).labels, obs = Array.isArray(r.observat) ? r.observat : [];
