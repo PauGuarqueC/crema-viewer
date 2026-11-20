@@ -1719,7 +1719,7 @@ const todayMarkerPlugin = {
     ctx.lineWidth = 1.5;
     ctx.strokeStyle = 'rgba(43,43,43,0.55)';
     ctx.stroke();
-    ctx.font = "600 10px 'Roboto', sans-serif";
+    ctx.font = opts.label ? "600 8px 'Roboto', sans-serif" : "600 10px 'Roboto', sans-serif";
     ctx.fillStyle = 'rgba(43,43,43,0.75)';
     ctx.textAlign = 'left';
     ctx.fillText(opts.label || 'Avui', x + 4, top + 11);
@@ -2986,7 +2986,7 @@ function renderAnalysis(){
       for(let i = 10; i >= 1; i--) data.push(byAgo[i] === undefined ? null : byAgo[i]);
       ds.push({ label: fmtDataCrema(r.data_crema), data, backgroundColor: multi ? colorOf(r) : PRECIP_OBS_COLOR, borderWidth: 0 });
     });
-    if(!labelsRain) labelsRain = [10, 9, 8, 7, 6, 5, 4, 3, 2].map(i => `−${i} d`).concat(['Ahir']);
+    if(!labelsRain) labelsRain = [10, 9, 8, 7, 6, 5, 4, 3, 2].map(i => `−${i} d`).concat(['−1 d']);
     if(ds.length){
       chartInstances['an-rain'] = new Chart(document.getElementById('an-rain').getContext('2d'), {
         type: 'bar',
