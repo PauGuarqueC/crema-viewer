@@ -24,7 +24,7 @@ import pandas as pd
 
 DATA_ROOT = Path("/home/labfire/data/SMC-STATIONS")
 METADATA_ROOT = Path("/home/labfire/data/SMC-STATIONS/metadata")
-OUTPUT_PATH = Path(__file__).resolve().parent / "data" / "observacions_10d.json"
+OUTPUT_PATH = Path("/home/pguarque/cremes_viewer/data/observacions_10d.json")
 
 N_DAYS = 10
 
@@ -149,12 +149,8 @@ def process_station(station_code: str, days) -> dict | None:
     temp = hourly_mean[VAR_TEMP] if VAR_TEMP in hourly_mean.columns else None
     hr = hourly_mean[VAR_HR] if VAR_HR in hourly_mean.columns else None
     wind_speed, speed_idx = pick_first_available_with_index(hourly_mean, VAR_WIND_SPEED_PRIORITY)
-    # rad i precip: Open-Meteo les etiqueta pel FINAL de l'hora (mitjana/suma
-    # de l'hora anterior), pero el resample les etiqueta per l'INICI. Les
-    # desplacem +1h perque 10:00-11:00 surti com a 11:00, com al model.
-    # (temp/hr/vent no: correlacio obs-model maxima amb lag 0)
-    rad = hourly_mean[VAR_RAD].shift(1, freq="h") if VAR_RAD in hourly_mean.columns else None
-    precip = hourly_sum[VAR_PRECIP].shift(1, freq="h") if VAR_PRECIP in hourly_sum.columns else None
+    rad = hourly_mean[VAR_RAD] if VAR_RAD in hourly_mean.columns else None
+    precip = hourly_sum[VAR_PRECIP] if VAR_PRECIP in hourly_sum.columns else None
 
     wind_dir = None
     if speed_idx is not None:
@@ -193,6 +189,48 @@ def process_station(station_code: str, days) -> dict | None:
         "rad": [None if pd.isna(v) else v for v in combined["rad"]],
         "precip": [None if pd.isna(v) else v for v in combined["precip"]],
     }
+
+
+def process_station_30min(station_code: str, days) -> dict | None:
+    """Com process_station, pero SENSE agregar a hores: conserva cada lectura de
+    30 min (hora local). La precipitacio es l'acumulat de cada interval de 30 min,
+    la resta son valors instantanis. Es fa servir per desar a cada crema
+    registrada la serie completa de 30 min (el visor continua llegint l'horaria)."""
+    raw = load_station_period(station_code, days)
+    if raw is None:
+        return None
+    raw = raw[raw["variable_code"].isin(ALL_NEEDED_VARS)]
+    if raw.empty:
+        return None
+    raw = raw.copy()
+    raw["date"] = raw["date"].dt.tz_localize("UTC").dt.tz_convert("Europe/Madrid").dt.tz_localize(None)
+    wide = raw.pivot_table(index="date", columns="variable_code", values="value", aggfunc="mean").sort_index()
+
+    temp = wide[VAR_TEMP] if VAR_TEMP in wide.columns else None
+    hr = wide[VAR_HR] if VAR_HR in wide.columns else None
+    wind_speed, speed_idx = pick_first_available_with_index(wide, VAR_WIND_SPEED_PRIORITY)
+    rad = wide[VAR_RAD] if VAR_RAD in wide.columns else None
+    precip = wide[VAR_PRECIP] if VAR_PRECIP in wide.columns else None
+    wind_dir = None
+    if speed_idx is not None:
+        dc = VAR_WIND_DIR_PRIORITY[speed_idx]
+        wind_dir = wide[dc] if dc in wide.columns else None
+    if temp is None and hr is None and wind_speed is None:
+        return None
+
+    combined = pd.DataFrame({"temp": temp, "hr": hr, "vent": wind_speed, "ventdir": wind_dir,
+                             "rad": rad, "precip": precip}, index=wide.index)
+    combined = combined.apply(pd.to_numeric, errors="coerce")
+    combined = combined.dropna(how="all", subset=["temp", "hr", "vent"])
+    if combined.empty:
+        return None
+    combined[["temp", "hr", "vent", "rad"]] = combined[["temp", "hr", "vent", "rad"]].round(1)
+    combined["precip"] = combined["precip"].round(2)
+    combined["ventdir"] = combined["ventdir"].round(0)
+    out = {"t": [ts.strftime("%Y-%m-%dT%H:%M") for ts in combined.index]}
+    for k in ("temp", "hr", "vent", "ventdir", "rad", "precip"):
+        out[k] = [None if pd.isna(v) else v for v in combined[k]]
+    return out
 
 
 # ---------------------------------------------------------------------------

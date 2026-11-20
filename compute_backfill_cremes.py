@@ -57,6 +57,33 @@ def build_obs_from_archive(lat, lon, first_day, last_day):
     return {"estacions": {c: estacions[c] for c in series}, "series": series}
 
 
+def build_30min(codes, sel, dia_m1, dia_p1):
+    """Serie de 30 min (dia -1 .. dia +1, hora local) de cada estacio usada, llegida
+    de l'arxiu cru. Es desa a la crema (camp 'observat_30min') nomes com a registre:
+    el visor segueix fent servir 'observat' i 'observat_estacions' (horaris)."""
+    noms = {x["code"]: x.get("nom", x["code"]) for x in sel}
+    d0 = datetime.strptime(dia_m1, "%Y-%m-%d").date()
+    d1 = datetime.strptime(dia_p1, "%Y-%m-%d").date()
+    days = [d0 - timedelta(days=1) + timedelta(days=i) for i in range((d1 - d0).days + 3)]  # +/- 1 dia per UTC -> local
+    out = {}
+    for code in codes:
+        try:
+            res = pub.process_station_30min(code, days)
+        except Exception as e:
+            print(f"  [AVIS] {code}: no s'ha pogut llegir la serie de 30 min ({e})")
+            continue
+        if not res:
+            continue
+        idx = [i for i, t in enumerate(res["t"]) if f"{dia_m1}T00:00" <= t <= f"{dia_p1}T23:59"]
+        if not idx:
+            continue
+        entry = {"nom": noms.get(code, code), "t": [res["t"][i] for i in idx]}
+        for k in ("temp", "hr", "vent", "ventdir", "rad", "precip"):
+            entry[k] = [res[k][i] for i in idx]
+        out[code] = entry
+    return out
+
+
 def main():
     if not CREMES_PATH.exists():
         print(f"{CREMES_PATH} no existeix encara -- cap crema marcada, res a fer.")
@@ -76,7 +103,7 @@ def main():
     updated = 0
 
     for c in cremes:
-        if c.get("observat_complet") and c.get("observat_dia1"):
+        if c.get("observat_complet") and c.get("observat_dia1") and "observat_30min" in c:
             continue  # ja completat (dia -1, dia 0 i dia +1) en una execucio anterior
 
         data_crema = datetime.strptime(c["data_crema"], "%Y-%m-%d").date()
@@ -130,6 +157,7 @@ def main():
             # Crema ja completada abans (nomes dia -1 + dia 0): intentem afegir dia +1, pero sense tocar el que hi ha
             if (today - data_crema).days > MAX_DAYS_RETRY:
                 c["observat_dia1"] = True  # no n'hi ha i ja no n'hi haura
+                c.setdefault("observat_30min", {})
                 updated += 1
             continue
 
@@ -148,6 +176,7 @@ def main():
         c["sense_dades"] = cps.missing_variables(sel)
         c["dispersio"] = cps.station_dispersion(
             nearby, font, t_from=dia_m1, t_to=dia_p1 + "T23:59")
+        c["observat_30min"] = build_30min(nearby, sel, dia_m1, dia_p1)
         c["observat_complet"] = True
         c["observat_dia1"] = True
         updated += 1
