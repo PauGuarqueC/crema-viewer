@@ -2771,7 +2771,7 @@ document.getElementById('registre-refresh').addEventListener('click', () => load
 // Clic a un registre -> panell a la zona del mapa amb les dades desades en marcar
 // la crema: resum per dia, grafics (observat + previsio dels models guardada),
 // context dels dies previs i estacions usades. No consulta cap font externa.
-const AN_CHART_IDS = ['an-temp', 'an-hr', 'an-wind', 'an-fmc'];
+const AN_CHART_IDS = ['an-temp', 'an-hr', 'an-wind', 'an-fmc', 'an-rain'];
 
 // Llindars del pla (mateixa logica que applyPlanToForm) per dibuixar-los als grafics.
 function planThresholdsFor(p){
@@ -2817,33 +2817,6 @@ function storedStationBand(oe, field, labels){
   return max.some(v => v !== null) ? { min, max } : null;
 }
 
-function anDayStats(obs, day){
-  const h = (obs || []).filter(x => String(x.time).startsWith(day));
-  if(!h.length) return null;
-  const vals = f => h.map(x => x[f]).filter(v => v !== null && v !== undefined && !isNaN(v));
-  const mx = f => { const v = vals(f); return v.length ? Math.max(...v) : null; };
-  const mn = f => { const v = vals(f); return v.length ? Math.min(...v) : null; };
-  const mean = f => { const v = vals(f); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
-  const sum = f => { const v = vals(f); return v.length ? v.reduce((a, b) => a + b, 0) : null; };
-  return { n: h.length, tmax: mx('temp'), tmin: mn('temp'), hrmin: mn('hr'), hrmax: mx('hr'),
-           windmax: mx('wind'), windmean: mean('wind'), fmcmin: mn('fmc'), precip: sum('precip') };
-}
-
-// Error mitja absolut de cada model respecte l'observat, hora a hora, durant el dia 0.
-function anModelErrors(c){
-  const obs = (c.observat || []).filter(x => String(x.time).startsWith(c.data_crema));
-  const byT = Object.fromEntries(obs.map(h => [h.time, h]));
-  return COMPARISON_MODELS.map(m => {
-    const rows = ((c.models || {})[m.id] || []).filter(r => r.time in byT);
-    const mae = f => {
-      const d = rows.map(r => [r[f], byT[r.time][f]]).filter(([a, b]) => a !== null && a !== undefined && b !== null && b !== undefined)
-                    .map(([a, b]) => Math.abs(a - b));
-      return d.length >= 6 ? d.reduce((x, y) => x + y, 0) / d.length : null;
-    };
-    return { model: m, temp: mae('temp'), hr: mae('hr'), wind: mae('wind'), fmc: mae('fmc') };
-  });
-}
-
 function closeBurnAnalysis(){
   const el = document.getElementById('burn-analysis');
   el.classList.remove('open');
@@ -2862,52 +2835,15 @@ function openBurnAnalysis(c){
   for(const id of AN_CHART_IDS){
     if(chartInstances[id]){ chartInstances[id].destroy(); delete chartInstances[id]; }
   }
-  const d0 = c.data_crema, dm1 = isoDaysBefore(d0, 1), dp1 = isoDaysAfter(d0, 1);
+  const d0 = c.data_crema, dm1 = isoDaysBefore(d0, 1);
   const plan = (plansData || []).find(p => p.id_pla === c.id_pla) || null;
   const obs = Array.isArray(c.observat) ? c.observat : [];
-  const hasModels = c.models && Object.keys(c.models).length > 0;
-  const s0 = anDayStats(obs, d0), sm1 = anDayStats(obs, dm1);
-
-  // --- resum per dia
-  const cell = (v, d, u) => (v === null || v === undefined || isNaN(v)) ? '—' : `${v.toFixed(d)}${u || ''}`;
-  const sumRows = [
-    ['T màx', 'tmax', 1, ' °C'], ['T mín', 'tmin', 1, ' °C'], ['HR mín', 'hrmin', 0, ' %'],
-    ['Vent màx', 'windmax', 1, ' m/s'], ['Vent mitjà', 'windmean', 1, ' m/s'],
-    ['FMC 1h mín', 'fmcmin', 1, ' %'], ['Pluja', 'precip', 1, ' mm'],
-  ].map(([lab, k, d, u]) => `<tr><td>${lab}</td><td>${cell(sm1 && sm1[k], d, u)}</td><td>${cell(s0 && s0[k], d, u)}</td></tr>`).join('');
-  const nNote = (s0 && s0.n < 24) ? `Dia 0 amb ${s0.n} h de dades${c.observat_complet ? '' : ' (encara incomplet: es completa sol passats uns dies)'}.` : '';
-
-  // --- errors dels models
-  let errHtml = '';
-  if(hasModels && s0){
-    const errs = anModelErrors(c);
-    if(errs.some(e => [e.temp, e.hr, e.wind, e.fmc].some(v => v !== null))){
-      errHtml = `<div class="block"><div class="block-title">Previsió vs observat · dia 0</div>
-        <table class="an-table"><thead><tr><th>Model</th><th>T (°C)</th><th>HR (%)</th><th>Vent (m/s)</th><th>FMC (%)</th></tr></thead><tbody>` +
-        errs.map(e => `<tr><td><span class="sw" style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;background:${e.model.color};"></span>${escHtml(e.model.label)}</td>` +
-          `<td>${cell(e.temp, 1)}</td><td>${cell(e.hr, 0)}</td><td>${cell(e.wind, 1)}</td><td>${cell(e.fmc, 1)}</td></tr>`).join('') +
-        `</tbody></table><div class="an-note">Error mitjà absolut, hora a hora, entre la previsió guardada en marcar la crema i l'observat.</div></div>`;
-    }
-  }
-
-  // --- context dels dies previs
-  const p10 = c.precipitacio_10d || [], h5 = c.humitat_5d || [], v5 = c.vent_5d || [];
-  const byAgo = (arr, i) => arr.find(x => x.dies_abans === i) || {};
-  let ctxHtml = '';
-  if(p10.length || h5.length || v5.length){
-    const rows = [];
-    for(let i = 1; i <= 10; i++){
-      const a = byAgo(p10, i), b = byAgo(h5, i), v = byAgo(v5, i);
-      rows.push(`<tr><td>${i === 1 ? 'Ahir' : 'Fa ' + i + ' dies'}</td><td>${cell(a.precip_mm, 1)}</td><td>${cell(b.hr_mitjana_2_6h, 0)}</td>` +
-        `<td>${cell(b.hr_minima, 0)}</td><td>${cell(v.vent_max_ms, 1)}</td><td>${cell(v.vent_mitjana_ms, 1)}</td></tr>`);
-    }
-    ctxHtml = `<div class="block"><div class="block-title">Dies previs</div>
-      <table class="an-table"><thead><tr><th>Dia</th><th>Pluja (mm)</th><th>HR nit 2–6h (%)</th><th>HR mín (%)</th><th>Vent màx (m/s)</th><th>Vent mitjà (m/s)</th></tr></thead><tbody>${rows.join('')}</tbody></table>
-      <div class="an-note">Humitat i vent només es guarden dels 5 dies previs; la pluja, dels 10.</div></div>`;
-  }
-
-  // --- estacions
+  const p10 = Array.isArray(c.precipitacio_10d) ? c.precipitacio_10d : [];
   const ests = Array.isArray(c.estacions_usades) ? c.estacions_usades : [];
+  const noObs = obs.length === 0;
+  const nIncomplet = (!c.observat_complet && !noObs)
+    ? `<div class="an-note">Les observacions del dia 0 encara no són completes: es completen soles passats uns dies.</div>` : '';
+
   const estHtml = `<div class="block"><div class="block-title">Estacions usades</div>
     <div style="font-size:12.5px;line-height:1.7;">${ests.length ? ests.map(e => `${escHtml(e.nom)} <span class="sub">· ${escHtml(stationDetailText(e))}</span>`).join('<br>') : '<span class="sub">—</span>'}</div>
     ${ests.length ? `<div class="an-note">${estacionsCell(c)}</div>` : ''}</div>`;
@@ -2916,8 +2852,7 @@ function openBurnAnalysis(c){
       <div class="an-sub">${escHtml(c.id_pla)} · crema del ${escHtml(fmtDataCrema(c.data_crema))} · marcada ${escHtml(fmtMarcatEl(c.marcat_el))}</div></div>
     <div class="an-actions">${plan ? '<button class="registre-btn" id="an-goto-plan">Veure el pla</button>' : ''}<button class="registre-btn" id="an-close">Tanca ✕</button></div></div>`;
 
-  const noObs = obs.length === 0;
-  const chartsHtml = noObs ? '<div class="stat-note">Aquesta crema no té observacions desades.</div>' : `
+  const hourlyHtml = noObs ? '<div class="stat-note">Aquesta crema no té observacions desades.</div>' : `
     <div class="an-charts">
       <div class="chart-block"><div class="chart-title">Temperatura (°C)</div><div class="chart-canvas-wrap"><canvas id="an-temp"></canvas></div></div>
       <div class="chart-block"><div class="chart-title">Humitat relativa (%)</div><div class="chart-canvas-wrap"><canvas id="an-hr"></canvas></div></div>
@@ -2929,25 +2864,45 @@ function openBurnAnalysis(c){
       COMPARISON_MODELS.map(m => `<div><span class="sw" style="background:${m.color};"></span>${escHtml(m.label)}</div>`).join('') +
       `<div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(170,228,246), rgb(14,38,112));"></span>Pluja: 1 → 4 models</div>
     </div>
-    <div class="an-note">Observat: dia −1 i dia 0 (mitjana de les estacions usades${ests.length > 1 ? '; ombra = rang entre estacions' : ''}). Models: previsió guardada en marcar la crema (dia 0 i dia +1). ${plan ? 'Bandes i ratlles: llindars del pla actual.' : "El pla ja no existeix: sense llindars."}</div>`;
+    <div class="an-note">Observat: dia −1 i dia 0 (mitjana de les estacions usades${ests.length > 1 ? '; ombra = rang entre estacions' : ''}). Models: previsió del dia 0 guardada en marcar la crema. ${plan ? 'Bandes i ratlles: llindars del pla actual.' : "El pla ja no existeix: sense llindars."}</div>${nIncomplet}`;
+
+  const rainTotal = p10.reduce((a, x) => a + (x.precip_mm || 0), 0);
+  const rainHtml = p10.length ? `<div class="chart-block" style="margin-top:12px;"><div class="chart-title">Pluja dels 10 dies previs (mm/dia) · total ${rainTotal.toFixed(1)} mm</div>
+      <div class="chart-canvas-wrap"><canvas id="an-rain"></canvas></div></div>` : '';
 
   el.innerHTML = header +
-    (noObs ? '' : `<div class="block"><div class="block-title">Resum observat</div>
-      <table class="an-table"><thead><tr><th></th><th>Dia −1 (${escHtml(fmtDataCrema(dm1).slice(0,5))})</th><th>Dia 0 (${escHtml(fmtDataCrema(d0).slice(0,5))})</th></tr></thead><tbody>${sumRows}</tbody></table>
-      ${nNote ? `<div class="an-note">${escHtml(nNote)}</div>` : ''}</div>`) +
-    `<div class="block"><div class="block-title">Dades de la crema</div>${chartsHtml}</div>` +
-    errHtml + ctxHtml + estHtml;
+    `<div class="block"><div class="block-title">Dades de la crema</div>${hourlyHtml}${rainHtml}</div>` + estHtml;
   el.classList.add('open');
   el.scrollTop = 0;
   document.getElementById('an-close').addEventListener('click', closeBurnAnalysis);
   const gp = document.getElementById('an-goto-plan');
   if(gp) gp.addEventListener('click', () => { closeBurnAnalysis(); selectPlanById(c.id_pla); });
+  if(typeof Chart === 'undefined') return;
+
+  // --- pluja diaria dels 10 dies previs (del mes antic a ahir)
+  if(p10.length){
+    try{
+      const rows = p10.slice().sort((a, b) => b.dies_abans - a.dies_abans);
+      chartInstances['an-rain'] = new Chart(document.getElementById('an-rain').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: rows.map(r => fmtDataCrema(r.data).slice(0, 5)),
+          datasets: [{ label: 'Pluja (mm)', data: rows.map(r => r.precip_mm), backgroundColor: PRECIP_OBS_COLOR, borderWidth: 0 }],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.parsed.y === null ? '—' : ctx.parsed.y.toFixed(1)} mm` } } },
+          scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                    y: { beginAtZero: true, ticks: { font: { size: 10 } }, grid: { color: '#eee' } } },
+        },
+      });
+    }catch(err){ console.error("Error construint el grafic de pluja:", err); }
+  }
   if(noObs) return;
 
-  // --- grafics
-  if(typeof Chart === 'undefined') return;
+  // --- grafics horaris: dia -1 i dia 0 (fins al final del dia)
   try{
-    const labels = buildHourlyLabels(`${dm1}T00:00`, `${dp1}T23:00`);
+    const labels = buildHourlyLabels(`${dm1}T00:00`, `${d0}T23:00`);
     const todayIndex = labels.indexOf(`${d0}T00:00`);
     const obsT = obs.map(h => h.time);
     const alignObs = f => alignToLabels(obsT, obs.map(h => (h[f] === undefined ? null : h[f])), labels);
@@ -2978,7 +2933,7 @@ function openBurnAnalysis(c){
     const precipValues = buildPrecipValues(labels, alignObs('precip'), precipByModel);
     renderComparisonChart('an-fmc', labels, todayIndex, alignObs('fmc'), modelSeries('fmc'), th.fmc,
       undefined, precipValues, [], undefined, undefined, undefined, extra);
-    AN_CHART_IDS.forEach(attachChartInteraction);
+    ['an-temp', 'an-hr', 'an-wind', 'an-fmc'].forEach(attachChartInteraction);
   }catch(err){
     console.error("Error construint els grafics de l'analisi:", err);
     const wrap = el.querySelector('.an-charts');
