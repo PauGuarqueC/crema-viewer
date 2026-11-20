@@ -1962,19 +1962,19 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
     // Comparacio de cremes: una linia per crema (en lloc d'observat + models)
     extra.customSeries.forEach(sr => datasets.push({
       label: sr.label, data: sr.data, borderColor: sr.color,
-      borderWidth: 2, pointRadius: 0, tension: 0.15, spanGaps: false, order: 1,
+      borderWidth: 2, pointRadius: 0, tension: 0.15, spanGaps: !!sr.sparse, order: 1,
     }));
   } else {
     datasets.push({
       label: 'Observat', data: obsValues,
-      borderColor: '#2b2b2b', borderWidth: 2, pointRadius: 0, tension: 0.15, spanGaps: false, order: 1,
+      borderColor: '#2b2b2b', borderWidth: 2, pointRadius: 0, tension: 0.15, spanGaps: !!(extra && extra.sparseObs), order: 1,
     });
 
     if(!(extra && extra.hideModels)){
       for(const m of COMPARISON_MODELS){
         datasets.push({
           label: m.label, data: modelSeries[m.id],
-          borderColor: m.color, borderWidth: 1.5, pointRadius: 0, tension: 0.15, spanGaps: false, order: 2,
+          borderColor: m.color, borderWidth: 1.5, pointRadius: 0, tension: 0.15, spanGaps: !!(extra && extra.sparseModels), order: 2,
         });
       }
     }
@@ -2847,6 +2847,43 @@ function storedStationBand(oe, field, labels){
   return max.some(v => v !== null) ? { min, max } : null;
 }
 
+// Mode "30 min": graella de mitja hora i mitjana de les estacions usades a cada lectura
+// (camp 'observat_30min' de la crema, desat pel backfill).
+function build30Labels(hourLabels){
+  return hourLabels.flatMap(t => [t, t.slice(0, 14) + '30']);
+}
+function has30(r){
+  const o = r && r.observat_30min;
+  return !!o && Object.keys(o).length > 0;
+}
+function mean30(o30, field, labels){
+  const sums = {}, cnt = {};
+  for(const code of Object.keys(o30)){
+    const st = o30[code];
+    if(!st || !st[field] || !st.t) continue;
+    st.t.forEach((t, i) => {
+      const v = st[field][i];
+      if(v === null || v === undefined) return;
+      sums[t] = (sums[t] || 0) + v; cnt[t] = (cnt[t] || 0) + 1;
+    });
+  }
+  return labels.map(t => (cnt[t] ? sums[t] / cnt[t] : null));
+}
+function dir30(o30, labels){
+  const sn = {}, cs = {}, cnt = {};
+  for(const code of Object.keys(o30)){
+    const st = o30[code];
+    if(!st || !st.ventdir || !st.t) continue;
+    st.t.forEach((t, i) => {
+      const v = st.ventdir[i];
+      if(v === null || v === undefined) return;
+      const r = v * Math.PI / 180;
+      sn[t] = (sn[t] || 0) + Math.sin(r); cs[t] = (cs[t] || 0) + Math.cos(r); cnt[t] = (cnt[t] || 0) + 1;
+    });
+  }
+  return labels.map(t => (cnt[t] ? (Math.atan2(sn[t], cs[t]) * 180 / Math.PI + 360) % 360 : null));
+}
+
 function closeBurnAnalysis(){
   const el = document.getElementById('burn-analysis');
   el.classList.remove('open');
@@ -2933,6 +2970,7 @@ function renderAnalysisBar(){
   }));
   const cb = document.getElementById('an-models');
   if(cb) cb.addEventListener('change', () => { st.models = cb.checked; renderAnalysis(); });
+
 }
 
 function renderAnalysis(){
@@ -2960,8 +2998,9 @@ function renderAnalysis(){
   const nEsts = recs.length === 1 ? (recs[0].estacions_usades || []).length : 0;
   const note = multi
     ? "Cada línia és una crema d'aquest pla (observat: mitjana de les estacions usades en cada una). Eix horitzontal: dia −1, dia 0 i dia +1 de cada crema."
-    : `Observat: dia −1, dia 0 i dia +1 (mitjana de les estacions usades${nEsts > 1 ? '; ombra = rang entre estacions' : ''}).${st.models ? ' Models: previsió dels dies 0 i +1 guardada en marcar la crema.' : ''}`;
-  const noThr = plan ? ' Bandes i ratlles: llindars del pla actual.' : ' El pla ja no existeix: sense llindars.';
+    : `Observat: dia −1, dia 0 i dia +1 (mitjana de les estacions usades${nEsts > 1 ? '; ombra = rang entre estacions' : ''}).${st.models ? ' Models: previsió dels dies 0 i +1 guardada en marcar la crema (horària).' : ''}`;
+  const fineNote = recs.some(has30) ? ' Observat amb una lectura cada 30 minuts (la pluja observada és l\'acumulat de cada interval de 30 min; el FMC 1h es manté horari' + (multi ? '; les cremes sense dades de 30 min es mostren horàries' : '') + ').' : '';
+  const noThr = fineNote + (plan ? ' Bandes i ratlles: llindars del pla actual.' : ' El pla ja no existeix: sense llindars.');
   const incompl = recs.some(r => !r.observat_complet && (r.observat || []).length) ? '<div class="an-note">Les observacions del dia 0 i del dia +1 d\'alguna crema encara no són completes: es completen soles passats uns dies.</div>' : '';
   legendEl.innerHTML = `<div class="legend" style="margin-top:2px;">${lg.join('')}</div><div class="an-note">${note}${noThr}</div>${incompl}`;
   document.getElementById('an-fmc-title').textContent = multi ? 'FMC 1h (%)' : 'FMC 1h (%) + Precipitació (mm)';
@@ -3009,47 +3048,63 @@ function renderAnalysis(){
       return { d0, labels: buildHourlyLabels(`${dm1}T00:00`, `${isoDaysBefore(d0, -1)}T23:00`) };
     };
     if(!multi){
-      const r = recs[0], { d0, labels } = f2(r);
+      const r = recs[0], { d0, labels: hourLabels } = f2(r);
+      const fine = has30(r); // 30 min per defecte si la crema te la serie desada
+      const labels = fine ? build30Labels(hourLabels) : hourLabels;
+      const K = fine ? 2 : 1; // posicions per hora
       const obs = Array.isArray(r.observat) ? r.observat : [];
       if(!obs.length){ ['an-temp', 'an-hr', 'an-wind', 'an-fmc'].forEach(id => { if(chartInstances[id]){ chartInstances[id].destroy(); delete chartInstances[id]; } }); return; }
       const todayIndex = labels.indexOf(`${d0}T00:00`);
       const obsT = obs.map(h => h.time);
-      const alignObs = f => alignToLabels(obsT, obs.map(h => (h[f] === undefined ? null : h[f])), labels);
+      const o30 = fine ? r.observat_30min : null;
+      const f30 = { temp: 'temp', hr: 'hr', wind: 'vent', rad: 'rad', precip: 'precip' };
+      const alignObsH = f => alignToLabels(obsT, obs.map(h => (h[f] === undefined ? null : h[f])), labels);
+      const alignObs = f => (fine && f30[f]) ? mean30(o30, f30[f], labels) : alignObsH(f);
       const alignModel = (id, f) => {
         const rows = (r.models || {})[id] || [];
         return alignToLabels(rows.map(x => x.time), rows.map(x => (x[f] === undefined ? null : x[f])), labels);
       };
       const modelSeries = f => Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, alignModel(m.id, f)]));
       const oe = r.observat_estacions;
-      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }, { index: 48, label: 'Dia +1' }], hideModels: !st.models };
-      const dirObs = alignObs('windDir');
+      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }, { index: 48 * K, label: 'Dia +1' }], hideModels: !st.models, sparseModels: fine };
+      const extraFmc = { ...extra, sparseObs: fine };
+      const dirObs = fine ? dir30(o30, labels) : alignObsH('windDir');
       let dirFc = null;
       if(st.models) for(const m of COMPARISON_MODELS){ const a = alignModel(m.id, 'windDir'); if(a.some(v => v !== null)){ dirFc = a; break; } }
       const dirs = labels.map((_, i) => dirObs[i] !== null ? dirObs[i] : (dirFc ? dirFc[i] : null));
       const windDirs = dirs.some(v => v !== null) ? dirs : undefined;
 
+      const oeB = fine ? o30 : oe;
       renderComparisonChart('an-temp', labels, todayIndex, alignObs('temp'), modelSeries('temp'), th.temp,
-        undefined, undefined, [], undefined, storedStationBand(oe, 'temp', labels), undefined, extra);
+        undefined, undefined, [], undefined, storedStationBand(oeB, 'temp', labels), undefined, extra);
       renderComparisonChart('an-hr', labels, todayIndex, alignObs('hr'), modelSeries('hr'), th.hr,
-        { min: 0, max: 100 }, undefined, [], undefined, storedStationBand(oe, 'hr', labels), undefined, extra);
+        { min: 0, max: 100 }, undefined, [], undefined, storedStationBand(oeB, 'hr', labels), undefined, extra);
       renderComparisonChart('an-wind', labels, todayIndex, alignObs('wind'), modelSeries('wind'), th.wind,
-        undefined, undefined, [], windDirs, storedStationBand(oe, 'vent', labels), undefined, extra);
+        undefined, undefined, [], windDirs, storedStationBand(oeB, 'vent', labels), undefined, extra);
       const precipValues = st.models
         ? buildPrecipValues(labels, alignObs('precip'), COMPARISON_MODELS.map(m => alignModel(m.id, 'precip')))
         : { obs: alignObs('precip'), bands: [], agree: [], stats: [] };
-      renderComparisonChart('an-fmc', labels, todayIndex, alignObs('fmc'), modelSeries('fmc'), th.fmc,
-        undefined, precipValues, [], undefined, undefined, undefined, extra);
+      renderComparisonChart('an-fmc', labels, todayIndex, alignObsH('fmc'), modelSeries('fmc'), th.fmc,
+        undefined, precipValues, [], undefined, undefined, undefined, extraFmc);
     } else {
-      // Comparacio: una linia per crema sobre un eix comú (dia -1, dia 0 i dia +1), sense models ni ombra d'estacions.
-      const labels = buildHourlyLabels('2001-01-01T00:00', '2001-01-03T23:00');
-      const todayIndex = 24;
+      // Comparacio: una linia per crema sobre un eix comú (dia -1, dia 0 i dia +1), cada 30 min (o cada hora si la
+      // crema no te la serie de 30 min), sense models ni ombra d'estacions.
+      const labels = build30Labels(buildHourlyLabels('2001-01-01T00:00', '2001-01-03T23:00'));
+      const todayIndex = 48;
       const fmtL = (t) => ({ '01': 'Dia −1 ', '02': 'Dia 0 ', '03': 'Dia +1 ' }[t.slice(8, 10)]) + t.slice(11, 16);
-      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }, { index: 48, label: 'Dia +1' }], labelFormatter: fmtL, customSeries: null };
-      // alignToLabels(sourceTimes, values, labels): cal una correspondencia directa per posicio (mateixes 48 hores)
+      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }, { index: 96, label: 'Dia +1' }], labelFormatter: fmtL, customSeries: null };
+      const f30m = { temp: 'temp', hr: 'hr', wind: 'vent' };
+      // Les series es posen sobre l'eix generic 2001-01-01.. (mateixes 72 h per posicio)
       const seriesFor = (f) => recs.map(r => {
-        const l = f2(r).labels, obs = Array.isArray(r.observat) ? r.observat : [];
-        return { label: fmtDataCrema(r.data_crema), color: colorOf(r),
-                 data: alignToLabels(obs.map(h => h.time), obs.map(h => (h[f] === undefined ? null : h[f])), l) };
+        const hl = f2(r).labels, fine = has30(r) && f30m[f];
+        const real = fine ? build30Labels(hl) : hl;
+        const vals = fine
+          ? mean30(r.observat_30min, f30m[f], real)
+          : (() => { const obs = Array.isArray(r.observat) ? r.observat : []; return alignToLabels(obs.map(h => h.time), obs.map(h => (h[f] === undefined ? null : h[f])), real); })();
+        // passa a l'eix generic: posicio i de 'real' -> posicio i de 'labels' (hores) o 2*i (hores sobre graella de 30 min)
+        const data = labels.map(() => null);
+        vals.forEach((v, i) => { data[fine ? i : 2 * i] = v; });
+        return { label: fmtDataCrema(r.data_crema), color: colorOf(r), data, sparse: !fine };
       });
       const draw = (id, f, thr, yFixed) => renderComparisonChart(id, labels, todayIndex, [], {}, thr, yFixed, undefined, [], undefined, null, undefined,
         { ...extra, customSeries: seriesFor(f) });
