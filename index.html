@@ -1705,6 +1705,20 @@ const cloudStripsPlugin = {
 
 const todayMarkerPlugin = {
   id: 'todayMarker',
+  // Ombrejat suau del dia de la crema (analisi de cremes): darrere les linies
+  beforeDatasetsDraw(chart){
+    const opts = chart.options.plugins && chart.options.plugins.todayMarker;
+    if(!opts || !opts.shade || !chart.scales.x) return;
+    const x0 = chart.scales.x.getPixelForValue(opts.shade.from);
+    const x1 = chart.scales.x.getPixelForValue(opts.shade.to);
+    if(isNaN(x0) || isNaN(x1)) return;
+    const { top, bottom } = chart.chartArea;
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.fillStyle = 'rgba(200,16,46,0.07)';
+    ctx.fillRect(x0, top, x1 - x0, bottom - top);
+    ctx.restore();
+  },
   afterDraw(chart){
     const opts = chart.options.plugins && chart.options.plugins.todayMarker;
     if(!opts || opts.index === undefined || opts.index === null || !chart.scales.x) return;
@@ -1719,10 +1733,12 @@ const todayMarkerPlugin = {
     ctx.lineWidth = 1.5;
     ctx.strokeStyle = 'rgba(43,43,43,0.55)';
     ctx.stroke();
-    ctx.font = opts.label ? "600 8px 'Roboto', sans-serif" : "600 10px 'Roboto', sans-serif";
-    ctx.fillStyle = 'rgba(43,43,43,0.75)';
+    ctx.font = opts.label ? "700 9px 'Roboto', sans-serif" : "600 10px 'Roboto', sans-serif";
+    ctx.fillStyle = opts.label ? 'rgba(160,12,36,0.95)' : 'rgba(43,43,43,0.75)';
     ctx.textAlign = 'left';
     ctx.fillText(opts.label || 'Avui', x + 4, top + 11);
+    ctx.font = "600 8px 'Roboto', sans-serif";
+    ctx.fillStyle = 'rgba(43,43,43,0.75)';
     // Marques addicionals (p.ex. "Dia -1" a l'analisi d'una crema): mateixa mena de linia i text
     for(const mk of (opts.extra || [])){
       const mx = chart.scales.x.getPixelForValue(mk.index);
@@ -2048,7 +2064,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
       plugins: {
         legend: { display: false },
         tooltip: { enabled: false }, // desactivat: fem servir el tooltip propi (crosshairPlugin), mes fiable al mobil
-        todayMarker: { index: todayIndex, label: extra && extra.markerLabel, extra: extra && extra.extraMarkers },
+        todayMarker: { index: todayIndex, label: extra && extra.markerLabel, extra: extra && extra.extraMarkers, shade: extra && extra.dayShade },
         matchShading: { statuses: matchStatuses || [] },
         windDirArrows: { dirs: windDirs || [] },
       },
@@ -3076,7 +3092,7 @@ function renderAnalysis(){
       };
       const modelSeries = f => Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, alignModel(m.id, f)]));
       const oe = r.observat_estacions;
-      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }, { index: 48 * K, label: 'Dia +1' }], hideModels: !st.models, sparseModels: fine, obsWidth: 1.75, modelWidth: 1.2 };
+      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }, { index: 48 * K, label: 'Dia +1' }], hideModels: !st.models, sparseModels: fine, obsWidth: 1.75, modelWidth: 1.2, dayShade: { from: todayIndex, to: 48 * K } };
       const extraFmc = { ...extra, sparseObs: fine };
       const dirObs = fine ? dir30(o30, labels) : alignObsH('windDir');
       let dirFc = null;
@@ -3102,7 +3118,7 @@ function renderAnalysis(){
       const labels = build30Labels(buildHourlyLabels('2001-01-01T00:00', '2001-01-03T23:00'));
       const todayIndex = 48;
       const fmtL = (t) => ({ '01': 'Dia −1 ', '02': 'Dia 0 ', '03': 'Dia +1 ' }[t.slice(8, 10)]) + t.slice(11, 16);
-      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }, { index: 96, label: 'Dia +1' }], labelFormatter: fmtL, customSeries: null };
+      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }, { index: 96, label: 'Dia +1' }], labelFormatter: fmtL, customSeries: null, dayShade: { from: 48, to: 96 } };
       const f30m = { temp: 'temp', hr: 'hr', wind: 'vent' };
       // Les series es posen sobre l'eix generic 2001-01-01.. (mateixes 72 h per posicio)
       const seriesFor = (f) => recs.map(r => {
