@@ -1967,14 +1967,14 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
   } else {
     datasets.push({
       label: 'Observat', data: obsValues,
-      borderColor: '#2b2b2b', borderWidth: 2, pointRadius: 0, tension: 0.15, spanGaps: !!(extra && extra.sparseObs), order: 1,
+      borderColor: '#2b2b2b', borderWidth: (extra && extra.obsWidth) || 2, pointRadius: 0, tension: 0.15, spanGaps: !!(extra && extra.sparseObs), order: 1,
     });
 
     if(!(extra && extra.hideModels)){
       for(const m of COMPARISON_MODELS){
         datasets.push({
           label: m.label, data: modelSeries[m.id],
-          borderColor: m.color, borderWidth: 1.5, pointRadius: 0, tension: 0.15, spanGaps: !!(extra && extra.sparseModels), order: 2,
+          borderColor: m.color, borderWidth: (extra && extra.modelWidth) || 1.5, pointRadius: 0, tension: 0.15, spanGaps: !!(extra && extra.sparseModels), order: 2,
         });
       }
     }
@@ -3076,7 +3076,7 @@ function renderAnalysis(){
       };
       const modelSeries = f => Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, alignModel(m.id, f)]));
       const oe = r.observat_estacions;
-      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }, { index: 48 * K, label: 'Dia +1' }], hideModels: !st.models, sparseModels: fine };
+      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }, { index: 48 * K, label: 'Dia +1' }], hideModels: !st.models, sparseModels: fine, obsWidth: 1.5, modelWidth: 1.2 };
       const extraFmc = { ...extra, sparseObs: fine };
       const dirObs = fine ? dir30(o30, labels) : alignObsH('windDir');
       let dirFc = null;
