@@ -818,7 +818,7 @@ async function toggleLayer(kind, show){
         if(!status) continue;
         const isNight = !!(entry && entry.isNight);
         const label = { green: 'Disponibilitat', yellow: 'Disponibilitat parcial (context)', red: 'Sense disponibilitat' }[status] || status;
-        const nightNote = isNight ? '<br><em>Finestra majoritàriament nocturna</em>' : '';
+        const nightNote = isNight ? '<br><em>Finestra només de nit</em>' : '';
         const marker = L.marker(latlon, { icon: planStatusIcon(status, isNight) })
           .bindPopup(`<strong>${plan.nom || plan.id_pla}</strong><br>${plan.id_pla}<br>${label} (propers 5 dies)${nightNote}<br><em>Clica per veure el detall complet</em>`);
         marker.on('mouseover', () => marker.openPopup());

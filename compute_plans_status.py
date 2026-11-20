@@ -682,6 +682,32 @@ def consensus_run_with_daynight(all_model_results, forecast_times, predicate, mi
     return max_run, is_night
 
 
+def consensus_day_run(all_model_results, forecast_times, predicate, min_votes=2):
+    """Ratxa maxima d'hores consecutives DE DIA (radiacio > NIGHT_RAD_THRESHOLD)
+    on almenys 'min_votes' models compleixen 'predicate' alhora. Serveix per
+    decidir si un pla es mostra ratllat (nomes finestra de nit) o no: si hi ha
+    una finestra de dia d'MIN_CONSECUTIVE_HOURS o mes, MAI es ratlla, encara que
+    hi hagi una ratxa nocturna mes llarga."""
+    model_ids = list(all_model_results.keys())
+    max_run, cur, prev_time = 0, 0, None
+    for i, t in enumerate(forecast_times):
+        votes = sum(1 for mid in model_ids if predicate(all_model_results[mid][i]))
+        rad = next((all_model_results[mid][i].get("rad") for mid in model_ids
+                    if all_model_results[mid][i].get("rad") is not None), None)
+        is_day_hour = rad is not None and rad > NIGHT_RAD_THRESHOLD
+        ok = votes >= min_votes and is_day_hour
+        contiguous = prev_time is None or hour_step_iso(prev_time, 1) == t
+        if ok and contiguous:
+            cur += 1
+        elif ok:
+            cur = 1
+        else:
+            cur = 0
+        max_run = max(max_run, cur)
+        prev_time = t
+    return max_run
+
+
 def compute_plan_status(plan, obs_data):
     lat, lon = plan.get("_lat"), plan.get("_lon")  # ja resolts abans de cridar
 
@@ -731,12 +757,16 @@ def compute_plan_status(plan, obs_data):
     consensus_hour_ok_streak, consensus_hour_ok_is_night = consensus_run_with_daynight(
         all_results, forecast_times, lambda r: r["hour_ok"], min_votes=2)
 
+    # Ratllat ("finestra nocturna") NOMES si el color es degut exclusivament a
+    # hores de nit: si hi ha una finestra de dia (>= MIN_CONSECUTIVE_HOURS
+    # hores diürnes consecutives que compleixen el criteri del color) no es
+    # ratlla mai, tot i que hi hagi una ratxa nocturna mes llarga.
     if consensus_match_streak >= MIN_CONSECUTIVE_HOURS:
         status = "green"
-        is_night = consensus_match_is_night
+        is_night = consensus_day_run(all_results, forecast_times, lambda r: r["match"]) < MIN_CONSECUTIVE_HOURS
     elif consensus_hour_ok_streak >= MIN_CONSECUTIVE_HOURS:
         status = "yellow"
-        is_night = consensus_hour_ok_is_night
+        is_night = consensus_day_run(all_results, forecast_times, lambda r: r["hour_ok"]) < MIN_CONSECUTIVE_HOURS
     else:
         status = "red"
         is_night = False
