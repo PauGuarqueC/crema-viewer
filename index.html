@@ -2902,7 +2902,18 @@ document.addEventListener('keydown', (e) => {
 let anState = null;
 const anKey = (r) => `${r.data_crema}|${r.marcat_el}`;
 // Colors ben diferenciats (sense negre, que faria pensar en una mitjana) per a la comparacio de cremes.
-const AN_COLORS = ['#0072B2', '#D55E00', '#009E73', '#CC79A7', '#E69F00', '#7B3FA0', '#56B4E9', '#8B5A2B'];
+// Colors il·limitats: paleta Spectral (ColorBrewer) mostrejada amb el pas de la proporcio aurea, de manera que
+// cremes consecutives tenen colors molt diferents i en pots afegir tantes com vulguis. Sense negre; s'han
+// saturat els tons clars del centre (groc palid) perque es vegin sobre fons blanc.
+const AN_SPECTRAL = ['#9e0142', '#d53e4f', '#f46d43', '#e89a00', '#c9b300', '#7fb83e', '#2e9e5b', '#1fa5a0', '#3288bd', '#5e4fa2', '#8e2f8a'];
+function anColor(i){
+  const t = (i * 0.6180339887) % 1;
+  const x = t * (AN_SPECTRAL.length - 1), k = Math.min(Math.floor(x), AN_SPECTRAL.length - 2), f = x - k;
+  const hex = h => [1, 3, 5].map(o => parseInt(h.slice(o, o + 2), 16));
+  const a = hex(AN_SPECTRAL[k]), b = hex(AN_SPECTRAL[k + 1]);
+  const c = a.map((v, j) => v + (b[j] - v) * f);
+  return '#' + c.map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+}
 const AN_RAIN_MAX_MM = 60; // eix fix de la pluja diaria, per poder comparar cremes a cop d'ull
 
 function openBurnAnalysis(c){
@@ -2956,7 +2967,7 @@ function renderAnalysisBar(){
     html += `<div class="an-bar"><span class="an-bar-lab">Cremes d'aquest pla:</span>` + st.all.map((r, i) => {
       const on = st.sel.has(anKey(r));
       return `<button type="button" class="an-chip${on ? ' on' : ''}" data-k="${escHtml(anKey(r))}" title="Afegeix o treu aquesta crema de la comparació">` +
-        `<span class="sw" style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;background:${on ? (multi ? AN_COLORS[i % AN_COLORS.length] : '#2b2b2b') : '#ccc'};"></span>${escHtml(fmtDataCrema(r.data_crema))}</button>`;
+        `<span class="sw" style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;background:${on ? (multi ? anColor(i) : '#2b2b2b') : '#ccc'};"></span>${escHtml(fmtDataCrema(r.data_crema))}</button>`;
     }).join('') + `</div>`;
   }
   if(!multi){
@@ -2981,7 +2992,7 @@ function renderAnalysis(){
   const multi = recs.length > 1;
   const plan = (plansData || []).find(p => p.id_pla === st.c.id_pla) || null;
   const th = planThresholdsFor(plan) || {};
-  const colorOf = r => AN_COLORS[st.all.findIndex(x => anKey(x) === anKey(r)) % AN_COLORS.length];
+  const colorOf = r => anColor(st.all.findIndex(x => anKey(x) === anKey(r)));
 
   // llegenda i nota
   const legendEl = document.getElementById('an-legend');
