@@ -85,7 +85,9 @@
 
   .chart-title { font-size: 11.5px; font-weight: 600; color: var(--text-dim); margin-bottom: 4px; }
   .chart-canvas-wrap { height: 150px; position: relative; }
-  .chart-canvas-fmc { height: 240px; }
+  /* Mateixa alcada de grafic que els altres (150px) + la zona de franges de nuvolositat
+     a sobre (CLOUD_TOP_PAD = 44px a l'script). */
+  .chart-canvas-fmc { height: 194px; }
 
   details.block summary {
     cursor: pointer;
@@ -239,7 +241,7 @@
     .plan-form.cols-3 { grid-template-columns: 1fr 1fr; }
 
     .chart-canvas-wrap { height: 130px; }
-    .chart-canvas-fmc { height: 215px; }
+    .chart-canvas-fmc { height: 174px; }
 
     #auth-box { width: 85vw; max-width: 320px; }
 
