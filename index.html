@@ -2997,10 +2997,9 @@ function renderAnalysis(){
   }
   const nEsts = recs.length === 1 ? (recs[0].estacions_usades || []).length : 0;
   const note = multi
-    ? "Cada línia és una crema d'aquest pla (observat: mitjana de les estacions usades en cada una). Eix horitzontal: dia −1, dia 0 i dia +1 de cada crema."
-    : `Observat: dia −1, dia 0 i dia +1 (mitjana de les estacions usades${nEsts > 1 ? '; ombra = rang entre estacions' : ''}).${st.models ? ' Models: previsió dels dies 0 i +1 guardada en marcar la crema (horària).' : ''}`;
-  const fineNote = recs.some(has30) ? ' Observat amb una lectura cada 30 minuts (la pluja observada és l\'acumulat de cada interval de 30 min; el FMC 1h es manté horari' + (multi ? '; les cremes sense dades de 30 min es mostren horàries' : '') + ').' : '';
-  const noThr = fineNote + (plan ? ' Bandes i ratlles: llindars del pla actual.' : ' El pla ja no existeix: sense llindars.');
+    ? "Una línia per crema (mitjana de les estacions usades)."
+    : `Observat: mitjana de les estacions usades${nEsts > 1 ? ' (ombra = rang entre estacions)' : ''}.${st.models ? ' Models: previsió guardada en marcar la crema.' : ''}`;
+  const noThr = ' ' + (plan ? 'Llindars: els del pla actual.' : 'El pla ja no existeix: sense llindars.');
   const incompl = recs.some(r => !r.observat_complet && (r.observat || []).length) ? '<div class="an-note">Les observacions del dia 0 i del dia +1 d\'alguna crema encara no són completes: es completen soles passats uns dies.</div>' : '';
   legendEl.innerHTML = `<div class="legend" style="margin-top:2px;">${lg.join('')}</div><div class="an-note">${note}${noThr}</div>${incompl}`;
   document.getElementById('an-fmc-title').textContent = multi ? 'FMC 1h (%)' : 'FMC 1h (%) + Precipitació (mm)';
