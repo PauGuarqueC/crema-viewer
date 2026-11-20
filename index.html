@@ -3076,7 +3076,7 @@ function renderAnalysis(){
       };
       const modelSeries = f => Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, alignModel(m.id, f)]));
       const oe = r.observat_estacions;
-      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }, { index: 48 * K, label: 'Dia +1' }], hideModels: !st.models, sparseModels: fine, obsWidth: 1.5, modelWidth: 1.2 };
+      const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }, { index: 48 * K, label: 'Dia +1' }], hideModels: !st.models, sparseModels: fine, obsWidth: 1.75, modelWidth: 1.2 };
       const extraFmc = { ...extra, sparseObs: fine };
       const dirObs = fine ? dir30(o30, labels) : alignObsH('windDir');
       let dirFc = null;
@@ -3115,7 +3115,7 @@ function renderAnalysis(){
         const data = labels.map(() => null);
         vals.forEach((v, i) => { data[fine ? i : 2 * i] = v; });
         // com mes cremes es comparen, mes fines les linies (efecte "ensemble": dona idea de la distribucio)
-        const width = recs.length < 4 ? 1.5 : recs.length < 8 ? 1.25 : 0.9; // menys de 4: 1,5 px; de 4 a 7: 1,25; 8 o mes: 0,9
+        const width = recs.length < 4 ? 1.5 : recs.length < 8 ? 1.25 : 1; // 2-3 cremes: 1,5 px; 4-7: 1,25; 8 o mes: 1 (1 crema: 1,75, a part)
         return { label: fmtDataCrema(r.data_crema), color: colorOf(r), data, sparse: !fine, width };
       });
       const draw = (id, f, thr, yFixed) => renderComparisonChart(id, labels, todayIndex, [], {}, thr, yFixed, undefined, [], undefined, null, undefined,
