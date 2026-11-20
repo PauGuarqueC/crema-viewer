@@ -3115,7 +3115,7 @@ function renderAnalysis(){
         const data = labels.map(() => null);
         vals.forEach((v, i) => { data[fine ? i : 2 * i] = v; });
         // com mes cremes es comparen, mes fines les linies (efecte "ensemble": dona idea de la distribucio)
-        const width = Math.max(0.8, 2 - 0.25 * (recs.length - 1));
+        const width = recs.length < 4 ? 1.5 : recs.length < 8 ? 1.25 : 0.9; // menys de 4: 1,5 px; de 4 a 7: 1,25; 8 o mes: 0,9
         return { label: fmtDataCrema(r.data_crema), color: colorOf(r), data, sparse: !fine, width };
       });
       const draw = (id, f, thr, yFixed) => renderComparisonChart(id, labels, todayIndex, [], {}, thr, yFixed, undefined, [], undefined, null, undefined,
