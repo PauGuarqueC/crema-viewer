@@ -33,8 +33,26 @@
   header .sub { font-size: 12.5px; color: var(--text-dim); }
 
   #app { flex: 1; display: grid; grid-template-columns: 1fr 1fr; min-height: 0; }
-  #map { height: 100%; width: 100%; background: var(--map-bg); }
+  #map-wrap { position: relative; min-height: 0; }
+  #map { position: absolute; inset: 0; background: var(--map-bg); }
   #map.locked { cursor: not-allowed; }
+
+  /* Analisi d'una crema registrada: ocupa la zona del mapa (a mobil, pantalla completa) */
+  #burn-analysis { display: none; position: absolute; inset: 0; z-index: 1200; background: var(--bg);
+    overflow-y: auto; padding: 16px 18px 40px; }
+  #burn-analysis.open { display: block; }
+  .an-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+  .an-title { font-size: 16px; font-weight: 600; color: var(--charcoal); }
+  .an-sub { font-size: 11.5px; color: var(--text-dim); margin-top: 2px; }
+  .an-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .an-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 4px 16px; }
+  .an-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .an-table th { text-align: right; font-weight: 600; color: var(--text-dim); font-size: 11px; padding: 4px 6px; border-bottom: 1px solid var(--panel-border); }
+  .an-table th:first-child, .an-table td:first-child { text-align: left; }
+  .an-table td { padding: 4px 6px; border-bottom: 1px solid #eee; text-align: right; font-family: var(--font-mono); }
+  .an-table td:first-child { font-family: var(--font-ui); }
+  .an-note { font-size: 11px; color: var(--text-dim); margin-top: 5px; line-height: 1.5; }
+  .registre-table tr.selected td { background: #ecebe6; }
 
   #panel {
     background: var(--bg); border-left: 1px solid var(--panel-border);
@@ -234,7 +252,8 @@
     header .sub { font-size: 11px; }
 
     #app { grid-template-columns: 1fr; grid-template-rows: 42vh 1fr; overflow: visible; }
-    #map { min-height: 42vh; }
+    #map-wrap { min-height: 42vh; }
+    #burn-analysis { position: fixed; z-index: 3000; padding: 14px 12px 32px; }
     #panel { border-left: none; border-top: 1px solid var(--panel-border); overflow-y: visible; padding: 14px 12px 32px; }
 
     .plan-form { grid-template-columns: 1fr 1fr; }
@@ -273,7 +292,10 @@
 </header>
 
 <div id="app">
-  <div id="map"></div>
+  <div id="map-wrap">
+    <div id="map"></div>
+    <div id="burn-analysis"></div>
+  </div>
   <div id="panel">
 
     <div class="tab-bar">
@@ -365,7 +387,7 @@
     <div id="tab-registre-pane" class="tab-pane" style="display:none;">
       <div class="block">
         <div class="block-title">Cremes registrades</div>
-        <div class="stat-note" style="margin-bottom:10px;">Cremes marcades amb el botó "Avui s'ha cremat aquí". Clica una fila per anar al pla.</div>
+        <div class="stat-note" style="margin-bottom:10px;">Cremes marcades amb el botó "Avui s'ha cremat aquí". Clica una fila per veure'n les dades i l'anàlisi sobre el mapa.</div>
         <div style="display:flex;gap:8px;margin-bottom:10px;">
           <input type="text" id="registre-filter" placeholder="Filtra per pla o nom…" style="flex:1;min-width:0;padding:7px 9px;border:1px solid var(--panel-border);border-radius:5px;font-family:var(--font-ui);font-size:12.5px;">
           <button id="registre-refresh" class="registre-btn" title="Torna a carregar el registre">Actualitza</button>
@@ -1537,7 +1559,7 @@ let syncIndex = null;
 const crosshairPlugin = {
   id: 'crosshairSync',
   afterDraw(chart){
-    if(syncIndex === null || !chart.scales.x) return;
+    if(syncIndex === null || !chart.scales.x || chartGroup(chart.canvas.id) !== syncGroup) return;
     const x = chart.scales.x.getPixelForValue(syncIndex);
     if(x === undefined || isNaN(x)) return;
     const { top, bottom, left, right } = chart.chartArea;
@@ -1694,7 +1716,7 @@ const todayMarkerPlugin = {
     ctx.font = "600 10px 'Roboto', sans-serif";
     ctx.fillStyle = 'rgba(43,43,43,0.75)';
     ctx.textAlign = 'left';
-    ctx.fillText('Avui', x + 4, top + 11);
+    ctx.fillText(opts.label || 'Avui', x + 4, top + 11);
     ctx.restore();
   }
 };
@@ -1796,16 +1818,22 @@ const matchShadingPlugin = {
   }
 };
 
-function setSyncIndex(idx){
+// 'main' = grafics del visor; 'an' = grafics de l'analisi d'una crema registrada
+// (cada grup sincronitza el cursor nomes entre els seus grafics).
+let syncGroup = 'main';
+const chartGroup = (id) => String(id).startsWith('an-') ? 'an' : 'main';
+function setSyncIndex(idx, group){
   syncIndex = idx;
-  for(const id of CHART_IDS){
+  syncGroup = group || 'main';
+  for(const id of Object.keys(chartInstances)){
+    if(chartGroup(id) !== syncGroup) continue;
     const c = chartInstances[id];
     if(c) c.update('none');
   }
 }
 function clearSyncIndex(){
   syncIndex = null;
-  for(const id of CHART_IDS){
+  for(const id of Object.keys(chartInstances)){
     const c = chartInstances[id];
     if(c) c.update('none');
   }
@@ -1813,14 +1841,16 @@ function clearSyncIndex(){
 
 // Els listeners es lliguen un sol cop als elements <canvas>, que persisteixen
 // encara que les instancies de Chart es destrueixin i recreiin en cada recalcul.
-CHART_IDS.forEach(id => {
+function attachChartInteraction(id){
   const canvas = document.getElementById(id);
+  if(!canvas || canvas.dataset.bound) return;
+  canvas.dataset.bound = '1';
   const updateFromEvent = (e) => {
     const chart = chartInstances[id];
     if(!chart) return;
     // Chart.js sap normalitzar tant MouseEvent com TouchEvent aqui mateix.
     const points = chart.getElementsAtEventForMode(e, 'index', { intersect: false }, true);
-    if(points.length){ setSyncIndex(points[0].index); return; }
+    if(points.length){ setSyncIndex(points[0].index, chartGroup(id)); return; }
     // Franges de nuvolositat: son al marge superior, fora de l'area del grafic
     // (Chart.js no hi detecta res); es calcula l'hora a partir de la posicio X.
     if(chart.$cloudRows && chart.scales.x){
@@ -1828,7 +1858,7 @@ CHART_IDS.forEach(id => {
       const a = chart.chartArea;
       if(pos.y >= 0 && pos.y < a.top && pos.x >= a.left && pos.x <= a.right){
         const i = Math.round(chart.scales.x.getValueForPixel(pos.x));
-        if(i >= 0 && i < chart.data.labels.length) setSyncIndex(i);
+        if(i >= 0 && i < chart.data.labels.length) setSyncIndex(i, chartGroup(id));
       }
     }
   };
@@ -1842,7 +1872,8 @@ CHART_IDS.forEach(id => {
     updateFromEvent(e);
   }, { passive: false });
   canvas.addEventListener('mouseleave', clearSyncIndex);
-});
+}
+CHART_IDS.forEach(attachChartInteraction);
 
 // Al mobil no hi ha "treure el cursor de sobre" (mouseleave mai es dispara
 // amb el dit) -> el tooltip de la franja horaria es quedava fixe per sempre
@@ -1854,7 +1885,7 @@ document.addEventListener('touchstart', (e) => {
   if(!e.target.closest('.cell')) hideCellTooltip();
   if(!e.target.closest('canvas')) clearSyncIndex();
 }, { passive: true });
-function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues, matchStatuses, windDirs, obsBand, cloudRows){
+function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSeries, threshold, yFixed, precipValues, matchStatuses, windDirs, obsBand, cloudRows, extra){
   const ctx = document.getElementById(canvasId).getContext('2d');
   if(chartInstances[canvasId]) chartInstances[canvasId].destroy();
 
@@ -1988,7 +2019,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
       plugins: {
         legend: { display: false },
         tooltip: { enabled: false }, // desactivat: fem servir el tooltip propi (crosshairPlugin), mes fiable al mobil
-        todayMarker: { index: todayIndex },
+        todayMarker: { index: todayIndex, label: extra && extra.markerLabel },
         matchShading: { statuses: matchStatuses || [] },
         windDirArrows: { dirs: windDirs || [] },
       },
@@ -2049,6 +2080,31 @@ function stationBandSeries(codes, field, labels){
   const min = labels.map(t => (counts[t] >= 2 ? mins[t] : null));
   const max = labels.map(t => (counts[t] >= 2 ? maxs[t] : null));
   return max.some(v => v !== null) ? { min, max } : null;
+}
+
+// Precipitacio multimodel (estil Meteoblue) per a un conjunt d'hores: obsAligned = observat (o null),
+// precipByModel = un array per model alineat amb 'labels'. Cada columna va fins al maxim dels models,
+// dividida en trams; el tram k l'assoleixen (n-k) dels n models -> acord (n-k)/n.
+function buildPrecipValues(labels, obsAligned, precipByModel){
+  const nBands = COMPARISON_MODELS.length;
+  const obs = [], bands = Array.from({ length: nBands }, () => []), agree = Array.from({ length: nBands }, () => []), stats = [];
+  labels.forEach((_, i) => {
+    const isObs = obsAligned[i] !== null && obsAligned[i] !== undefined;
+    obs.push(isObs ? obsAligned[i] : null);
+    const vals = isObs ? [] : precipByModel.map(r => r[i]).filter(v => v !== null && v !== undefined).sort((x, y) => x - y);
+    const n = vals.length;
+    for(let k = 0; k < nBands; k++){
+      if(k < n){
+        bands[k].push(vals[k] - (k ? vals[k - 1] : 0));
+        agree[k].push(100 * (n - k) / n);
+      } else {
+        bands[k].push(null);
+        agree[k].push(null);
+      }
+    }
+    stats.push(n ? { n, min: vals[0], max: vals[n - 1], mean: vals.reduce((x, y) => x + y, 0) / n } : null);
+  });
+  return { obs, bands, agree, stats };
 }
 
 function updateComparisonCharts(results){
@@ -2139,25 +2195,7 @@ function updateComparisonCharts(results){
     // Previsio multimodel: per cada hora es ordenen els valors dels models i la columna es divideix en
     // trams [0..v1], [v1..v2], ...; el tram k l'assoleixen (n-k) dels n models -> acord (n-k)/n.
     const precipByModel = COMPARISON_MODELS.map(m => alignToLabels(fcTimes, modelsForecastData.models[m.id].precip || [], labels));
-    const nBands = COMPARISON_MODELS.length;
-    const precipObsBars = [], precipBands = Array.from({ length: nBands }, () => []), precipAgree = Array.from({ length: nBands }, () => []), precipStats = [];
-    labels.forEach((_, i) => {
-      const isObs = obsPrecipAligned[i] !== null && obsPrecipAligned[i] !== undefined;
-      precipObsBars.push(isObs ? obsPrecipAligned[i] : null);
-      const vals = isObs ? [] : precipByModel.map(r => r[i]).filter(v => v !== null && v !== undefined).sort((x, y) => x - y);
-      const n = vals.length;
-      for(let k = 0; k < nBands; k++){
-        if(k < n){
-          precipBands[k].push(vals[k] - (k ? vals[k - 1] : 0));
-          precipAgree[k].push(100 * (n - k) / n);
-        } else {
-          precipBands[k].push(null);
-          precipAgree[k].push(null);
-        }
-      }
-      precipStats.push(n ? { n, min: vals[0], max: vals[n - 1], mean: vals.reduce((x, y) => x + y, 0) / n } : null);
-    });
-    const precipValues = { obs: precipObsBars, bands: precipBands, agree: precipAgree, stats: precipStats };
+    const precipValues = buildPrecipValues(labels, obsPrecipAligned, precipByModel);
 
     renderComparisonChart('chart-fmc', labels, todayIndex, obsFmcAligned,
       fmcByModel,
@@ -2581,6 +2619,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById('tab-registre-pane').style.display = btn.dataset.tab === 'registre' ? 'block' : 'none';
 
     activeTab = btn.dataset.tab;
+    if(activeTab !== 'registre') closeBurnAnalysis(); // el panell d'analisi ocupa la zona del mapa
     document.getElementById('map').classList.toggle('locked', activeTab !== 'manual');
     updateThresholdLock();
 
@@ -2706,26 +2745,246 @@ function renderRegistre(){
       (rows.length !== all.length ? ` · mostrant ${rows.length}` : '');
   if(rows.length === 0){ wrap.innerHTML = ''; return; }
   const known = new Set((plansData || []).map(p => p.id_pla));
-  const body = rows.map(c => {
-    const clickable = known.has(c.id_pla);
+  const body = rows.map((c, ri) => {
+    const clickable = true; // clic = analisi de la crema sobre el mapa
     const estat = c.observat_complet
       ? '<span class="registre-ok">✓ Completa</span>'
       : '<span class="registre-pend" title="El dia 0 es completa automàticament passats 2 dies">⏳ Pendent</span>';
-    return `<tr class="${clickable ? 'clickable' : ''}" data-id="${escHtml(c.id_pla)}">` +
+    return `<tr class="${clickable ? 'clickable' : ''}" data-id="${escHtml(c.id_pla)}" data-ri="${ri}">` +
       `<td>${escHtml(fmtDataCrema(c.data_crema))}</td>` +
-      `<td>${escHtml(c.nom || c.id_pla)}<div class="sub">${escHtml(c.id_pla)}${clickable ? '' : ' · pla ja no existeix'}</div></td>` +
+      `<td>${escHtml(c.nom || c.id_pla)}<div class="sub">${escHtml(c.id_pla)}${known.has(c.id_pla) ? '' : ' · pla ja no existeix'}</div></td>` +
       `<td>${escHtml(fmtMarcatEl(c.marcat_el))}</td>` +
       `<td>${estat}</td>` +
       `<td>${estacionsCell(c)}</td></tr>`;
   }).join('');
   wrap.innerHTML = `<table class="registre-table"><thead><tr><th>Data</th><th>Pla</th><th>Marcada</th><th>Observat</th><th>Estacions</th></tr></thead><tbody>${body}</tbody></table>`;
   wrap.querySelectorAll('tr.clickable').forEach(tr => tr.addEventListener('click', () => {
-    document.getElementById('tab-btn-plans').click();
-    selectPlanById(tr.dataset.id);
+    wrap.querySelectorAll('tr.selected').forEach(x => x.classList.remove('selected'));
+    tr.classList.add('selected');
+    openBurnAnalysis(rows[parseInt(tr.dataset.ri, 10)]);
   }));
 }
 document.getElementById('registre-filter').addEventListener('input', () => { if(registreData) renderRegistre(); });
 document.getElementById('registre-refresh').addEventListener('click', () => loadRegistre(true));
+
+// ---------- Analisi d'una crema registrada (sobre el mapa) ----------
+// Clic a un registre -> panell a la zona del mapa amb les dades desades en marcar
+// la crema: resum per dia, grafics (observat + previsio dels models guardada),
+// context dels dies previs i estacions usades. No consulta cap font externa.
+const AN_CHART_IDS = ['an-temp', 'an-hr', 'an-wind', 'an-fmc'];
+
+// Llindars del pla (mateixa logica que applyPlanToForm) per dibuixar-los als grafics.
+function planThresholdsFor(p){
+  if(!p || !p.finestra) return null;
+  const f = p.finestra;
+  const num = v => (v === null || v === undefined || v === '' || isNaN(Number(v))) ? null : Number(v);
+  const range = obj => {
+    if(!obj) return { min: -Infinity, max: Infinity };
+    const b = num(obj.baix), a = num(obj.alt);
+    if(b !== null && a !== null) return { min: Math.min(a, b), max: Math.max(a, b) };
+    if(b !== null) return { min: b, max: Infinity };
+    if(a !== null) return { min: -Infinity, max: a };
+    return { min: -Infinity, max: Infinity };
+  };
+  const vals = f.vent_kmh ? [num(f.vent_kmh.baix), num(f.vent_kmh.alt)].filter(v => v !== null) : [];
+  const ventDes = num(f.vent_kmh && f.vent_kmh.desitjat);
+  return {
+    temp: { ...range(f.temp), des: num(f.temp && f.temp.desitjat) },
+    hr:   { ...range(f.hr),   des: num(f.hr && f.hr.desitjat) },
+    wind: { min: 0, max: vals.length ? Math.max(...vals) / 3.6 : Infinity, des: ventDes === null ? null : ventDes / 3.6 },
+    fmc:  { ...range(f.fmc1h), des: num(f.fmc1h && f.fmc1h.desitjat) },
+  };
+}
+
+// Rang min-max entre les estacions desades (hora a hora), alineat amb 'labels'.
+function storedStationBand(oe, field, labels){
+  const codes = Object.keys(oe || {});
+  if(codes.length < 2) return null;
+  const mins = {}, maxs = {}, counts = {};
+  for(const code of codes){
+    const st = oe[code];
+    if(!st || !st[field] || !st.t) continue;
+    st.t.forEach((t, i) => {
+      const v = st[field][i];
+      if(v === null || v === undefined) return;
+      counts[t] = (counts[t] || 0) + 1;
+      mins[t] = (t in mins) ? Math.min(mins[t], v) : v;
+      maxs[t] = (t in maxs) ? Math.max(maxs[t], v) : v;
+    });
+  }
+  const min = labels.map(t => (counts[t] >= 2 ? mins[t] : null));
+  const max = labels.map(t => (counts[t] >= 2 ? maxs[t] : null));
+  return max.some(v => v !== null) ? { min, max } : null;
+}
+
+function anDayStats(obs, day){
+  const h = (obs || []).filter(x => String(x.time).startsWith(day));
+  if(!h.length) return null;
+  const vals = f => h.map(x => x[f]).filter(v => v !== null && v !== undefined && !isNaN(v));
+  const mx = f => { const v = vals(f); return v.length ? Math.max(...v) : null; };
+  const mn = f => { const v = vals(f); return v.length ? Math.min(...v) : null; };
+  const mean = f => { const v = vals(f); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  const sum = f => { const v = vals(f); return v.length ? v.reduce((a, b) => a + b, 0) : null; };
+  return { n: h.length, tmax: mx('temp'), tmin: mn('temp'), hrmin: mn('hr'), hrmax: mx('hr'),
+           windmax: mx('wind'), windmean: mean('wind'), fmcmin: mn('fmc'), precip: sum('precip') };
+}
+
+// Error mitja absolut de cada model respecte l'observat, hora a hora, durant el dia 0.
+function anModelErrors(c){
+  const obs = (c.observat || []).filter(x => String(x.time).startsWith(c.data_crema));
+  const byT = Object.fromEntries(obs.map(h => [h.time, h]));
+  return COMPARISON_MODELS.map(m => {
+    const rows = ((c.models || {})[m.id] || []).filter(r => r.time in byT);
+    const mae = f => {
+      const d = rows.map(r => [r[f], byT[r.time][f]]).filter(([a, b]) => a !== null && a !== undefined && b !== null && b !== undefined)
+                    .map(([a, b]) => Math.abs(a - b));
+      return d.length >= 6 ? d.reduce((x, y) => x + y, 0) / d.length : null;
+    };
+    return { model: m, temp: mae('temp'), hr: mae('hr'), wind: mae('wind'), fmc: mae('fmc') };
+  });
+}
+
+function closeBurnAnalysis(){
+  const el = document.getElementById('burn-analysis');
+  el.classList.remove('open');
+  el.innerHTML = '';
+  for(const id of AN_CHART_IDS){
+    if(chartInstances[id]){ chartInstances[id].destroy(); delete chartInstances[id]; }
+  }
+  document.querySelectorAll('#registre-table-wrap tr.selected').forEach(x => x.classList.remove('selected'));
+}
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && document.getElementById('burn-analysis').classList.contains('open')) closeBurnAnalysis();
+});
+
+function openBurnAnalysis(c){
+  const el = document.getElementById('burn-analysis');
+  for(const id of AN_CHART_IDS){
+    if(chartInstances[id]){ chartInstances[id].destroy(); delete chartInstances[id]; }
+  }
+  const d0 = c.data_crema, dm1 = isoDaysBefore(d0, 1), dp1 = isoDaysAfter(d0, 1);
+  const plan = (plansData || []).find(p => p.id_pla === c.id_pla) || null;
+  const obs = Array.isArray(c.observat) ? c.observat : [];
+  const hasModels = c.models && Object.keys(c.models).length > 0;
+  const s0 = anDayStats(obs, d0), sm1 = anDayStats(obs, dm1);
+
+  // --- resum per dia
+  const cell = (v, d, u) => (v === null || v === undefined || isNaN(v)) ? '—' : `${v.toFixed(d)}${u || ''}`;
+  const sumRows = [
+    ['T màx', 'tmax', 1, ' °C'], ['T mín', 'tmin', 1, ' °C'], ['HR mín', 'hrmin', 0, ' %'],
+    ['Vent màx', 'windmax', 1, ' m/s'], ['Vent mitjà', 'windmean', 1, ' m/s'],
+    ['FMC 1h mín', 'fmcmin', 1, ' %'], ['Pluja', 'precip', 1, ' mm'],
+  ].map(([lab, k, d, u]) => `<tr><td>${lab}</td><td>${cell(sm1 && sm1[k], d, u)}</td><td>${cell(s0 && s0[k], d, u)}</td></tr>`).join('');
+  const nNote = (s0 && s0.n < 24) ? `Dia 0 amb ${s0.n} h de dades${c.observat_complet ? '' : ' (encara incomplet: es completa sol passats uns dies)'}.` : '';
+
+  // --- errors dels models
+  let errHtml = '';
+  if(hasModels && s0){
+    const errs = anModelErrors(c);
+    if(errs.some(e => [e.temp, e.hr, e.wind, e.fmc].some(v => v !== null))){
+      errHtml = `<div class="block"><div class="block-title">Previsió vs observat · dia 0</div>
+        <table class="an-table"><thead><tr><th>Model</th><th>T (°C)</th><th>HR (%)</th><th>Vent (m/s)</th><th>FMC (%)</th></tr></thead><tbody>` +
+        errs.map(e => `<tr><td><span class="sw" style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;background:${e.model.color};"></span>${escHtml(e.model.label)}</td>` +
+          `<td>${cell(e.temp, 1)}</td><td>${cell(e.hr, 0)}</td><td>${cell(e.wind, 1)}</td><td>${cell(e.fmc, 1)}</td></tr>`).join('') +
+        `</tbody></table><div class="an-note">Error mitjà absolut, hora a hora, entre la previsió guardada en marcar la crema i l'observat.</div></div>`;
+    }
+  }
+
+  // --- context dels dies previs
+  const p10 = c.precipitacio_10d || [], h5 = c.humitat_5d || [], v5 = c.vent_5d || [];
+  const byAgo = (arr, i) => arr.find(x => x.dies_abans === i) || {};
+  let ctxHtml = '';
+  if(p10.length || h5.length || v5.length){
+    const rows = [];
+    for(let i = 1; i <= 10; i++){
+      const a = byAgo(p10, i), b = byAgo(h5, i), v = byAgo(v5, i);
+      rows.push(`<tr><td>${i === 1 ? 'Ahir' : 'Fa ' + i + ' dies'}</td><td>${cell(a.precip_mm, 1)}</td><td>${cell(b.hr_mitjana_2_6h, 0)}</td>` +
+        `<td>${cell(b.hr_minima, 0)}</td><td>${cell(v.vent_max_ms, 1)}</td><td>${cell(v.vent_mitjana_ms, 1)}</td></tr>`);
+    }
+    ctxHtml = `<div class="block"><div class="block-title">Dies previs</div>
+      <table class="an-table"><thead><tr><th>Dia</th><th>Pluja (mm)</th><th>HR nit 2–6h (%)</th><th>HR mín (%)</th><th>Vent màx (m/s)</th><th>Vent mitjà (m/s)</th></tr></thead><tbody>${rows.join('')}</tbody></table>
+      <div class="an-note">Humitat i vent només es guarden dels 5 dies previs; la pluja, dels 10.</div></div>`;
+  }
+
+  // --- estacions
+  const ests = Array.isArray(c.estacions_usades) ? c.estacions_usades : [];
+  const estHtml = `<div class="block"><div class="block-title">Estacions usades</div>
+    <div style="font-size:12.5px;line-height:1.7;">${ests.length ? ests.map(e => `${escHtml(e.nom)} <span class="sub">· ${escHtml(stationDetailText(e))}</span>`).join('<br>') : '<span class="sub">—</span>'}</div>
+    ${ests.length ? `<div class="an-note">${estacionsCell(c)}</div>` : ''}</div>`;
+
+  const header = `<div class="an-head"><div><div class="an-title">${escHtml(c.nom || c.id_pla)}</div>
+      <div class="an-sub">${escHtml(c.id_pla)} · crema del ${escHtml(fmtDataCrema(c.data_crema))} · marcada ${escHtml(fmtMarcatEl(c.marcat_el))}</div></div>
+    <div class="an-actions">${plan ? '<button class="registre-btn" id="an-goto-plan">Veure el pla</button>' : ''}<button class="registre-btn" id="an-close">Tanca ✕</button></div></div>`;
+
+  const noObs = obs.length === 0;
+  const chartsHtml = noObs ? '<div class="stat-note">Aquesta crema no té observacions desades.</div>' : `
+    <div class="an-charts">
+      <div class="chart-block"><div class="chart-title">Temperatura (°C)</div><div class="chart-canvas-wrap"><canvas id="an-temp"></canvas></div></div>
+      <div class="chart-block"><div class="chart-title">Humitat relativa (%)</div><div class="chart-canvas-wrap"><canvas id="an-hr"></canvas></div></div>
+      <div class="chart-block"><div class="chart-title">Vent (m/s)</div><div class="chart-canvas-wrap"><canvas id="an-wind"></canvas></div></div>
+      <div class="chart-block"><div class="chart-title">FMC 1h (%) + Precipitació (mm)</div><div class="chart-canvas-wrap"><canvas id="an-fmc"></canvas></div></div>
+    </div>
+    <div class="legend" style="margin-top:2px;">
+      <div><span class="sw" style="background:#2b2b2b;"></span>Observat</div>` +
+      COMPARISON_MODELS.map(m => `<div><span class="sw" style="background:${m.color};"></span>${escHtml(m.label)}</div>`).join('') +
+      `<div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(170,228,246), rgb(14,38,112));"></span>Pluja: 1 → 4 models</div>
+    </div>
+    <div class="an-note">Observat: dia −1 i dia 0 (mitjana de les estacions usades${ests.length > 1 ? '; ombra = rang entre estacions' : ''}). Models: previsió guardada en marcar la crema (dia 0 i dia +1). ${plan ? 'Bandes i ratlles: llindars del pla actual.' : "El pla ja no existeix: sense llindars."}</div>`;
+
+  el.innerHTML = header +
+    (noObs ? '' : `<div class="block"><div class="block-title">Resum observat</div>
+      <table class="an-table"><thead><tr><th></th><th>Dia −1 (${escHtml(fmtDataCrema(dm1).slice(0,5))})</th><th>Dia 0 (${escHtml(fmtDataCrema(d0).slice(0,5))})</th></tr></thead><tbody>${sumRows}</tbody></table>
+      ${nNote ? `<div class="an-note">${escHtml(nNote)}</div>` : ''}</div>`) +
+    `<div class="block"><div class="block-title">Dades de la crema</div>${chartsHtml}</div>` +
+    errHtml + ctxHtml + estHtml;
+  el.classList.add('open');
+  el.scrollTop = 0;
+  document.getElementById('an-close').addEventListener('click', closeBurnAnalysis);
+  const gp = document.getElementById('an-goto-plan');
+  if(gp) gp.addEventListener('click', () => { closeBurnAnalysis(); selectPlanById(c.id_pla); });
+  if(noObs) return;
+
+  // --- grafics
+  if(typeof Chart === 'undefined') return;
+  try{
+    const labels = buildHourlyLabels(`${dm1}T00:00`, `${dp1}T23:00`);
+    const todayIndex = labels.indexOf(`${d0}T00:00`);
+    const obsT = obs.map(h => h.time);
+    const alignObs = f => alignToLabels(obsT, obs.map(h => (h[f] === undefined ? null : h[f])), labels);
+    const alignModel = (id, f) => {
+      const rows = (c.models || {})[id] || [];
+      return alignToLabels(rows.map(r => r.time), rows.map(r => (r[f] === undefined ? null : r[f])), labels);
+    };
+    const modelSeries = f => Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, alignModel(m.id, f)]));
+    const th = planThresholdsFor(plan) || {};
+    const oe = c.observat_estacions;
+    const extra = { markerLabel: 'Dia 0' };
+
+    // Direccio del vent: observada; si no n'hi ha (estacio sense direccio), la del primer model que en tingui.
+    const dirObs = alignObs('windDir');
+    let dirFc = null;
+    for(const m of COMPARISON_MODELS){ const a = alignModel(m.id, 'windDir'); if(a.some(v => v !== null)){ dirFc = a; break; } }
+    const dirs = labels.map((_, i) => dirObs[i] !== null ? dirObs[i] : (dirFc ? dirFc[i] : null));
+    const windDirs = dirs.some(v => v !== null) ? dirs : undefined;
+
+    renderComparisonChart('an-temp', labels, todayIndex, alignObs('temp'), modelSeries('temp'), th.temp,
+      undefined, undefined, [], undefined, storedStationBand(oe, 'temp', labels), undefined, extra);
+    renderComparisonChart('an-hr', labels, todayIndex, alignObs('hr'), modelSeries('hr'), th.hr,
+      { min: 0, max: 100 }, undefined, [], undefined, storedStationBand(oe, 'hr', labels), undefined, extra);
+    renderComparisonChart('an-wind', labels, todayIndex, alignObs('wind'), modelSeries('wind'), th.wind,
+      undefined, undefined, [], windDirs, storedStationBand(oe, 'vent', labels), undefined, extra);
+
+    const precipByModel = COMPARISON_MODELS.map(m => alignModel(m.id, 'precip'));
+    const precipValues = buildPrecipValues(labels, alignObs('precip'), precipByModel);
+    renderComparisonChart('an-fmc', labels, todayIndex, alignObs('fmc'), modelSeries('fmc'), th.fmc,
+      undefined, precipValues, [], undefined, undefined, undefined, extra);
+    AN_CHART_IDS.forEach(attachChartInteraction);
+  }catch(err){
+    console.error("Error construint els grafics de l'analisi:", err);
+    const wrap = el.querySelector('.an-charts');
+    if(wrap) wrap.insertAdjacentHTML('beforebegin', `<div class="stat-note" style="color:var(--red);">Error construint els gràfics: ${escHtml(err.message)}</div>`);
+  }
+}
 
 document.getElementById('map').classList.add('locked'); // pestanya "Plans" activa per defecte en carregar
 updateThresholdLock();
