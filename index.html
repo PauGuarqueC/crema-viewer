@@ -1739,7 +1739,8 @@ const todayMarkerPlugin = {
     ctx.font = opts.label ? "700 9px 'Roboto', sans-serif" : "600 10px 'Roboto', sans-serif";
     ctx.fillStyle = opts.label ? 'rgba(160,12,36,0.95)' : 'rgba(43,43,43,0.75)';
     ctx.textAlign = 'left';
-    ctx.fillText(opts.label || 'Avui', x + 4, top + 11);
+    const ly = opts.label ? top - 5 : top + 11; // analisi de cremes: etiquetes FORA de l'area del grafic
+    ctx.fillText(opts.label || 'Avui', x + 4, ly);
     ctx.font = "600 8px 'Roboto', sans-serif";
     ctx.fillStyle = 'rgba(43,43,43,0.75)';
     // Marques addicionals (p.ex. "Dia -1" a l'analisi d'una crema): mateixa mena de linia i text
@@ -1752,7 +1753,7 @@ const todayMarkerPlugin = {
       ctx.lineWidth = 1.5;
       ctx.strokeStyle = 'rgba(43,43,43,0.55)';
       ctx.stroke();
-      ctx.fillText(mk.label, mx + 4, top + 11);
+      ctx.fillText(mk.label, mx + 4, ly);
     }
     ctx.restore();
   }
@@ -2063,7 +2064,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
-      layout: hasWindDir ? { padding: { top: 16 } } : (hasCloud ? { padding: { top: CLOUD_TOP_PAD } } : undefined),
+      layout: (extra && extra.markerLabel) ? { padding: { top: 16 } } : hasWindDir ? { padding: { top: 16 } } : (hasCloud ? { padding: { top: CLOUD_TOP_PAD } } : undefined),
       plugins: {
         legend: { display: false },
         tooltip: { enabled: false }, // desactivat: fem servir el tooltip propi (crosshairPlugin), mes fiable al mobil
