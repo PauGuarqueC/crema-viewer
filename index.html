@@ -1715,11 +1715,11 @@ const todayMarkerPlugin = {
     const { top, bottom } = chart.chartArea;
     const ctx = chart.ctx;
     ctx.save();
-    // Tint molt suau (si es fort s'embruta amb la banda gris dels llindars) + franja vermella a dalt
+    // Tint molt suau (si es fort s'embruta amb la banda gris dels llindars) + franja vermella per sobre de l'area
     ctx.fillStyle = 'rgba(200,16,46,0.025)';
     ctx.fillRect(x0, top, x1 - x0, bottom - top);
     ctx.fillStyle = 'rgba(200,16,46,0.75)';
-    ctx.fillRect(x0, top, x1 - x0, 3);
+    ctx.fillRect(x0, top - 3, x1 - x0, 3); // just per sobre de l'area del grafic
     ctx.restore();
   },
   afterDraw(chart){
