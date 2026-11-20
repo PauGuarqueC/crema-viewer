@@ -53,6 +53,11 @@
   .an-table td:first-child { font-family: var(--font-ui); }
   .an-note { font-size: 11px; color: var(--text-dim); margin-top: 5px; line-height: 1.5; }
   .registre-table tr.selected td { background: #ecebe6; }
+  .an-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 8px; }
+  .an-bar-lab { font-size: 11.5px; color: var(--text-dim); margin-right: 2px; }
+  .an-chip { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 999px; padding: 3px 10px;
+    font-family: var(--font-ui); font-size: 11.5px; color: var(--charcoal); cursor: pointer; }
+  .an-chip.on { background: #ecebe6; font-weight: 600; }
 
   #panel {
     background: var(--bg); border-left: 1px solid var(--panel-border);
@@ -1609,7 +1614,8 @@ const crosshairPlugin = {
     ctx.font = "500 10.5px 'Roboto', sans-serif";
     const lineH = 15;
     const padX = 8, padY = 6;
-    const titleText = chart.data.labels[syncIndex] ? chart.data.labels[syncIndex].replace('T',' ') : '';
+    const lbl = chart.data.labels[syncIndex];
+    const titleText = lbl ? (chart.$labelFmt ? chart.$labelFmt(lbl) : lbl.replace('T',' ')) : '';
     ctx.font = "700 10.5px 'Roboto', sans-serif";
     let boxW = ctx.measureText(titleText).width;
     ctx.font = "500 10.5px 'Roboto', sans-serif";
@@ -1940,16 +1946,26 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
     });
   }
 
-  datasets.push({
-    label: 'Observat', data: obsValues,
-    borderColor: '#2b2b2b', borderWidth: 2, pointRadius: 0, tension: 0.15, spanGaps: false, order: 1,
-  });
-
-  for(const m of COMPARISON_MODELS){
+  if(extra && extra.customSeries){
+    // Comparacio de cremes: una linia per crema (en lloc d'observat + models)
+    extra.customSeries.forEach(sr => datasets.push({
+      label: sr.label, data: sr.data, borderColor: sr.color,
+      borderWidth: 1.8, pointRadius: 0, tension: 0.15, spanGaps: false, order: 1,
+    }));
+  } else {
     datasets.push({
-      label: m.label, data: modelSeries[m.id],
-      borderColor: m.color, borderWidth: 1.5, pointRadius: 0, tension: 0.15, spanGaps: false, order: 2,
+      label: 'Observat', data: obsValues,
+      borderColor: '#2b2b2b', borderWidth: 2, pointRadius: 0, tension: 0.15, spanGaps: false, order: 1,
     });
+
+    if(!(extra && extra.hideModels)){
+      for(const m of COMPARISON_MODELS){
+        datasets.push({
+          label: m.label, data: modelSeries[m.id],
+          borderColor: m.color, borderWidth: 1.5, pointRadius: 0, tension: 0.15, spanGaps: false, order: 2,
+        });
+      }
+    }
   }
 
   const scales = {
@@ -1958,7 +1974,8 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
         maxTicksLimit: 6, font: { size: 10 },
         callback: (val, idx) => {
           const t = labels[idx];
-          return t ? t.slice(5,10) + ' ' + t.slice(11,16) : '';
+          if(!t) return '';
+          return (extra && extra.labelFormatter) ? extra.labelFormatter(t) : t.slice(5,10) + ' ' + t.slice(11,16);
         }
       },
       grid: { display: false },
@@ -2027,6 +2044,7 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
     },
   });
   chartInstances[canvasId].$stationBand = chartBand; // per al tooltip propi
+  chartInstances[canvasId].$labelFmt = (extra && extra.labelFormatter) || null;
   chartInstances[canvasId].$cloudRows = hasCloud ? cloudRows : null;
   chartInstances[canvasId].$precipStats = hasPrecip ? precipValues.stats : null;
 }
@@ -2821,6 +2839,7 @@ function closeBurnAnalysis(){
   const el = document.getElementById('burn-analysis');
   el.classList.remove('open');
   el.innerHTML = '';
+  anState = null;
   for(const id of AN_CHART_IDS){
     if(chartInstances[id]){ chartInstances[id].destroy(); delete chartInstances[id]; }
   }
@@ -2830,21 +2849,25 @@ document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape' && document.getElementById('burn-analysis').classList.contains('open')) closeBurnAnalysis();
 });
 
+// Estat de l'analisi: crema oberta, cremes del mateix pla i les seleccionades per comparar.
+let anState = null;
+const anKey = (r) => `${r.data_crema}|${r.marcat_el}`;
+const AN_COLORS = ['#2b2b2b', '#C8102E', '#2f6690', '#2e7d46', '#b8860b', '#7b3fa0', '#d2691e', '#008b8b'];
+const AN_RAIN_MAX_MM = 60; // eix fix de la pluja diaria, per poder comparar cremes a cop d'ull
+
 function openBurnAnalysis(c){
   const el = document.getElementById('burn-analysis');
   for(const id of AN_CHART_IDS){
     if(chartInstances[id]){ chartInstances[id].destroy(); delete chartInstances[id]; }
   }
-  const d0 = c.data_crema, dm1 = isoDaysBefore(d0, 1);
-  const plan = (plansData || []).find(p => p.id_pla === c.id_pla) || null;
-  const obs = Array.isArray(c.observat) ? c.observat : [];
-  const p10 = Array.isArray(c.precipitacio_10d) ? c.precipitacio_10d : [];
-  const ests = Array.isArray(c.estacions_usades) ? c.estacions_usades : [];
-  const noObs = obs.length === 0;
-  const nIncomplet = (!c.observat_complet && !noObs)
-    ? `<div class="an-note">Les observacions del dia 0 encara no són completes: es completen soles passats uns dies.</div>` : '';
+  const all = (registreData || []).filter(r => r.id_pla === c.id_pla)
+    .sort((a, b) => String(a.data_crema).localeCompare(String(b.data_crema)) || String(a.marcat_el).localeCompare(String(b.marcat_el)));
+  if(!all.some(r => anKey(r) === anKey(c))) all.push(c);
+  anState = { c, all, sel: new Set([anKey(c)]), models: true };
 
-  const estHtml = `<div class="block"><div class="block-title">Estacions usades</div>
+  const plan = (plansData || []).find(p => p.id_pla === c.id_pla) || null;
+  const ests = Array.isArray(c.estacions_usades) ? c.estacions_usades : [];
+  const estHtml = `<div class="block"><div class="block-title">Estacions usades${all.length > 1 ? ' · crema del ' + escHtml(fmtDataCrema(c.data_crema)) : ''}</div>
     <div style="font-size:12.5px;line-height:1.7;">${ests.length ? ests.map(e => `${escHtml(e.nom)} <span class="sub">· ${escHtml(stationDetailText(e))}</span>`).join('<br>') : '<span class="sub">—</span>'}</div>
     ${ests.length ? `<div class="an-note">${estacionsCell(c)}</div>` : ''}</div>`;
 
@@ -2852,92 +2875,181 @@ function openBurnAnalysis(c){
       <div class="an-sub">${escHtml(c.id_pla)} · crema del ${escHtml(fmtDataCrema(c.data_crema))} · marcada ${escHtml(fmtMarcatEl(c.marcat_el))}</div></div>
     <div class="an-actions">${plan ? '<button class="registre-btn" id="an-goto-plan">Veure el pla</button>' : ''}<button class="registre-btn" id="an-close">Tanca ✕</button></div></div>`;
 
-  const hourlyHtml = noObs ? '<div class="stat-note">Aquesta crema no té observacions desades.</div>' : `
-    <div class="an-charts">
-      <div class="chart-block"><div class="chart-title">Temperatura (°C)</div><div class="chart-canvas-wrap"><canvas id="an-temp"></canvas></div></div>
-      <div class="chart-block"><div class="chart-title">Humitat relativa (%)</div><div class="chart-canvas-wrap"><canvas id="an-hr"></canvas></div></div>
-      <div class="chart-block"><div class="chart-title">Vent (m/s)</div><div class="chart-canvas-wrap"><canvas id="an-wind"></canvas></div></div>
-      <div class="chart-block"><div class="chart-title">FMC 1h (%) + Precipitació (mm)</div><div class="chart-canvas-wrap"><canvas id="an-fmc"></canvas></div></div>
-    </div>
-    <div class="legend" style="margin-top:2px;">
-      <div><span class="sw" style="background:#2b2b2b;"></span>Observat</div>` +
-      COMPARISON_MODELS.map(m => `<div><span class="sw" style="background:${m.color};"></span>${escHtml(m.label)}</div>`).join('') +
-      `<div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(170,228,246), rgb(14,38,112));"></span>Pluja: 1 → 4 models</div>
-    </div>
-    <div class="an-note">Observat: dia −1 i dia 0 (mitjana de les estacions usades${ests.length > 1 ? '; ombra = rang entre estacions' : ''}). Models: previsió del dia 0 guardada en marcar la crema. ${plan ? 'Bandes i ratlles: llindars del pla actual.' : "El pla ja no existeix: sense llindars."}</div>${nIncomplet}`;
-
-  const rainTotal = p10.reduce((a, x) => a + (x.precip_mm || 0), 0);
-  const rainHtml = p10.length ? `<div class="chart-block" style="margin-top:12px;"><div class="chart-title">Pluja dels 10 dies previs (mm/dia) · total ${rainTotal.toFixed(1)} mm</div>
-      <div class="chart-canvas-wrap"><canvas id="an-rain"></canvas></div></div>` : '';
-
   el.innerHTML = header +
-    `<div class="block"><div class="block-title">Dades de la crema</div>${hourlyHtml}${rainHtml}</div>` + estHtml;
+    `<div class="block"><div class="block-title">Dades de la crema</div>
+      <div id="an-compare"></div>
+      <div class="an-charts">
+        <div class="chart-block"><div class="chart-title">Temperatura (°C)</div><div class="chart-canvas-wrap"><canvas id="an-temp"></canvas></div></div>
+        <div class="chart-block"><div class="chart-title">Humitat relativa (%)</div><div class="chart-canvas-wrap"><canvas id="an-hr"></canvas></div></div>
+        <div class="chart-block"><div class="chart-title">Vent (m/s)</div><div class="chart-canvas-wrap"><canvas id="an-wind"></canvas></div></div>
+        <div class="chart-block"><div class="chart-title" id="an-fmc-title">FMC 1h (%) + Precipitació (mm)</div><div class="chart-canvas-wrap"><canvas id="an-fmc"></canvas></div></div>
+      </div>
+      <div id="an-legend"></div>
+      <div class="chart-block" style="margin-top:12px;"><div class="chart-title" id="an-rain-title">Pluja dels 10 dies previs</div>
+        <div class="chart-canvas-wrap"><canvas id="an-rain"></canvas></div></div>
+    </div>` + estHtml;
   el.classList.add('open');
   el.scrollTop = 0;
   document.getElementById('an-close').addEventListener('click', closeBurnAnalysis);
   const gp = document.getElementById('an-goto-plan');
   if(gp) gp.addEventListener('click', () => { closeBurnAnalysis(); selectPlanById(c.id_pla); });
+  renderAnalysis();
+}
+
+// Barra de comparacio: una "pastilla" per cada crema registrada d'aquest pla + interruptor de models.
+function renderAnalysisBar(){
+  const st = anState, bar = document.getElementById('an-compare');
+  if(!bar) return;
+  const multi = st.sel.size > 1;
+  let html = '';
+  if(st.all.length > 1){
+    html += `<div class="an-bar"><span class="an-bar-lab">Cremes d'aquest pla:</span>` + st.all.map((r, i) => {
+      const on = st.sel.has(anKey(r));
+      return `<button type="button" class="an-chip${on ? ' on' : ''}" data-k="${escHtml(anKey(r))}" title="Afegeix o treu aquesta crema de la comparació">` +
+        `<span class="sw" style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;background:${on ? AN_COLORS[i % AN_COLORS.length] : '#ccc'};"></span>${escHtml(fmtDataCrema(r.data_crema))}</button>`;
+    }).join('') + `</div>`;
+  }
+  if(!multi){
+    html += `<label class="an-bar" style="font-size:12px;cursor:pointer;"><input type="checkbox" id="an-models" ${st.models ? 'checked' : ''}> Mostra els models</label>`;
+  }
+  bar.innerHTML = html;
+  bar.querySelectorAll('.an-chip').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.k;
+    if(st.sel.has(k)){ if(st.sel.size > 1) st.sel.delete(k); } else st.sel.add(k);
+    renderAnalysis();
+  }));
+  const cb = document.getElementById('an-models');
+  if(cb) cb.addEventListener('change', () => { st.models = cb.checked; renderAnalysis(); });
+}
+
+function renderAnalysis(){
+  const st = anState;
+  if(!st) return;
+  renderAnalysisBar();
+  const recs = st.all.filter(r => st.sel.has(anKey(r)));
+  const multi = recs.length > 1;
+  const plan = (plansData || []).find(p => p.id_pla === st.c.id_pla) || null;
+  const th = planThresholdsFor(plan) || {};
+  const colorOf = r => AN_COLORS[st.all.findIndex(x => anKey(x) === anKey(r)) % AN_COLORS.length];
+
+  // llegenda i nota
+  const legendEl = document.getElementById('an-legend');
+  const lg = [];
+  if(multi){
+    recs.forEach(r => lg.push(`<div><span class="sw" style="background:${colorOf(r)};"></span>${escHtml(fmtDataCrema(r.data_crema))}</div>`));
+  } else {
+    lg.push('<div><span class="sw" style="background:#2b2b2b;"></span>Observat</div>');
+    if(st.models){
+      COMPARISON_MODELS.forEach(m => lg.push(`<div><span class="sw" style="background:${m.color};"></span>${escHtml(m.label)}</div>`));
+      lg.push('<div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(170,228,246), rgb(14,38,112));"></span>Pluja: 1 → 4 models</div>');
+    }
+  }
+  const nEsts = recs.length === 1 ? (recs[0].estacions_usades || []).length : 0;
+  const note = multi
+    ? "Cada línia és una crema d'aquest pla (observat: mitjana de les estacions usades en cada una). Eix horitzontal: dia −1 i dia 0 de cada crema."
+    : `Observat: dia −1 i dia 0 (mitjana de les estacions usades${nEsts > 1 ? '; ombra = rang entre estacions' : ''}).${st.models ? ' Models: previsió del dia 0 guardada en marcar la crema.' : ''}`;
+  const noThr = plan ? ' Bandes i ratlles: llindars del pla actual.' : ' El pla ja no existeix: sense llindars.';
+  const incompl = recs.some(r => !r.observat_complet && (r.observat || []).length) ? '<div class="an-note">Les observacions del dia 0 d\'alguna crema encara no són completes: es completen soles passats uns dies.</div>' : '';
+  legendEl.innerHTML = `<div class="legend" style="margin-top:2px;">${lg.join('')}</div><div class="an-note">${note}${noThr}</div>${incompl}`;
+  document.getElementById('an-fmc-title').textContent = multi ? 'FMC 1h (%)' : 'FMC 1h (%) + Precipitació (mm)';
+  document.getElementById('an-rain-title').textContent = 'Pluja dels 10 dies previs (mm/dia)' + (multi ? '' : (() => {
+    const t = (recs[0].precipitacio_10d || []).reduce((a, x) => a + (x.precip_mm || 0), 0);
+    return (recs[0].precipitacio_10d || []).length ? ` · total ${t.toFixed(1)} mm` : '';
+  })());
+
   if(typeof Chart === 'undefined') return;
 
-  // --- pluja diaria dels 10 dies previs (del mes antic a ahir)
-  if(p10.length){
-    try{
-      const rows = p10.slice().sort((a, b) => b.dies_abans - a.dies_abans);
+  // --- pluja diaria dels 10 dies previs, eix fix
+  try{
+    if(chartInstances['an-rain']){ chartInstances['an-rain'].destroy(); delete chartInstances['an-rain']; }
+    const ds = [];
+    let labelsRain = null;
+    recs.forEach(r => {
+      const rows = (r.precipitacio_10d || []).slice().sort((a, b) => b.dies_abans - a.dies_abans);
+      if(!rows.length) return;
+      if(!multi) labelsRain = rows.map(x => fmtDataCrema(x.data).slice(0, 5));
+      const byAgo = Object.fromEntries(rows.map(x => [x.dies_abans, x.precip_mm]));
+      const data = [];
+      for(let i = 10; i >= 1; i--) data.push(byAgo[i] === undefined ? null : byAgo[i]);
+      ds.push({ label: fmtDataCrema(r.data_crema), data, backgroundColor: multi ? colorOf(r) : PRECIP_OBS_COLOR, borderWidth: 0 });
+    });
+    if(!labelsRain) labelsRain = [10, 9, 8, 7, 6, 5, 4, 3, 2].map(i => `−${i} d`).concat(['Ahir']);
+    if(ds.length){
       chartInstances['an-rain'] = new Chart(document.getElementById('an-rain').getContext('2d'), {
         type: 'bar',
-        data: {
-          labels: rows.map(r => fmtDataCrema(r.data).slice(0, 5)),
-          datasets: [{ label: 'Pluja (mm)', data: rows.map(r => r.precip_mm), backgroundColor: PRECIP_OBS_COLOR, borderWidth: 0 }],
-        },
+        data: { labels: labelsRain, datasets: ds },
         options: {
           responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.parsed.y === null ? '—' : ctx.parsed.y.toFixed(1)} mm` } } },
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c2 => `${c2.dataset.label}: ${c2.parsed.y === null ? '—' : c2.parsed.y.toFixed(1)} mm` } } },
           scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-                    y: { beginAtZero: true, ticks: { font: { size: 10 } }, grid: { color: '#eee' } } },
+                    y: { min: 0, max: AN_RAIN_MAX_MM, ticks: { font: { size: 10 }, stepSize: 20 }, grid: { color: '#eee' } } },
         },
       });
-    }catch(err){ console.error("Error construint el grafic de pluja:", err); }
-  }
-  if(noObs) return;
+    }
+  }catch(err){ console.error("Error construint el grafic de pluja:", err); }
 
   // --- grafics horaris: dia -1 i dia 0 (fins al final del dia)
   try{
-    const labels = buildHourlyLabels(`${dm1}T00:00`, `${d0}T23:00`);
-    const todayIndex = labels.indexOf(`${d0}T00:00`);
-    const obsT = obs.map(h => h.time);
-    const alignObs = f => alignToLabels(obsT, obs.map(h => (h[f] === undefined ? null : h[f])), labels);
-    const alignModel = (id, f) => {
-      const rows = (c.models || {})[id] || [];
-      return alignToLabels(rows.map(r => r.time), rows.map(r => (r[f] === undefined ? null : r[f])), labels);
+    const f2 = (r) => {
+      const d0 = r.data_crema, dm1 = isoDaysBefore(d0, 1);
+      return { d0, labels: buildHourlyLabels(`${dm1}T00:00`, `${d0}T23:00`) };
     };
-    const modelSeries = f => Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, alignModel(m.id, f)]));
-    const th = planThresholdsFor(plan) || {};
-    const oe = c.observat_estacions;
-    const extra = { markerLabel: 'Dia 0' };
+    if(!multi){
+      const r = recs[0], { d0, labels } = f2(r);
+      const obs = Array.isArray(r.observat) ? r.observat : [];
+      if(!obs.length){ ['an-temp', 'an-hr', 'an-wind', 'an-fmc'].forEach(id => { if(chartInstances[id]){ chartInstances[id].destroy(); delete chartInstances[id]; } }); return; }
+      const todayIndex = labels.indexOf(`${d0}T00:00`);
+      const obsT = obs.map(h => h.time);
+      const alignObs = f => alignToLabels(obsT, obs.map(h => (h[f] === undefined ? null : h[f])), labels);
+      const alignModel = (id, f) => {
+        const rows = (r.models || {})[id] || [];
+        return alignToLabels(rows.map(x => x.time), rows.map(x => (x[f] === undefined ? null : x[f])), labels);
+      };
+      const modelSeries = f => Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, alignModel(m.id, f)]));
+      const oe = r.observat_estacions;
+      const extra = { markerLabel: 'Dia 0', hideModels: !st.models };
+      const dirObs = alignObs('windDir');
+      let dirFc = null;
+      if(st.models) for(const m of COMPARISON_MODELS){ const a = alignModel(m.id, 'windDir'); if(a.some(v => v !== null)){ dirFc = a; break; } }
+      const dirs = labels.map((_, i) => dirObs[i] !== null ? dirObs[i] : (dirFc ? dirFc[i] : null));
+      const windDirs = dirs.some(v => v !== null) ? dirs : undefined;
 
-    // Direccio del vent: observada; si no n'hi ha (estacio sense direccio), la del primer model que en tingui.
-    const dirObs = alignObs('windDir');
-    let dirFc = null;
-    for(const m of COMPARISON_MODELS){ const a = alignModel(m.id, 'windDir'); if(a.some(v => v !== null)){ dirFc = a; break; } }
-    const dirs = labels.map((_, i) => dirObs[i] !== null ? dirObs[i] : (dirFc ? dirFc[i] : null));
-    const windDirs = dirs.some(v => v !== null) ? dirs : undefined;
-
-    renderComparisonChart('an-temp', labels, todayIndex, alignObs('temp'), modelSeries('temp'), th.temp,
-      undefined, undefined, [], undefined, storedStationBand(oe, 'temp', labels), undefined, extra);
-    renderComparisonChart('an-hr', labels, todayIndex, alignObs('hr'), modelSeries('hr'), th.hr,
-      { min: 0, max: 100 }, undefined, [], undefined, storedStationBand(oe, 'hr', labels), undefined, extra);
-    renderComparisonChart('an-wind', labels, todayIndex, alignObs('wind'), modelSeries('wind'), th.wind,
-      undefined, undefined, [], windDirs, storedStationBand(oe, 'vent', labels), undefined, extra);
-
-    const precipByModel = COMPARISON_MODELS.map(m => alignModel(m.id, 'precip'));
-    const precipValues = buildPrecipValues(labels, alignObs('precip'), precipByModel);
-    renderComparisonChart('an-fmc', labels, todayIndex, alignObs('fmc'), modelSeries('fmc'), th.fmc,
-      undefined, precipValues, [], undefined, undefined, undefined, extra);
+      renderComparisonChart('an-temp', labels, todayIndex, alignObs('temp'), modelSeries('temp'), th.temp,
+        undefined, undefined, [], undefined, storedStationBand(oe, 'temp', labels), undefined, extra);
+      renderComparisonChart('an-hr', labels, todayIndex, alignObs('hr'), modelSeries('hr'), th.hr,
+        { min: 0, max: 100 }, undefined, [], undefined, storedStationBand(oe, 'hr', labels), undefined, extra);
+      renderComparisonChart('an-wind', labels, todayIndex, alignObs('wind'), modelSeries('wind'), th.wind,
+        undefined, undefined, [], windDirs, storedStationBand(oe, 'vent', labels), undefined, extra);
+      const precipValues = st.models
+        ? buildPrecipValues(labels, alignObs('precip'), COMPARISON_MODELS.map(m => alignModel(m.id, 'precip')))
+        : { obs: alignObs('precip'), bands: [], agree: [], stats: [] };
+      renderComparisonChart('an-fmc', labels, todayIndex, alignObs('fmc'), modelSeries('fmc'), th.fmc,
+        undefined, precipValues, [], undefined, undefined, undefined, extra);
+    } else {
+      // Comparacio: una linia per crema sobre un eix comú (dia -1 + dia 0), sense models ni ombra d'estacions.
+      const labels = buildHourlyLabels('2001-01-01T00:00', '2001-01-02T23:00');
+      const todayIndex = 24;
+      const fmtL = (t) => (t.slice(8, 10) === '01' ? 'Dia −1 ' : 'Dia 0 ') + t.slice(11, 16);
+      const extra = { markerLabel: 'Dia 0', labelFormatter: fmtL, customSeries: null };
+      // alignToLabels(sourceTimes, values, labels): cal una correspondencia directa per posicio (mateixes 48 hores)
+      const seriesFor = (f) => recs.map(r => {
+        const l = f2(r).labels, obs = Array.isArray(r.observat) ? r.observat : [];
+        return { label: fmtDataCrema(r.data_crema), color: colorOf(r),
+                 data: alignToLabels(obs.map(h => h.time), obs.map(h => (h[f] === undefined ? null : h[f])), l) };
+      });
+      const draw = (id, f, thr, yFixed) => renderComparisonChart(id, labels, todayIndex, [], {}, thr, yFixed, undefined, [], undefined, null, undefined,
+        { ...extra, customSeries: seriesFor(f) });
+      draw('an-temp', 'temp', th.temp);
+      draw('an-hr', 'hr', th.hr, { min: 0, max: 100 });
+      draw('an-wind', 'wind', th.wind);
+      draw('an-fmc', 'fmc', th.fmc);
+    }
     ['an-temp', 'an-hr', 'an-wind', 'an-fmc'].forEach(attachChartInteraction);
   }catch(err){
     console.error("Error construint els grafics de l'analisi:", err);
-    const wrap = el.querySelector('.an-charts');
-    if(wrap) wrap.insertAdjacentHTML('beforebegin', `<div class="stat-note" style="color:var(--red);">Error construint els gràfics: ${escHtml(err.message)}</div>`);
+    const wrap = document.querySelector('#burn-analysis .an-charts');
+    if(wrap && !document.getElementById('an-err')) wrap.insertAdjacentHTML('beforebegin', `<div id="an-err" class="stat-note" style="color:var(--red);">Error construint els gràfics: ${escHtml(err.message)}</div>`);
   }
 }
 
