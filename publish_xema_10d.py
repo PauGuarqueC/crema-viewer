@@ -24,7 +24,7 @@ import pandas as pd
 
 DATA_ROOT = Path("/home/labfire/data/SMC-STATIONS")
 METADATA_ROOT = Path("/home/labfire/data/SMC-STATIONS/metadata")
-OUTPUT_PATH = Path("/home/pguarque/cremes_viewer/data/observacions_10d.json")
+OUTPUT_PATH = Path(__file__).resolve().parent / "data" / "observacions_10d.json"
 
 N_DAYS = 10
 
