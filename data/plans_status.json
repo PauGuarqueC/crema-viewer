@@ -1,5 +1,5 @@
 {
-  "generat": "2026-11-21T19:00:17Z",
+  "generat": "2026-11-21T22:00:18Z",
   "plans": {
     "REC_2019_10_La Traveria - Obertes - Garriga": {
       "status": "yellow",
@@ -352,7 +352,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 5,
+          "hour_ok_streak": 6,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
@@ -815,9 +815,9 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 6,
+          "hour_ok_streak": 7,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": true
+          "hour_ok_streak_is_night": false
         }
       },
       "estacions": [
@@ -885,7 +885,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 7,
+          "hour_ok_streak": 14,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
         }
@@ -1115,7 +1115,7 @@
           "hour_ok_streak_is_night": true
         },
         "arome_france": {
-          "match_streak": 6,
+          "match_streak": 9,
           "hour_ok_streak": 17,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": true
@@ -1443,7 +1443,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 7,
+          "hour_ok_streak": 8,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
@@ -1497,7 +1497,7 @@
         },
         "arome_france": {
           "match_streak": 0,
-          "hour_ok_streak": 14,
+          "hour_ok_streak": 16,
           "match_streak_is_night": false,
           "hour_ok_streak_is_night": false
         }
@@ -1553,7 +1553,7 @@
           "match_streak": 0,
           "hour_ok_streak": 6,
           "match_streak_is_night": false,
-          "hour_ok_streak_is_night": false
+          "hour_ok_streak_is_night": true
         }
       },
       "estacions": [
