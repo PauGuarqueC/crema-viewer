@@ -3036,6 +3036,7 @@ function renderAnalysis(){
     recs.forEach(r => lg.push(`<div><span class="sw" style="background:${colorOf(r)};"></span>${escHtml(fmtDataCrema(r.data_crema))}</div>`));
   } else {
     lg.push('<div><span class="sw" style="background:#2b2b2b;"></span>Observat</div>');
+    if(st.era5 && hasEra5(recs[0])) lg.push('<div><span style="display:inline-block;width:22px;height:0;margin-right:6px;vertical-align:middle;border-top:2px dashed #7B3FA0;"></span>ERA5-Land' + (recs[0].era5_land && recs[0].era5_land.fonts && Object.values(recs[0].era5_land.fonts).includes('era5') ? ' (vent, radiació i pluja: ERA5, ~31 km)' : '') + '</div>');
     if(st.models){
       COMPARISON_MODELS.forEach(m => lg.push(`<div><span class="sw" style="background:${m.color};"></span>${escHtml(m.label)}</div>`));
       lg.push('<div><span style="display:inline-block;width:30px;height:8px;margin-right:5px;vertical-align:middle;background:linear-gradient(90deg, rgb(170,228,246), rgb(14,38,112));"></span>Pluja: 1 → 4 models</div>');

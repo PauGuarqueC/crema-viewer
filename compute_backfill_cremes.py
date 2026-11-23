@@ -98,21 +98,29 @@ def fetch_era5_land(lat, lon, data_crema):
         "latitude": round(lat, 4), "longitude": round(lon, 4),
         "start_date": d_ini, "end_date": d_fi,
         "hourly": "temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,shortwave_radiation,precipitation",
-        "models": "era5_land", "wind_speed_unit": "ms", "timezone": "Europe/Madrid",
+        "models": "era5_land,era5", "wind_speed_unit": "ms", "timezone": "Europe/Madrid",
     }
     res = requests.get(ERA5_URL, params=params, timeout=60)
     res.raise_for_status()
     data = res.json()
     h = data["hourly"]
 
-    def col(prefix):
-        for k, v in h.items():
-            if k == prefix or k.startswith(prefix + "_"):
-                return v
-        return [None] * len(h["time"])
+    fonts = {}
 
-    temp, hr, wind = col("temperature_2m"), col("relative_humidity_2m"), col("wind_speed_10m")
-    wdir, rad, precip = col("wind_direction_10m"), col("shortwave_radiation"), col("precipitation")
+    def col(var, name):
+        """Cada variable: ERA5-Land si en te dades; si no (Open-Meteo no serveix vent, radiacio
+        ni pluja d'ERA5-Land a l'arxiu), ERA5 (~31 km) com a alternativa. Es desa la font usada."""
+        n = len(h["time"])
+        for model in ("era5_land", "era5"):
+            for k in (f"{var}_{model}", var):
+                v = h.get(k)
+                if v is not None and any(x is not None for x in v):
+                    fonts[name] = model
+                    return v
+        return [None] * n
+
+    temp, hr, wind = col("temperature_2m", "temp"), col("relative_humidity_2m", "hr"), col("wind_speed_10m", "wind")
+    wdir, rad, precip = col("wind_direction_10m", "windDir"), col("shortwave_radiation", "rad"), col("precipitation", "precip")
     serie = [{"time": t, "temp": temp[i], "hr": hr[i], "wind": wind[i], "windDir": wdir[i],
               "rad": rad[i], "precip": precip[i]} for i, t in enumerate(h["time"])]
     for row, fmc in zip(serie, cps.calc_fmc1h(serie)):
@@ -123,6 +131,8 @@ def fetch_era5_land(lat, lon, data_crema):
         return None  # encara no disponible
     out = {k: [r[k] for r in rows] for k in ("time", "temp", "hr", "wind", "windDir", "rad", "precip", "fmc")}
     out["elevacio_m"] = data.get("elevation")
+    out["fonts"] = fonts  # model usat per a cada variable: era5_land o era5
+    out["fmc_amb_rad_i_pluja"] = fonts.get("rad") is not None and fonts.get("precip") is not None
     return out
 
 
@@ -130,8 +140,8 @@ def add_era5(cremes, today):
     """Afegeix el camp 'era5_land' (dia -1, 0 i +1, horari) a les cremes que encara no el tenen."""
     n = 0
     for c in cremes:
-        if "era5_land" in c:
-            continue
+        if c.get("era5_v") == 2:
+            continue  # v2: ERA5-Land amb alternativa ERA5 per a vent/radiacio/pluja
         lat, lon = c.get("lat"), c.get("lon")
         if lat is None or lon is None:
             continue
@@ -146,9 +156,11 @@ def add_era5(cremes, today):
         if res is None:
             if (today - data_crema).days > MAX_DAYS_RETRY:
                 c["era5_land"] = {}  # no n'hi ha i ja no n'hi haura
+                c["era5_v"] = 2
                 n += 1
             continue
         c["era5_land"] = res
+        c["era5_v"] = 2
         n += 1
         print(f"  {c['id_pla']} ({c['data_crema']}): ERA5-Land afegit ({len(res['time'])}h)")
     return n
