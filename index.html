@@ -1990,6 +1990,12 @@ function renderComparisonChart(canvasId, labels, todayIndex, obsValues, modelSer
       borderColor: '#2b2b2b', borderWidth: (extra && extra.obsWidth) || 2, pointRadius: 0, tension: 0.15, spanGaps: !!(extra && extra.sparseObs), order: 1,
     });
 
+    if(extra && extra.era5Data){
+      datasets.push({
+        label: 'ERA5-Land', data: extra.era5Data,
+        borderColor: '#7B3FA0', borderWidth: 1.4, borderDash: [5, 3], pointRadius: 0, tension: 0.15, spanGaps: true, order: 2,
+      });
+    }
     if(!(extra && extra.hideModels)){
       for(const m of COMPARISON_MODELS){
         datasets.push({
@@ -2869,6 +2875,9 @@ function storedStationBand(oe, field, labels){
 
 // Mode "30 min": graella de mitja hora i mitjana de les estacions usades a cada lectura
 // (camp 'observat_30min' de la crema, desat pel backfill).
+function hasEra5(r){
+  return !!(r && r.era5_land && Array.isArray(r.era5_land.time) && r.era5_land.time.length);
+}
 function build30Labels(hourLabels){
   return hourLabels.flatMap(t => [t, t.slice(0, 14) + '30']);
 }
@@ -2944,7 +2953,7 @@ function openBurnAnalysis(c){
   const all = (registreData || []).filter(r => r.id_pla === c.id_pla)
     .sort((a, b) => String(a.data_crema).localeCompare(String(b.data_crema)) || String(a.marcat_el).localeCompare(String(b.marcat_el)));
   if(!all.some(r => anKey(r) === anKey(c))) all.push(c);
-  anState = { c, all, sel: new Set([anKey(c)]), models: true };
+  anState = { c, all, sel: new Set([anKey(c)]), models: true, era5: true };
 
   const plan = (plansData || []).find(p => p.id_pla === c.id_pla) || null;
   const ests = Array.isArray(c.estacions_usades) ? c.estacions_usades : [];
@@ -2992,6 +3001,10 @@ function renderAnalysisBar(){
   }
   if(!multi){
     html += `<label class="an-bar" style="font-size:12px;cursor:pointer;"><input type="checkbox" id="an-models" ${st.models ? 'checked' : ''}> Mostra els models</label>`;
+    const rSel = st.all.find(r => st.sel.has(anKey(r)));
+    if(rSel && hasEra5(rSel)){
+      html += `<label class="an-bar" style="font-size:12px;cursor:pointer;" title="Reanàlisi ERA5-Land (~9 km): referència de context, no és una observació"><input type="checkbox" id="an-era5" ${st.era5 ? 'checked' : ''}> ERA5-Land</label>`;
+    }
   }
   bar.innerHTML = html;
   bar.querySelectorAll('.an-chip').forEach(b => b.addEventListener('click', () => {
@@ -3001,6 +3014,8 @@ function renderAnalysisBar(){
   }));
   const cb = document.getElementById('an-models');
   if(cb) cb.addEventListener('change', () => { st.models = cb.checked; renderAnalysis(); });
+  const ce = document.getElementById('an-era5');
+  if(ce) ce.addEventListener('change', () => { st.era5 = ce.checked; renderAnalysis(); });
 
 }
 
@@ -3097,7 +3112,10 @@ function renderAnalysis(){
       const modelSeries = f => Object.fromEntries(COMPARISON_MODELS.map(m => [m.id, alignModel(m.id, f)]));
       const oe = r.observat_estacions;
       const extra = { markerLabel: 'Dia 0', extraMarkers: [{ index: 0, label: 'Dia −1' }, { index: 48 * K, label: 'Dia +1' }], hideModels: !st.models, sparseModels: fine, obsWidth: 1.75, modelWidth: 1.2, dayShade: { from: todayIndex, to: 48 * K } };
-      const extraFmc = { ...extra, sparseObs: fine };
+      const era5On = st.era5 && hasEra5(r);
+      const era5For = f => (era5On ? alignToLabels(r.era5_land.time, r.era5_land[f] || [], labels) : null);
+      const extraF = f => (era5On ? { ...extra, era5Data: era5For(f) } : extra);
+      const extraFmc = { ...extra, sparseObs: fine, ...(era5On ? { era5Data: era5For('fmc') } : {}) };
       const dirObs = fine ? dir30(o30, labels) : alignObsH('windDir');
       let dirFc = null;
       if(st.models) for(const m of COMPARISON_MODELS){ const a = alignModel(m.id, 'windDir'); if(a.some(v => v !== null)){ dirFc = a; break; } }
@@ -3106,11 +3124,11 @@ function renderAnalysis(){
 
       const oeB = fine ? o30 : oe;
       renderComparisonChart('an-temp', labels, todayIndex, alignObs('temp'), modelSeries('temp'), th.temp,
-        undefined, undefined, [], undefined, storedStationBand(oeB, 'temp', labels), undefined, extra);
+        undefined, undefined, [], undefined, storedStationBand(oeB, 'temp', labels), undefined, extraF('temp'));
       renderComparisonChart('an-hr', labels, todayIndex, alignObs('hr'), modelSeries('hr'), th.hr,
-        { min: 0, max: 100 }, undefined, [], undefined, storedStationBand(oeB, 'hr', labels), undefined, extra);
+        { min: 0, max: 100 }, undefined, [], undefined, storedStationBand(oeB, 'hr', labels), undefined, extraF('hr'));
       renderComparisonChart('an-wind', labels, todayIndex, alignObs('wind'), modelSeries('wind'), th.wind,
-        undefined, undefined, [], windDirs, storedStationBand(oeB, 'vent', labels), undefined, extra);
+        undefined, undefined, [], windDirs, storedStationBand(oeB, 'vent', labels), undefined, extraF('wind'));
       const precipValues = st.models
         ? buildPrecipValues(labels, alignObs('precip'), COMPARISON_MODELS.map(m => alignModel(m.id, 'precip')))
         : { obs: alignObs('precip'), bands: [], agree: [], stats: [] };

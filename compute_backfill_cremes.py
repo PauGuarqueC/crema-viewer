@@ -16,6 +16,7 @@ servir el visor en directe).
 """
 
 import json
+import requests
 import pandas as pd
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -28,6 +29,8 @@ CREMES_PATH = REPO_DIR / "data" / "cremes_realitzades.json"
 OBSERVACIONS_PATH = REPO_DIR / "data" / "observacions_10d.json"
 
 MIN_DAYS_OLD = 3  # dia +1 ha d'estar acabat i amb l'arxiu ja complet (dia 0 + dia +1)
+ERA5_MIN_DAYS = 6  # ERA5-Land te un retard d'uns 5 dies
+ERA5_URL = "https://archive-api.open-meteo.com/v1/archive"
 MAX_DAYS_RETRY = 10  # passat aquest temps, si dia +1 no arriba a tenir prou hores es deixa estar
 
 
@@ -82,6 +85,73 @@ def build_30min(codes, sel, dia_m1, dia_p1):
             entry[k] = [res[k][i] for i in idx]
         out[code] = entry
     return out
+
+
+def fetch_era5_land(lat, lon, data_crema):
+    """ERA5-Land (reanalisi, ~9 km) per al punt de la crema, hora local, dia -1 .. dia +1.
+    Es demana des de 2 dies abans de dia -1 perque el FMC 1h tingui un tram previ
+    d'arrencada (mateix criteri que l'observat); despres es retalla.
+    Retorna None si Open-Meteo encara no te les dades (retard d'ERA5)."""
+    d_ini = (data_crema - timedelta(days=3)).strftime("%Y-%m-%d")
+    d_fi = (data_crema + timedelta(days=1)).strftime("%Y-%m-%d")
+    params = {
+        "latitude": round(lat, 4), "longitude": round(lon, 4),
+        "start_date": d_ini, "end_date": d_fi,
+        "hourly": "temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,shortwave_radiation,precipitation",
+        "models": "era5_land", "wind_speed_unit": "ms", "timezone": "Europe/Madrid",
+    }
+    res = requests.get(ERA5_URL, params=params, timeout=60)
+    res.raise_for_status()
+    data = res.json()
+    h = data["hourly"]
+
+    def col(prefix):
+        for k, v in h.items():
+            if k == prefix or k.startswith(prefix + "_"):
+                return v
+        return [None] * len(h["time"])
+
+    temp, hr, wind = col("temperature_2m"), col("relative_humidity_2m"), col("wind_speed_10m")
+    wdir, rad, precip = col("wind_direction_10m"), col("shortwave_radiation"), col("precipitation")
+    serie = [{"time": t, "temp": temp[i], "hr": hr[i], "wind": wind[i], "windDir": wdir[i],
+              "rad": rad[i], "precip": precip[i]} for i, t in enumerate(h["time"])]
+    for row, fmc in zip(serie, cps.calc_fmc1h(serie)):
+        row["fmc"] = fmc
+    dia_m1 = (data_crema - timedelta(days=1)).strftime("%Y-%m-%d")
+    rows = [r for r in serie if dia_m1 <= r["time"][:10] <= d_fi]
+    if len(rows) < 48 or all(r["temp"] is None for r in rows):
+        return None  # encara no disponible
+    out = {k: [r[k] for r in rows] for k in ("time", "temp", "hr", "wind", "windDir", "rad", "precip", "fmc")}
+    out["elevacio_m"] = data.get("elevation")
+    return out
+
+
+def add_era5(cremes, today):
+    """Afegeix el camp 'era5_land' (dia -1, 0 i +1, horari) a les cremes que encara no el tenen."""
+    n = 0
+    for c in cremes:
+        if "era5_land" in c:
+            continue
+        lat, lon = c.get("lat"), c.get("lon")
+        if lat is None or lon is None:
+            continue
+        data_crema = datetime.strptime(c["data_crema"], "%Y-%m-%d").date()
+        if (today - data_crema).days < ERA5_MIN_DAYS:
+            continue
+        try:
+            res = fetch_era5_land(lat, lon, data_crema)
+        except Exception as e:
+            print(f"  [AVIS] {c['id_pla']} ({c['data_crema']}): ERA5-Land no disponible ({e})")
+            continue
+        if res is None:
+            if (today - data_crema).days > MAX_DAYS_RETRY:
+                c["era5_land"] = {}  # no n'hi ha i ja no n'hi haura
+                n += 1
+            continue
+        c["era5_land"] = res
+        n += 1
+        print(f"  {c['id_pla']} ({c['data_crema']}): ERA5-Land afegit ({len(res['time'])}h)")
+    return n
 
 
 def main():
@@ -181,6 +251,8 @@ def main():
         c["observat_dia1"] = True
         updated += 1
         print(f"  {c['id_pla']} ({c['data_crema']}): completat amb {len(hores)}h (dia -1 + dia 0 + dia +1)")
+
+    updated += add_era5(cremes, today)
 
     if updated == 0:
         print("Cap crema per actualitzar.")
